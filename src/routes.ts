@@ -1,11 +1,11 @@
 import type { Express, Request, Response } from "express";
 import {
-  emailRequestOtp,
+  signUp,
+  login,
   emailVerifyOtp,
   logout,
   refreshToken,
 } from "./controllers/auth.controller";
-// import requireUser from "./middleware/requireUser";
 
 const routes = (app: Express) => {
   app.get("/", (_req: Request, res: Response) => {
@@ -13,7 +13,8 @@ const routes = (app: Express) => {
   });
 
   // Auth routes
-  app.post("/auth/email/request_otp", emailRequestOtp);
+  app.post("/auth/signup", signUp);
+  app.post("/auth/login", login);
   app.post("/auth/email/verify_otp", emailVerifyOtp);
   app.get("/auth/logout", logout);
   app.post("/auth/refresh_token", refreshToken);
