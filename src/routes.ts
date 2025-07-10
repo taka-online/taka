@@ -1,7 +1,6 @@
 import type { Express, Request, Response } from "express";
 import {
-  signUp,
-  login,
+  emailRequestOtp,
   emailVerifyOtp,
   logout,
   refreshToken,
@@ -15,13 +14,12 @@ const routes = (app: Express) => {
   });
 
   // Auth routes
-  app.post("/auth/signup", signUp);
-  app.post("/auth/login", login);
-  app.post("/auth/email/verify_otp", emailVerifyOtp);
+  app.post("/auth/magic-link", emailRequestOtp);
+  app.post("/auth/verify", emailVerifyOtp);
   app.get("/auth/logout", logout);
   app.post("/auth/refresh_token", refreshToken);
 
-  // Onboarding routes
+  // Onboarding routes (only require authentication, not completed onboarding)
   app.post("/onboarding/complete", requireUser, completeOnboarding);
 
   app.get("/*splat", (_req: Request, res: Response) => {

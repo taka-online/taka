@@ -97,6 +97,7 @@ The app uses a **passwordless magic link system** that handles both login and si
 ### Key Middleware
 
 - **`requireUser`** - JWT authentication middleware
+- **`requireOnboarding`** - Ensures user has completed onboarding (use after requireUser)
 - **`zodErrorHandler`** - Transforms Zod validation errors
 - **`errorHandler`** - Global error handler
 - **`noCache`** - Prevents caching
@@ -112,10 +113,17 @@ Configuration is validated with Zod schemas in `src/config.ts`. Required variabl
 ### Important Notes
 
 - **No password authentication** - magic links only
+- **Onboarding enforcement** - Users cannot access game functionality until onboarding is complete
 - **ELO ratings** - Users get initial ELO based on skill level (beginner: 200, intermediate: 500, advanced: 1000)
 - **Refresh token security** - Tokens are invalidated on reuse detection
 - **CORS** - Configured for multiple frontend origins
 - **Error handling** - Comprehensive error middleware chain
+
+### Authorization Levels
+
+1. **Public** - No auth required (`/auth/magic-link`)
+2. **Authenticated** - JWT required (`/auth/verify`, `/onboarding/complete`)
+3. **Onboarded** - Completed onboarding required (all game features, `/profile`)
 
 ## Testing Infrastructure
 
