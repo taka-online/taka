@@ -20,7 +20,6 @@ bun run start
 
 ```bash
 bun run lint          # Check for lint errors
-bun run lint:fix      # Fix lint errors automatically
 ```
 
 **Code formatting:**
@@ -32,10 +31,10 @@ bun run format        # Format code with Prettier
 **Testing:**
 
 ```bash
-bun run test              # Run tests in watch mode
-bun run test:run          # Run tests once
-bun run test:watch        # Run tests in watch mode (explicit)
-bun run test:coverage     # Run tests with coverage report
+bun run test              # Run tests once
+vitest                    # Run tests in watch mode
+vitest run --coverage     # Run tests with coverage report
+vitest run path/to/test   # Run a specific test file
 ```
 
 **Database operations:**
@@ -46,11 +45,6 @@ npx prisma generate       # Generate Prisma client
 npx prisma studio         # Open Prisma Studio
 ```
 
-## Development Best Practices
-
-- Always run format and lint after changes are complete to make sure your code is up to style
-- NEVER disable linting rules to get around lint errors
-- Never bypass linter rules. Always fix the root cause
 
 ## Architecture Overview
 
@@ -157,6 +151,19 @@ Configuration is validated with Zod schemas in `src/config.ts`. Required variabl
 - Use context7 when installing packages to get their latest docs.
 - This project uses Bun as the package manager and runtime.
 
+## Important Project Context
+
+This is a **soccer board game app backend** that allows users to play against other users. Users get matched with players with similar skills (ELOs). **NEVER add admin routes.**
+
 ## Coding Guidelines
 
 - Never use the any type
+- Always run format and lint after changes are complete to make sure your code is up to style
+- NEVER disable linting rules to get around lint errors
+- Never bypass linter rules. Always fix the root cause
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
