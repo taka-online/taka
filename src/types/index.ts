@@ -1,10 +1,16 @@
 import type { Request, Response, NextFunction } from "express";
-import type { Payload } from "@/utils/tokens";
+import type { User } from "@prisma/client";
 
-export type RequestWithUser = Request & { user?: Payload };
+export type AuthenticatedRequest = Request & { user?: User };
+
+export type AuthenticatedRouteHandler = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) => Promise<void> | void;
 
 export type RouteHandler = (
-  req: RequestWithUser,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => Promise<void> | void;
