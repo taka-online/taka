@@ -1,13 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Response, NextFunction } from "express";
-import { emailRequestOtp } from "@/controllers/auth.controller";
+import type { Request, Response, NextFunction } from "express";
+import { emailRequestOtp, emailVerifyOtp, logout } from "@/controllers/auth.controller";
 import prisma from "@tests/mocks/database";
 import { sendMagicLinkEmail } from "@/utils/email";
+import { createAccessToken, createRefreshToken } from "@/utils/tokens";
+import config from "@/config";
 import type { RequestWithUser } from "@/types";
 
 vi.mock("@/utils/email", () => ({
   sendMagicLinkEmail: vi.fn(),
 }));
+
+vi.mock("@/utils/tokens", () => ({
+  createAccessToken: vi.fn(),
+  createRefreshToken: vi.fn(),
+  verifyToken: vi.fn(),
+}));
+
+const mockCreateAccessToken = vi.mocked(createAccessToken);
+const mockCreateRefreshToken = vi.mocked(createRefreshToken);
 
 type EmailOtpRequestBody = {
   email?: string;
@@ -105,6 +116,432 @@ describe("auth.controller: emailRequestOtp", () => {
     await emailRequestOtp(req as RequestWithUser, res as Response, next);
 
     expect(next).toHaveBeenCalledWith(emailError);
+    expect(res.sendStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe("auth.controller: emailVerifyOtp", () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: NextFunction;
+
+  const validCode = "cuid_valid_code";
+  const validEmail = "test@example.com";
+  const userId = "user_123";
+
+  beforeEach(() => {
+    req = {
+      body: { code: validCode },
+      cookies: {},
+      headers: {},
+    };
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+      sendStatus: vi.fn().mockReturnThis(),
+      cookie: vi.fn().mockReturnThis(),
+      clearCookie: vi.fn().mockReturnThis(),
+    };
+    next = vi.fn();
+
+    mockCreateAccessToken.mockReturnValue("mock_access_token");
+    mockCreateRefreshToken.mockReturnValue("mock_refresh_token");
+
+    vi.clearAllMocks();
+  });
+
+  it("should verify OTP and create new user when user doesn't exist", async () => {
+    const verificationToken = {
+      code: validCode,
+      email: validEmail,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+    };
+
+    const newUser = {
+      id: userId,
+      email: validEmail,
+      username: `user_${Date.now()}`,
+      verified: true,
+      onboardingComplete: false,
+      elo: 200,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    prisma.verificationToken.findFirst.mockResolvedValue(verificationToken);
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.user.create.mockResolvedValue(newUser);
+    prisma.verificationToken.delete.mockResolvedValue(verificationToken);
+    prisma.refreshToken.create.mockResolvedValue({
+      id: "refresh_123",
+      token: "mock_refresh_token",
+      userId,
+      userAgent: "",
+      createdAt: new Date(),
+    });
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: {
+        email: validEmail,
+        username: expect.stringMatching(/^user_\d+$/) as string,
+        verified: true,
+        onboardingComplete: false,
+      },
+    });
+
+    expect(prisma.verificationToken.delete).toHaveBeenCalledWith({
+      where: { code: validCode },
+    });
+
+    expect(mockCreateAccessToken).toHaveBeenCalledWith(userId);
+    expect(mockCreateRefreshToken).toHaveBeenCalledWith(userId);
+
+    expect(res.cookie).toHaveBeenCalledWith(
+      config.JWT_REFRESH_TOKEN_COOKIE_NAME,
+      "mock_refresh_token",
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: "lax",
+      })
+    );
+
+    expect(res.json).toHaveBeenCalledWith({
+      accessToken: "mock_access_token",
+      needsOnboarding: true,
+    });
+  });
+
+  it("should verify OTP and login existing verified user", async () => {
+    const verificationToken = {
+      code: validCode,
+      email: validEmail,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+    };
+
+    const existingUser = {
+      id: userId,
+      email: validEmail,
+      username: "existing_user",
+      verified: true,
+      onboardingComplete: true,
+      elo: 500,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    prisma.verificationToken.findFirst.mockResolvedValue(verificationToken);
+    prisma.user.findUnique.mockResolvedValue(existingUser);
+    prisma.verificationToken.delete.mockResolvedValue(verificationToken);
+    prisma.refreshToken.create.mockResolvedValue({
+      id: "refresh_123",
+      token: "mock_refresh_token",
+      userId,
+      userAgent: "",
+      createdAt: new Date(),
+    });
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(prisma.user.update).not.toHaveBeenCalled();
+
+    expect(res.json).toHaveBeenCalledWith({
+      accessToken: "mock_access_token",
+      needsOnboarding: false,
+    });
+  });
+
+  it("should verify unverified existing user", async () => {
+    const verificationToken = {
+      code: validCode,
+      email: validEmail,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+    };
+
+    const unverifiedUser = {
+      id: userId,
+      email: validEmail,
+      username: "existing_user",
+      verified: false,
+      onboardingComplete: false,
+      elo: 200,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const verifiedUser = {
+      ...unverifiedUser,
+      verified: true,
+    };
+
+    prisma.verificationToken.findFirst.mockResolvedValue(verificationToken);
+    prisma.user.findUnique.mockResolvedValue(unverifiedUser);
+    prisma.user.update.mockResolvedValue(verifiedUser);
+    prisma.verificationToken.delete.mockResolvedValue(verificationToken);
+    prisma.refreshToken.create.mockResolvedValue({
+      id: "refresh_123",
+      token: "mock_refresh_token",
+      userId,
+      userAgent: "",
+      createdAt: new Date(),
+    });
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: userId },
+      data: { verified: true },
+    });
+
+    expect(res.json).toHaveBeenCalledWith({
+      accessToken: "mock_access_token",
+      needsOnboarding: true,
+    });
+  });
+
+  it("should handle existing refresh token for same user", async () => {
+    const verificationToken = {
+      code: validCode,
+      email: validEmail,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+    };
+
+    const existingUser = {
+      id: userId,
+      email: validEmail,
+      username: "existing_user",
+      verified: true,
+      onboardingComplete: true,
+      elo: 500,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const existingRefreshToken = {
+      id: "refresh_123",
+      token: "existing_refresh_token",
+      userId,
+      userAgent: "",
+      createdAt: new Date(),
+    };
+
+    req.cookies = { [config.JWT_REFRESH_TOKEN_COOKIE_NAME]: "existing_refresh_token" };
+
+    prisma.verificationToken.findFirst.mockResolvedValue(verificationToken);
+    prisma.user.findUnique.mockResolvedValue(existingUser);
+    prisma.refreshToken.findUnique.mockResolvedValue(existingRefreshToken);
+    prisma.refreshToken.delete.mockResolvedValue(existingRefreshToken);
+    prisma.verificationToken.delete.mockResolvedValue(verificationToken);
+    prisma.refreshToken.create.mockResolvedValue({
+      id: "refresh_456",
+      token: "mock_refresh_token",
+      userId,
+      userAgent: "",
+      createdAt: new Date(),
+    });
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(prisma.refreshToken.delete).toHaveBeenCalledWith({
+      where: { token: "existing_refresh_token" },
+    });
+
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      config.JWT_REFRESH_TOKEN_COOKIE_NAME,
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: "lax",
+      })
+    );
+  });
+
+  it("should return 400 when verification token not found", async () => {
+    prisma.verificationToken.findFirst.mockResolvedValue(null);
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Verification request not found",
+    });
+  });
+
+  it("should return 400 when verification token is expired", async () => {
+    const expiredToken = {
+      code: validCode,
+      email: validEmail,
+      expiresAt: new Date(Date.now() - 10 * 60 * 1000),
+      createdAt: new Date(),
+    };
+
+    prisma.verificationToken.findFirst.mockResolvedValue(expiredToken);
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Login request has expired",
+    });
+  });
+
+  it("should return validation error for invalid code format", async () => {
+    req.body = { code: "invalid_code" };
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "ZodError",
+      })
+    );
+  });
+
+  it("should include user agent in refresh token", async () => {
+    const verificationToken = {
+      code: validCode,
+      email: validEmail,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(),
+    };
+
+    const newUser = {
+      id: userId,
+      email: validEmail,
+      username: `user_${Date.now()}`,
+      verified: true,
+      onboardingComplete: false,
+      elo: 200,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    req.headers = { "user-agent": "Mozilla/5.0 Test Browser" };
+
+    prisma.verificationToken.findFirst.mockResolvedValue(verificationToken);
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.user.create.mockResolvedValue(newUser);
+    prisma.verificationToken.delete.mockResolvedValue(verificationToken);
+    prisma.refreshToken.create.mockResolvedValue({
+      id: "refresh_123",
+      token: "mock_refresh_token",
+      userId,
+      userAgent: "Mozilla/5.0 Test Browser",
+      createdAt: new Date(),
+    });
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(prisma.refreshToken.create).toHaveBeenCalledWith({
+      data: {
+        token: "mock_refresh_token",
+        userId,
+        userAgent: "Mozilla/5.0 Test Browser",
+      },
+    });
+  });
+
+  it("should call next with error when database operation fails", async () => {
+    const error = new Error("Database connection failed");
+    prisma.verificationToken.findFirst.mockRejectedValue(error);
+
+    await emailVerifyOtp(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
+});
+
+describe("auth.controller: logout", () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let next: NextFunction;
+
+  const validRefreshToken = "valid_refresh_token";
+
+  beforeEach(() => {
+    req = {
+      body: { refreshToken: validRefreshToken },
+    };
+    res = {
+      sendStatus: vi.fn().mockReturnThis(),
+    };
+    next = vi.fn();
+
+    vi.clearAllMocks();
+  });
+
+  it("should successfully logout user with valid refresh token", async () => {
+    const refreshTokenRecord = {
+      id: "refresh_123",
+      token: validRefreshToken,
+      userId: "user_123",
+      userAgent: "Mozilla/5.0",
+      createdAt: new Date(),
+    };
+
+    prisma.refreshToken.delete.mockResolvedValue(refreshTokenRecord);
+
+    await logout(req as Request, res as Response, next);
+
+    expect(prisma.refreshToken.delete).toHaveBeenCalledWith({
+      where: { token: validRefreshToken },
+    });
+
+    expect(res.sendStatus).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("should handle missing refreshToken in request body", async () => {
+    req.body = {};
+
+    await logout(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "ZodError",
+      })
+    );
+  });
+
+  it("should handle empty refreshToken", async () => {
+    req.body = { refreshToken: "" };
+
+    await logout(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "ZodError",
+      })
+    );
+  });
+
+  it("should handle extra fields in request body", async () => {
+    req.body = {
+      refreshToken: validRefreshToken,
+      extraField: "should not be allowed",
+    };
+
+    await logout(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "ZodError",
+      })
+    );
+  });
+
+  it("should handle database deletion failure gracefully", async () => {
+    const error = new Error("Token not found");
+    prisma.refreshToken.delete.mockRejectedValue(error);
+
+    await logout(req as Request, res as Response, next);
+
+    expect(next).toHaveBeenCalledWith(error);
     expect(res.sendStatus).not.toHaveBeenCalled();
   });
 }); 
