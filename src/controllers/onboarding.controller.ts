@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { RouteHandler } from "@/types";
+import type { AuthenticatedRouteHandler } from "@/types";
 import prisma from "@/database";
 
 const SKILL_LEVELS = ["beginner", "intermediate", "advanced"] as const;
@@ -24,23 +24,21 @@ const completeOnboardingSchema = z.object({
 /**
  * Complete the onboarding process for a user.
  */
-export const completeOnboarding: RouteHandler = async (req, res, next) => {
+export const completeOnboarding: AuthenticatedRouteHandler = async (
+  req,
+  res,
+  next,
+) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-    });
+    const user = req.user;
+    if (!user) throw new Error("req.user should exist, but doesn't");
 
-    if (!user) {
-      res.status(404).json({ error: "User not found." });
-      return;
-    }
+    const { skillLevel, username } = completeOnboardingSchema.parse(req.body);
 
     if (user.onboardingComplete) {
       res.status(403).json({ error: "Onboarding has already been completed." });
       return;
     }
-
-    const { skillLevel, username } = completeOnboardingSchema.parse(req.body);
 
     // Check if username is already taken
     const existingUserWithUsername = await prisma.user.findUnique({
@@ -55,7 +53,7 @@ export const completeOnboarding: RouteHandler = async (req, res, next) => {
     const elo = ELO_MAP[skillLevel];
 
     const updatedUser = await prisma.user.update({
-      where: { id: req.user!.userId },
+      where: { id: user.id },
       data: {
         username,
         elo,
