@@ -21,16 +21,10 @@ export default function Header() {
               Rules
             </Link>
             <Link
-              href="#"
+              href="/tutorial"
               className="font-medium text-gray-600 transition-colors hover:text-gray-900"
             >
               Tutorial
-            </Link>
-            <Link
-              href="#"
-              className="font-medium text-gray-600 transition-colors hover:text-gray-900"
-            >
-              About
             </Link>
           </nav>
           <button className="rounded-lg bg-green-600 px-6 py-2 font-medium text-white transition-colors hover:bg-green-700">

@@ -51,7 +51,7 @@ const RulesPage: React.FC = () => {
                   <div className="inline-block">
                     {/* Column indicators */}
                     <div className="mb-1 flex">
-                      <div className="w-8"></div> {/* Space for row labels */}
+                      <div className="w-8" /> {/* Space for row labels */}
                       {Array.from({ length: 14 }, (_, i) => (
                         <div
                           key={i}
@@ -79,208 +79,208 @@ const RulesPage: React.FC = () => {
                       {/* Game board */}
                       <div className="grid grid-cols-14 grid-rows-10 gap-[1px] rounded bg-green-700 p-2 shadow-lg">
                         {/* Row A (0) */}
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
 
                         {/* Row B (1) - B6 */}
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center border-r-4 border-r-white bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
 
                         {/* Row C (2) - C4, C11 */}
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
 
                         {/* Row D (3) - Goal area starts - D5, D10 */}
-                        <div className="aspect-square w-8 border-t-4 border-r-4 border-t-white border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-t-4 border-r-4 border-t-white border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center border-r-4 border-r-white bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-t-4 border-l-4 border-t-white border-l-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-t-4 border-l-4 border-t-white border-l-white bg-green-600" />
 
                         {/* Row E (4) - Goal area continues - E3, E7, E8, E12 */}
                         <div className="flex aspect-square w-8 items-center justify-center border-r-4 border-r-white bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-4 border-yellow-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-4 border-yellow-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center border-l-4 border-l-white bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-4 border-yellow-400 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-4 border-yellow-400 bg-gray-800 shadow-lg" />
                         </div>
 
                         {/* Row F (5) - F3, F7, F8, F12 */}
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-l-4 border-l-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-l-4 border-l-white bg-green-600" />
 
                         {/* Row G (6) - Goal area ends - G5, G10 */}
-                        <div className="aspect-square w-8 border-r-4 border-b-4 border-r-white border-b-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-r-4 border-b-4 border-r-white border-b-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center border-r-4 border-r-white bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-b-4 border-l-4 border-b-white border-l-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-b-4 border-l-4 border-b-white border-l-white bg-green-600" />
 
                         {/* Row H (7) - H4, H11 */}
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
 
                         {/* Row I (8) - I6, I9 */}
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-400 bg-white shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                         <div className="flex aspect-square w-8 items-center justify-center border-r-4 border-r-white bg-green-600">
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg"></div>
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-600 bg-gray-800 shadow-lg" />
                         </div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
 
                         {/* Row J (9) */}
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
-                        <div className="aspect-square w-8 bg-green-600"></div>
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 border-r-4 border-r-white bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
+                        <div className="aspect-square w-8 bg-green-600" />
                       </div>
                     </div>
                   </div>
@@ -435,11 +435,11 @@ const RulesPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-2 text-center text-xs text-gray-600">
-                    <span className="mr-1 inline-block h-3 w-3 bg-green-300 shadow-sm"></span>
+                    <span className="mr-1 inline-block h-3 w-3 bg-green-300 shadow-sm" />
                     Forward (3)
-                    <span className="mr-1 ml-3 inline-block h-3 w-3 bg-yellow-300 shadow-sm"></span>
+                    <span className="mr-1 ml-3 inline-block h-3 w-3 bg-yellow-300 shadow-sm" />
                     Backward (2)
-                    <span className="mr-1 ml-3 inline-block h-3 w-3 bg-orange-300 shadow-sm"></span>
+                    <span className="mr-1 ml-3 inline-block h-3 w-3 bg-orange-300 shadow-sm" />
                     Horizontal (2)
                   </div>
                 </div>
@@ -546,9 +546,9 @@ const RulesPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-2 text-center text-xs text-gray-600">
-                    <span className="mr-1 inline-block h-3 w-3 bg-green-300 shadow-sm"></span>
+                    <span className="mr-1 inline-block h-3 w-3 bg-green-300 shadow-sm" />
                     Legal Tackle
-                    <span className="mr-1 ml-3 inline-block h-3 w-3 bg-red-300 shadow-sm"></span>
+                    <span className="mr-1 ml-3 inline-block h-3 w-3 bg-red-300 shadow-sm" />
                     Illegal (Behind)
                   </div>
                 </div>
@@ -654,11 +654,11 @@ const RulesPage: React.FC = () => {
                       Chip Pass Example
                     </div>
                     <div className="flex items-center justify-center space-x-1 text-xs">
-                      <div className="h-4 w-4 rounded-full bg-blue-600 shadow-lg"></div>
+                      <div className="h-4 w-4 rounded-full bg-blue-600 shadow-lg" />
                       <div className="text-yellow-300">~</div>
-                      <div className="h-4 w-4 rounded-full bg-red-600 shadow-lg"></div>
+                      <div className="h-4 w-4 rounded-full bg-red-600 shadow-lg" />
                       <div className="text-yellow-300">~</div>
-                      <div className="h-4 w-4 rounded-full bg-blue-600 shadow-lg"></div>
+                      <div className="h-4 w-4 rounded-full bg-blue-600 shadow-lg" />
                     </div>
                     <div className="mt-1 text-center text-xs text-gray-300">
                       Ball flies over opponent
