@@ -27,6 +27,8 @@ interface TutorialState {
   selectedPiece: Piece | null;
   /** Are we waiting for a user to select a direction for the piece **/
   awaitingDirectionSelection: boolean;
+  /* Is the turn button enabled */
+  isTurnButtonEnabled: boolean;
   /** Current step in the tutorial progression */
   currentStep: TutorialStep;
   /** Set of tutorial steps that have been completed */
@@ -74,7 +76,6 @@ const tutorialStepStates: Record<string, () => void> = {
   basic_movement: () => {
     useTutorialStore.setState({
       currentStep: "basic_movement",
-      selectedPiece: demoPiece,
     });
 
     setBoardLayout([demoPiece]);
@@ -84,20 +85,16 @@ const tutorialStepStates: Record<string, () => void> = {
 
     useTutorialStore.setState({
       currentStep: "turning",
-      awaitingDirectionSelection: true,
-      selectedPiece: demoPiece,
     });
   },
   movement_with_ball: () => {
     useTutorialStore.setState({
       currentStep: "movement_with_ball",
-      selectedPiece: demoPiece,
     });
   },
   completed: () => {
     useTutorialStore.setState({
       currentStep: "completed",
-      pieces: [],
       selectedPiece: null,
     });
   },
@@ -108,6 +105,7 @@ const useTutorialStore = create<TutorialState>(() => ({
   boardLayout: createBlankBoard(),
   awaitingDirectionSelection: false,
   selectedPiece: null,
+  isTurnButtonEnabled: false,
   currentStep: "welcome",
   completedSteps: new Set<TutorialStep>(),
   tutorialActive: false,
@@ -132,6 +130,24 @@ const getValidMovementTargets = (piece: Piece): Position[] => {
 
   return validMoves;
 };
+
+/**
+ * Deselect the currently selected piece
+ */
+const deselectPiece = () => {
+  const {selectedPiece} = useTutorialStore.getState();
+
+  if (!selectedPiece) {
+    // This should never happen. This is a bug if this gets called.
+    throw new Error("Selected piece called when no piece was selected");
+  }
+
+  useTutorialStore.setState({
+    awaitingDirectionSelection: false,
+    selectedPiece: null,
+    isTurnButtonEnabled: false,
+  });
+}
 
 /**
  * Moves a piece from one position to another
@@ -217,6 +233,10 @@ export const getSquareInfo = (
 ): SquareType => {
   const state = useTutorialStore.getState();
 
+  // Tutorial is complete, don't let anything happen
+  if (state.currentStep === "completed") return "nothing";
+
+  // If we are waiting direction selection, the only actions are to turn, transfer selection, or deselect
   if (state.awaitingDirectionSelection) {
     const turnTargets = getTurnTargetsForSelectedPiece();
 
@@ -230,12 +250,14 @@ export const getSquareInfo = (
   const [row, col] = position.getPositionCoordinates();
   const piece = useTutorialStore.getState().boardLayout[row][col];
 
-  if (isPositionValidMovementTarget(position)) {
-    return "movement";
+  if (piece && piece.getColor() === currentPlayerColor) {
+    return "piece";
   }
 
-  if (piece && piece.getColor() === currentPlayerColor) {
-    return "cancellable";
+  if (state.currentStep === "turning") return "nothing";
+
+  if (isPositionValidMovementTarget(position)) {
+    return "movement";
   }
 
   return "nothing";
@@ -285,9 +307,12 @@ const getTurnTargetsForSelectedPiece = () => {
  * @param position - The position that was clicked
  */
 export const handleSquareClick = (position: Position): void => {
-  const { awaitingDirectionSelection, selectedPiece } =
+  const { awaitingDirectionSelection, selectedPiece, currentStep } =
     useTutorialStore.getState();
   const pieceAtPosition = getPieceAtPosition(position);
+
+  // Tutorial is complete, don't let anything happen
+  if (currentStep === "completed") return;
 
   // First thing to check is if we are awaiting a direction selection. If we are, the only action the user can take is to rotate the piece
   if (awaitingDirectionSelection) {
@@ -302,7 +327,8 @@ export const handleSquareClick = (position: Position): void => {
     );
 
     if (!turnTarget) {
-      // Since the clicked position is not a valid turn target, ignore
+      // Since the clicked position is not a valid turn target, we are trying to de select
+      deselectPiece();
       return;
     }
 
@@ -325,14 +351,19 @@ export const handleSquareClick = (position: Position): void => {
   if (pieceAtPosition) {
     // Transfer selection over
     useTutorialStore.setState({ selectedPiece: pieceAtPosition });
+
+    if (currentStep === "turning") {
+      useTutorialStore.setState({ isTurnButtonEnabled: true });
+    }
+
     return;
   }
 
-  // No piece, must mean user is trying to move or de select
-  if (selectedPiece && isPositionValidMovementTarget(position)) {
+  // No piece, must mean user is trying to move
+  if (currentStep !== "turning" && selectedPiece && isPositionValidMovementTarget(position)) {
     // We are trying to move
     movePiece(selectedPiece, position);
-    useTutorialStore.setState({ selectedPiece: null });
+    deselectPiece();
 
     // If we completed the basic movement successfully, move to next step
     if (useTutorialStore.getState().currentStep === "basic_movement") {
@@ -347,7 +378,7 @@ export const handleSquareClick = (position: Position): void => {
   }
 
   // We are trying to de select
-  useTutorialStore.setState({ selectedPiece: null });
+  deselectPiece();
 };
 
 /**
@@ -370,6 +401,21 @@ export const nextStep = () => {
 
   useTutorialStore.setState({
     completedSteps: newCompletedSteps,
+  });
+};
+
+/**
+ * Handle the turn piece button click
+ */
+export const handleTurnPiece = () => {
+  const { selectedPiece, currentStep } = useTutorialStore.getState();
+
+  if (!selectedPiece) return;
+
+  if (currentStep !== "turning") return;
+
+  useTutorialStore.setState({
+    awaitingDirectionSelection: true,
   });
 };
 

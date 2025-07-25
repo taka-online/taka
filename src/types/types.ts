@@ -10,4 +10,10 @@ export type TutorialStep =
 
 export type FacingDirection = "north" | "south" | "west" | "east";
 
-export type SquareType = "nothing" | "cancellable" | "movement" | "turn_target";
+/**
+ * nothing - no pointer actions
+ * piece - piece on square, clickable
+ * movement - blue dot, clickable
+ * turn target - turn, clickable
+ */
+export type SquareType = "nothing" | "piece" | "movement" | "turn_target";
