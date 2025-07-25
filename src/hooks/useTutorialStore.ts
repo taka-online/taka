@@ -3,7 +3,12 @@
 import { create } from "zustand";
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
-import { PlayerColor, TutorialStep } from "@/types/types";
+import {
+  FacingDirection,
+  PlayerColor,
+  SquareType,
+  TutorialStep,
+} from "@/types/types";
 import {
   BOARD_COLS,
   BOARD_ROWS,
@@ -19,7 +24,9 @@ interface TutorialState {
   /** 2D array representing the board layout with pieces or null for empty squares */
   boardLayout: (Piece | null)[][];
   /** Position of the currently selected piece, if any */
-  selectedPiecePosition: Position | null;
+  selectedPiece: Piece | null;
+  /** Are we waiting for a user to select a direction for the piece **/
+  awaitingDirectionSelection: boolean;
   /** Current step in the tutorial progression */
   currentStep: TutorialStep;
   /** Set of tutorial steps that have been completed */
@@ -41,57 +48,77 @@ const createBlankBoard = () =>
 export const stepOrder: TutorialStep[] = [
   "welcome",
   "basic_movement",
+  "turning",
   "movement_with_ball",
   "completed",
 ];
 
+const demoPiece = new Piece(
+  "W1",
+  TUTORIAL_PLAYER_COLOR,
+  new Position(4, 4),
+  false,
+);
+
 /**
  * Predefined states for each tutorial step. This represents the state we should update. Anything not set won't get updated
  */
-const tutorialStepStates: Record<TutorialStep, Partial<TutorialState>> = {
-  welcome: {
-    currentStep: "welcome",
-    pieces: [],
-    selectedPiecePosition: null,
+const tutorialStepStates: Record<string, () => void> = {
+  welcome: () => {
+    useTutorialStore.setState({
+      currentStep: "welcome",
+      pieces: [],
+      selectedPiece: null,
+    });
   },
-  basic_movement: {
-    currentStep: "basic_movement",
-    pieces: [new Piece("W1", TUTORIAL_PLAYER_COLOR, new Position(4, 4), false)],
-    selectedPiecePosition: null,
+  basic_movement: () => {
+    useTutorialStore.setState({
+      currentStep: "basic_movement",
+      selectedPiece: demoPiece,
+    });
+
+    setBoardLayout([demoPiece]);
   },
-  movement_with_ball: {
-    currentStep: "movement_with_ball",
-    pieces: [new Piece("W1", TUTORIAL_PLAYER_COLOR, new Position(4, 4), true)],
-    selectedPiecePosition: new Position(4, 4),
+  turning: () => {
+    demoPiece.setHasBall(true);
+
+    useTutorialStore.setState({
+      currentStep: "turning",
+      awaitingDirectionSelection: true,
+      selectedPiece: demoPiece,
+    });
   },
-  completed: {
-    currentStep: "completed",
-    pieces: [],
-    selectedPiecePosition: null,
+  movement_with_ball: () => {
+    useTutorialStore.setState({
+      currentStep: "movement_with_ball",
+      selectedPiece: demoPiece,
+    });
+  },
+  completed: () => {
+    useTutorialStore.setState({
+      currentStep: "completed",
+      pieces: [],
+      selectedPiece: null,
+    });
   },
 };
 
 const useTutorialStore = create<TutorialState>(() => ({
   pieces: [],
   boardLayout: createBlankBoard(),
-  selectedPiecePosition: null,
+  awaitingDirectionSelection: false,
+  selectedPiece: null,
   currentStep: "welcome",
   completedSteps: new Set<TutorialStep>(),
   tutorialActive: false,
 }));
 
 /**
- * Gets all valid movement positions for the currently selected piece
+ * Gets all valid movement positions for a piece. Accounts for blocked paths due to other pieces
  * @returns Array of valid target positions
  */
-const getValidMovementTargetsForSelectedPiece = (): Position[] => {
-  const state = useTutorialStore.getState();
-  const { selectedPiecePosition, boardLayout } = state;
-
-  if (!selectedPiecePosition) return [];
-
-  const piece = getPieceAtPosition(selectedPiecePosition);
-  if (!piece) return [];
+const getValidMovementTargets = (piece: Piece): Position[] => {
+  const { boardLayout } = useTutorialStore.getState();
 
   const validMoves: Position[] = [];
   const allMoves = piece.getMovementTargets();
@@ -108,31 +135,25 @@ const getValidMovementTargetsForSelectedPiece = (): Position[] => {
 
 /**
  * Moves a piece from one position to another
- * @param oldPosition - Current position of the piece
+ * @param piece - Piece to move
  * @param newPosition - Target position for the piece
- * @throws Error if no piece exists at old position or piece exists at new position
+ * @throws Error if piece exists at new position
  */
-const movePiece = (oldPosition: Position, newPosition: Position) => {
-  const piece = getPieceAtPosition(oldPosition);
-
-  if (!piece) {
-    throw new Error("There has to be a piece at the old position");
-  }
-
+const movePiece = (piece: Piece, newPosition: Position) => {
   if (getPieceAtPosition(newPosition)) {
-    throw new Error("There can't be a piece at the new location");
+    // This should never happen, as we should check validation
+    throw new Error("There can't be a piece at the new location.");
   }
+
+  const [oRow, oCol] = piece.getPosition().getPositionCoordinates();
+  const [nRow, nCol] = newPosition.getPositionCoordinates();
 
   piece.setPosition(newPosition);
-
-  const [oRow, oCol] = oldPosition.getPositionCoordinates();
-  const [nRow, nCol] = newPosition.getPositionCoordinates();
 
   useTutorialStore.setState((state) => {
     const newBoardLayout = state.boardLayout.map((row) => [...row]);
     newBoardLayout[oRow][oCol] = null;
     newBoardLayout[nRow][nCol] = piece;
-
     return {
       boardLayout: newBoardLayout,
     };
@@ -154,7 +175,6 @@ export const setBoardLayout = (pieces: Piece[]) => {
   useTutorialStore.setState({
     pieces: [...pieces],
     boardLayout,
-    selectedPiecePosition: null,
   });
 };
 
@@ -170,44 +190,94 @@ export const getPieceAtPosition = (position: Position): Piece | null => {
 };
 
 /**
- * Gets the currently selected piece position
- * @returns The selected position or null if no piece is selected
- */
-export const getSelectedPosition = (): Position | null => {
-  return useTutorialStore.getState().selectedPiecePosition;
-};
-
-/**
  * Checks if a position is a valid movement target for the selected piece
  * @param position - The position to validate
  * @returns True if the position is a valid movement target
  */
 export const isPositionValidMovementTarget = (position: Position): boolean => {
-  const state = useTutorialStore.getState();
-  if (!state.selectedPiecePosition) return false;
+  const { selectedPiece } = useTutorialStore.getState();
 
-  const targets = getValidMovementTargetsForSelectedPiece();
+  if (!selectedPiece) {
+    return false;
+  }
+
+  const targets = getValidMovementTargets(selectedPiece);
   return !!targets.find((target) => target.equals(position));
 };
 
 /**
- * Determines if a square can be clicked by the current player
- * @param position - The position to check
- * @param currentPlayerColor - The color of the current player
- * @returns True if the square is clickable
+ * Get the info for a square
+ * @param position Current square position
+ * @param currentPlayerColor Current player color
+ * @return The type that the square should display
  */
-export const isSquareClickable = (
+export const getSquareInfo = (
   position: Position,
   currentPlayerColor: PlayerColor,
-): boolean => {
+): SquareType => {
+  const state = useTutorialStore.getState();
+
+  if (state.awaitingDirectionSelection) {
+    const turnTargets = getTurnTargetsForSelectedPiece();
+
+    const isSquareTurnTarget = !!turnTargets.find((e) =>
+      e.position.equals(position),
+    );
+
+    return isSquareTurnTarget ? "turn_target" : "nothing";
+  }
+
   const [row, col] = position.getPositionCoordinates();
   const piece = useTutorialStore.getState().boardLayout[row][col];
 
-  if (piece && piece.getColor() === currentPlayerColor) {
-    return true;
+  if (isPositionValidMovementTarget(position)) {
+    return "movement";
   }
 
-  return isPositionValidMovementTarget(position);
+  if (piece && piece.getColor() === currentPlayerColor) {
+    return "cancellable";
+  }
+
+  return "nothing";
+};
+
+type getTurnTargetsReturnType = {
+  position: Position;
+  direction: FacingDirection;
+}[];
+
+/**
+ * Get the valid turn targets for the currently selected piece
+ * @param piece Piece to get turn targets of
+ */
+const getTurnTargets = (piece: Piece): getTurnTargetsReturnType => {
+  const [row, col] = piece.getPosition().getPositionCoordinates();
+
+  const targets: getTurnTargetsReturnType = [];
+
+  if (row - 1 >= 0)
+    targets.push({ position: new Position(row - 1, col), direction: "north" });
+  if (row + 1 < BOARD_ROWS)
+    targets.push({ position: new Position(row + 1, col), direction: "south" });
+  if (col - 1 >= 0)
+    targets.push({ position: new Position(row, col - 1), direction: "west" });
+  if (col + 1 < BOARD_COLS)
+    targets.push({ position: new Position(row, col + 1), direction: "east" });
+
+  return targets;
+};
+
+/**
+ * Get the turn targets for the currently selected piece
+ */
+const getTurnTargetsForSelectedPiece = () => {
+  const { selectedPiece } = useTutorialStore.getState();
+
+  if (!selectedPiece) {
+    throw new Error("A piece must be selected.");
+  }
+
+  return getTurnTargets(selectedPiece);
 };
 
 /**
@@ -215,25 +285,61 @@ export const isSquareClickable = (
  * @param position - The position that was clicked
  */
 export const handleSquareClick = (position: Position): void => {
-  const state = useTutorialStore.getState();
-  const piece = getPieceAtPosition(position);
+  const { awaitingDirectionSelection, selectedPiece } =
+    useTutorialStore.getState();
+  const pieceAtPosition = getPieceAtPosition(position);
 
-  if (piece) {
+  // First thing to check is if we are awaiting a direction selection. If we are, the only action the user can take is to rotate the piece
+  if (awaitingDirectionSelection) {
+    if (!selectedPiece) {
+      throw new Error(
+        "Awaiting direction selection, but there is no selected piece. This should never happen",
+      );
+    }
+
+    const turnTarget = getTurnTargetsForSelectedPiece().find((e) =>
+      e.position.equals(position),
+    );
+
+    if (!turnTarget) {
+      // Since the clicked position is not a valid turn target, ignore
+      return;
+    }
+
+    // Valid target, so turn piece
+    selectedPiece.setFacingDirection(turnTarget.direction);
+
+    // Turn is over
+    useTutorialStore.setState({
+      awaitingDirectionSelection: false,
+      selectedPiece: null,
+    });
+
+    if (useTutorialStore.getState().currentStep === "turning") {
+      nextStep();
+    }
+
+    return;
+  }
+
+  if (pieceAtPosition) {
     // Transfer selection over
-    useTutorialStore.setState({ selectedPiecePosition: position });
+    useTutorialStore.setState({ selectedPiece: pieceAtPosition });
     return;
   }
 
   // No piece, must mean user is trying to move or de select
-  if (state.selectedPiecePosition && isPositionValidMovementTarget(position)) {
+  if (selectedPiece && isPositionValidMovementTarget(position)) {
     // We are trying to move
-    movePiece(state.selectedPiecePosition, position);
-    useTutorialStore.setState({ selectedPiecePosition: null });
+    movePiece(selectedPiece, position);
+    useTutorialStore.setState({ selectedPiece: null });
 
     // If we completed the basic movement successfully, move to next step
     if (useTutorialStore.getState().currentStep === "basic_movement") {
       nextStep();
-    } else if (useTutorialStore.getState().currentStep === "movement_with_ball") {
+    } else if (
+      useTutorialStore.getState().currentStep === "movement_with_ball"
+    ) {
       nextStep();
     }
 
@@ -241,14 +347,7 @@ export const handleSquareClick = (position: Position): void => {
   }
 
   // We are trying to de select
-  useTutorialStore.setState({ selectedPiecePosition: null });
-};
-
-/**
- * Resets the board to an empty state
- */
-export const resetBoard = () => {
-  setBoardLayout([]);
+  useTutorialStore.setState({ selectedPiece: null });
 };
 
 /**
@@ -267,58 +366,16 @@ export const nextStep = () => {
   const newCompletedSteps = new Set(state.completedSteps);
   newCompletedSteps.add(state.currentStep);
 
-  const stepState = tutorialStepStates[nextStep];
+  tutorialStepStates[nextStep]();
 
   useTutorialStore.setState({
     completedSteps: newCompletedSteps,
-    ...stepState,
   });
-  if (stepState.pieces) setBoardLayout(stepState.pieces);
 };
 
 /**
- * Resets the tutorial to the welcome step
+ * Hook to access the tutorial store for reactive updates
  */
-export const resetTutorial = () => {
-  const state = tutorialStepStates["welcome"];
-
-  useTutorialStore.setState(state);
-  if (state.pieces) setBoardLayout(state.pieces);
+export const useTutorialBoard = () => {
+  return useTutorialStore();
 };
-
-/**
- * Custom hook that provides access to tutorial board state and actions
- * @returns Object containing board state, tutorial state, and action functions
- */
-export function useTutorialBoard() {
-  const {
-    pieces,
-    boardLayout,
-    selectedPiecePosition,
-    currentStep,
-    completedSteps,
-  } = useTutorialStore();
-
-  return {
-    // Board state
-    pieces,
-    boardLayout,
-    selectedPiecePosition,
-
-    // Tutorial state
-    currentStep,
-    completedSteps,
-
-    // Board actions
-    getPieceAtPosition,
-    getSelectedPosition,
-    isPositionValidMovementTarget,
-    isSquareClickable,
-    handleSquareClick,
-    resetBoard,
-
-    // Tutorial actions
-    nextStep,
-    resetTutorial,
-  };
-}

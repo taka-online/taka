@@ -23,10 +23,10 @@ const Piece: React.FC<PieceProps> = ({ piece, isSelected }) => {
       case "south":
         ballClass += "bottom-0 left-1/2 transform -translate-x-1/2";
         break;
-      case "towards_white_goal":
+      case "west":
         ballClass += "left-0 top-1/2 transform -translate-y-1/2";
         break;
-      case "towards_black_goal":
+      case "east":
         ballClass += "right-0 top-1/2 transform -translate-y-1/2";
         break;
     }

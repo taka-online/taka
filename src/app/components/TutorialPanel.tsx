@@ -1,5 +1,5 @@
 import React from "react";
-import { stepOrder, useTutorialBoard } from "@/hooks/useTutorialStore";
+import { nextStep, stepOrder, useTutorialBoard } from "@/hooks/useTutorialStore";
 import { TutorialStep } from "@/types/types";
 
 interface TutorialPanelProps {
@@ -7,9 +7,7 @@ interface TutorialPanelProps {
 }
 
 const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
-  const { nextStep, completedSteps, currentStep } = useTutorialBoard();
-
-  const getTutorialContent = (step: TutorialStep) => {
+  const getTutorialContent = (step: TutorialStep): {title: string, content: string} => {
     switch (step) {
       case "welcome":
         return {
@@ -31,6 +29,12 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
           content: "Click on any highlighted square to move with the ball.",
         };
 
+      case "turning":
+        return {
+          title: "Turning",
+          content: "Click on the piece and attempt to turn it",
+        }
+
       case "completed":
         return {
           title: "Tutorial Complete!",
@@ -39,6 +43,8 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         };
     }
   };
+
+  const {currentStep, completedSteps} = useTutorialBoard();
 
   const tutorialContent = getTutorialContent(currentStep);
 

@@ -2,23 +2,17 @@
 
 import React from "react";
 import Piece from "./Piece";
-import { useTutorialBoard } from "@/hooks/useTutorialStore";
 import {
   BOARD_COLS,
   BOARD_ROWS,
   TUTORIAL_PLAYER_COLOR,
 } from "@/utils/constants";
 import { Position } from "@/classes/Position";
+import { getSquareInfo, handleSquareClick, useTutorialBoard } from "@/hooks/useTutorialStore";
 
 const TutorialGameBoard: React.FC = () => {
-  const {
-    getPieceAtPosition,
-    isSquareClickable,
-    isPositionValidMovementTarget,
-    getSelectedPosition,
-    handleSquareClick,
-  } = useTutorialBoard();
-
+  const { boardLayout, selectedPiece } = useTutorialBoard();
+  
   const rowLabels = Array.from({ length: BOARD_ROWS }, (_, i) =>
     String.fromCharCode(65 + i),
   ); // A-J
@@ -66,15 +60,13 @@ const TutorialGameBoard: React.FC = () => {
 
                 const position = new Position(rowIndex, colIndex);
 
-                const piece = getPieceAtPosition(position);
-                const canSelectSquare = isSquareClickable(
+                const piece = boardLayout[rowIndex][colIndex];
+                const squareInfo = getSquareInfo(
                   position,
                   TUTORIAL_PLAYER_COLOR,
                 );
-                const isValidMovementTarget =
-                  isPositionValidMovementTarget(position);
 
-                let borderClasses = `aspect-square border-[0.5px] border-white bg-green-700 flex items-center justify-center relative transition-colors ${canSelectSquare ? "cursor-pointer" : "cursor-default"}`;
+                let borderClasses = `aspect-square border-[0.5px] border-white bg-green-700 flex items-center justify-center relative transition-colors ${squareInfo === "nothing" ? "cursor-default" : "cursor-pointer"}`;
 
                 if (isFieldDivider1 || isFieldDivider2) {
                   borderClasses += " border-r-4 border-r-white";
@@ -100,46 +92,55 @@ const TutorialGameBoard: React.FC = () => {
                     className={borderClasses}
                     onClick={() => handleSquareClick(position)}
                   >
-                    {piece && (
-                      <Piece
-                        piece={piece}
-                        isSelected={
-                          getSelectedPosition()?.equals(position) ?? false
-                        }
-                      />
-                    )}
-
-                    {/*{!piece && isBallAtPosition(rowIndex, colIndex) && (*/}
-                    {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
-                    {/*    <div className="text-lg">⚽</div>*/}
-                    {/*  </div>*/}
-                    {/*)}*/}
-
-                    {/* Tutorial piece highlighting removed per user request */}
-
-                    {/*{isOverlappingPosition(rowIndex, colIndex) && (*/}
-                    {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
-                    {/*    <div className="bg-opacity-90 h-6 w-6 animate-pulse rounded-full border-2 border-yellow-500 bg-gradient-to-r from-white to-blue-400 shadow-md" />*/}
-                    {/*  </div>*/}
-                    {/*)}*/}
-
-                    {/*{isDribbleOnlyPosition(rowIndex, colIndex) && (*/}
-                    {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
-                    {/*    <div className="bg-opacity-80 h-4 w-4 rounded-full border border-gray-300 bg-gray-200 shadow-sm" />*/}
-                    {/*  </div>*/}
-                    {/*)}*/}
-
-                    {isValidMovementTarget && (
+                    {/* If this square is a turn target, then that is all we care about */}
+                    {squareInfo === "turn_target" ? (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                        <div className="bg-opacity-90 h-5 w-5 animate-pulse rounded-full border-2 border-blue-600 bg-blue-400 shadow-md" />
+                        <div className="animate-pulse text-2xl text-yellow-400">
+                          ↻
+                        </div>
                       </div>
-                    )}
+                    ) : (
+                      <>
+                        {piece && (
+                          <Piece
+                            piece={piece}
+                            isSelected={
+                              selectedPiece?.getPosition()?.equals(position) ?? false
+                            }
+                          />
+                        )}
 
-                    {/*{isShootOnlyPosition(rowIndex, colIndex) && (*/}
-                    {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
-                    {/*    <div className="bg-opacity-90 h-5 w-5 animate-pulse rounded-full border-2 border-red-700 bg-red-500 shadow-md" />*/}
-                    {/*  </div>*/}
-                    {/*)}*/}
+                        {/*{!piece && isBallAtPosition(rowIndex, colIndex) && (*/}
+                        {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
+                        {/*    <div className="text-lg">⚽</div>*/}
+                        {/*  </div>*/}
+                        {/*)}*/}
+
+                        {/*{isOverlappingPosition(rowIndex, colIndex) && (*/}
+                        {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
+                        {/*    <div className="bg-opacity-90 h-6 w-6 animate-pulse rounded-full border-2 border-yellow-500 bg-gradient-to-r from-white to-blue-400 shadow-md" />*/}
+                        {/*  </div>*/}
+                        {/*)}*/}
+
+                        {/*{isDribbleOnlyPosition(rowIndex, colIndex) && (*/}
+                        {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
+                        {/*    <div className="bg-opacity-80 h-4 w-4 rounded-full border border-gray-300 bg-gray-200 shadow-sm" />*/}
+                        {/*  </div>*/}
+                        {/*)}*/}
+
+                        {squareInfo === "movement" && (
+                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                            <div className="bg-opacity-90 h-5 w-5 animate-pulse rounded-full border-2 border-blue-600 bg-blue-400 shadow-md" />
+                          </div>
+                        )}
+
+                        {/*{isShootOnlyPosition(rowIndex, colIndex) && (*/}
+                        {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
+                        {/*    <div className="bg-opacity-90 h-5 w-5 animate-pulse rounded-full border-2 border-red-700 bg-red-500 shadow-md" />*/}
+                        {/*  </div>*/}
+                        {/*)}*/}
+                      </>
+                    )}
                   </div>
                 );
               })}

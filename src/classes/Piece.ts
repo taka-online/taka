@@ -24,8 +24,7 @@ export class Piece {
     this.color = color;
     this.position = position;
     this.hasBall = hasBall;
-    this.facingDirection =
-      color === "white" ? "towards_black_goal" : "towards_white_goal";
+    this.facingDirection = color === "white" ? "east" : "west";
   }
 
   /**
@@ -114,8 +113,16 @@ export class Piece {
     this.position = position;
   }
 
+  setHasBall(hasBall: boolean) {
+    this.hasBall = hasBall;
+  }
+
   getHasBall() {
     return this.hasBall;
+  }
+
+  setFacingDirection(facingDirection: FacingDirection) {
+    this.facingDirection = facingDirection;
   }
 
   getFacingDirection() {
