@@ -1,7 +1,7 @@
 import type { PlayerColor } from "@/types/types";
 
-export const BOARD_ROWS = 10;
-export const BOARD_COLS = 14;
+export const BOARD_ROWS = 14;
+export const BOARD_COLS = 10;
 
 export const FORWARD_MOVE_DISTANCE = 3;
 export const OTHER_MOVE_DISTANCE = 2;

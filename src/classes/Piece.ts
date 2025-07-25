@@ -24,7 +24,7 @@ export class Piece {
     this.color = color;
     this.position = position;
     this.hasBall = hasBall;
-    this.facingDirection = color === "white" ? "east" : "west";
+    this.facingDirection = color === "white" ? "south" : "north";
   }
 
   /**
@@ -38,15 +38,15 @@ export class Piece {
 
     for (const [dRow, dCol] of DIRECTION_VECTORS) {
       const isTowardOpponentGoal =
-        (this.color === "white" && dCol > 0) ||
-        (this.color === "black" && dCol < 0);
+        (this.color === "white" && dRow > 0) ||
+        (this.color === "black" && dRow < 0);
 
       const isTowardOwnGoal =
-        (this.color === "white" && dCol < 0) ||
-        (this.color === "black" && dCol > 0);
+        (this.color === "white" && dRow < 0) ||
+        (this.color === "black" && dRow > 0);
 
-      const isHorizontal = dRow === 0 && dCol !== 0; // horizontal moves (same row)
-      const isVertical = dCol === 0 && dRow !== 0; // vertical moves (same column)
+      const isHorizontal = dCol === 0 && dRow !== 0; // horizontal moves (same row)
+      const isVertical = dRow === 0 && dCol !== 0; // vertical moves (same column)
 
       let maxDistance = 0;
       if (isTowardOpponentGoal) {

@@ -19,41 +19,37 @@ const TutorialGameBoard: React.FC = () => {
   const {
     boardLayout,
     selectedPiece,
-    currentStep,
     isTurnButtonEnabled,
-    completedSteps,
   } = useTutorialBoard();
 
-  const rowLabels = Array.from({ length: BOARD_ROWS }, (_, i) =>
+  const colLabels = Array.from({ length: BOARD_COLS }, (_, i) =>
     String.fromCharCode(65 + i),
   ); // A-J
-  const colLabels = Array.from({ length: BOARD_COLS }, (_, i) =>
+  const rowLabels = Array.from({ length: BOARD_ROWS }, (_, i) =>
     (i + 1).toString(),
   ); // 1-14
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center p-4">
+    <div className="flex h-full w-full flex-col items-center justify-center">
       {/* Turn controls */}
-      <div className="mb-4 flex justify-center gap-4">
-        {(currentStep === "turning" || completedSteps.has("turning")) && (
-          <button
-            className={`rounded px-6 py-2 font-semibold text-white transition-colors ${
-              !isTurnButtonEnabled
-                ? "cursor-not-allowed bg-gray-400"
-                : "cursor-pointer bg-blue-600 hover:bg-blue-700"
-            }`}
-            onClick={handleTurnPiece}
-            disabled={!isTurnButtonEnabled}
-          >
-            Turn Piece
-          </button>
-        )}
+      <div className="mb-4 flex flex-shrink-0 justify-center gap-4">
+        <button
+          className={`rounded px-6 py-2 font-semibold text-white transition-colors ${
+            !isTurnButtonEnabled
+              ? "cursor-not-allowed bg-gray-400"
+              : "cursor-pointer bg-blue-600 hover:bg-blue-700"
+          }`}
+          onClick={handleTurnPiece}
+          disabled={!isTurnButtonEnabled}
+        >
+          Turn Piece
+        </button>
       </div>
 
       {/* Game board container with shadow and border */}
-      <div className="w-full max-w-4xl rounded-lg border-2 border-green-200 bg-green-50 p-4 shadow-2xl">
+      <div className="h-full max-h-full w-auto rounded-lg border-2 border-green-200 bg-green-50 p-4 shadow-2xl">
         <div
-          className="relative grid"
+          className="relative grid h-full"
           style={{
             gridTemplateColumns: `2rem repeat(${BOARD_COLS}, 1fr)`,
             gridTemplateRows: `2rem repeat(${BOARD_ROWS}, 1fr)`,
@@ -78,13 +74,14 @@ const TutorialGameBoard: React.FC = () => {
 
               {colLabels.map((_, colIndex) => {
                 const cellIndex = rowIndex * BOARD_COLS + colIndex;
-                const isGoalRow = rowIndex >= 3 && rowIndex <= 6;
-                const isLeftGoal = colIndex === 0 && isGoalRow;
-                const isRightGoal = colIndex === 13 && isGoalRow;
-                const isGoalTopRow = rowIndex === 3;
-                const isGoalBottomRow = rowIndex === 6;
-                const isFieldDivider1 = colIndex === 4;
-                const isFieldDivider2 = colIndex === 8;
+                const isGoalCol = colIndex >= 3 && colIndex <= 6;
+                const isTopGoal = rowIndex === 0 && isGoalCol;
+                const isBottomGoal = rowIndex === 13 && isGoalCol;
+                const isGoalLeftCol = colIndex === 3;
+                const isGoalRightCol = colIndex === 6;
+
+                const isFieldDivider1 = rowIndex === 4;
+                const isFieldDivider2 = rowIndex === 8;
 
                 const position = new Position(rowIndex, colIndex);
 
@@ -97,21 +94,21 @@ const TutorialGameBoard: React.FC = () => {
                 let borderClasses = `aspect-square border-[0.5px] border-white bg-green-700 flex items-center justify-center relative transition-colors ${squareInfo === "nothing" ? "cursor-default" : "cursor-pointer"}`;
 
                 if (isFieldDivider1 || isFieldDivider2) {
-                  borderClasses += " border-r-4 border-r-white";
+                  borderClasses += " border-b-4 border-b-white";
                 }
 
-                if (isLeftGoal) {
-                  borderClasses += " border-r-4 border-r-white";
-                  if (isGoalTopRow)
-                    borderClasses += " border-t-4 border-t-white";
-                  if (isGoalBottomRow)
-                    borderClasses += " border-b-4 border-b-white";
-                } else if (isRightGoal) {
-                  borderClasses += " border-l-4 border-l-white";
-                  if (isGoalTopRow)
-                    borderClasses += " border-t-4 border-t-white";
-                  if (isGoalBottomRow)
-                    borderClasses += " border-b-4 border-b-white";
+                if (isTopGoal) {
+                  borderClasses += " border-b-4 border-b-white";
+                  if (isGoalLeftCol)
+                    borderClasses += " border-l-4 border-b-white";
+                  if (isGoalRightCol)
+                    borderClasses += " border-r-4 border-b-white";
+                } else if (isBottomGoal) {
+                  borderClasses += " border-t-4 border-t-white";
+                  if (isGoalLeftCol)
+                    borderClasses += " border-l-4 border-t-white";
+                  if (isGoalRightCol)
+                    borderClasses += " border-r-4 border-t-white";
                 }
 
                 return (
