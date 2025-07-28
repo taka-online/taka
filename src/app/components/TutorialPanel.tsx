@@ -47,6 +47,12 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
           content: "Choose a target to pass the ball to.",
         };
 
+      case "consecutive_pass":
+        return {
+          title: "Consecutive Passes",
+          content: "TODO",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",

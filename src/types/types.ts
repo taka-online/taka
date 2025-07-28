@@ -7,6 +7,7 @@ export type TutorialStep =
   | "turning"
   | "movement_with_ball"
   | "passing"
+  | "consecutive_pass"
   | "completed";
 
 export type FacingDirection = "north" | "south" | "west" | "east";

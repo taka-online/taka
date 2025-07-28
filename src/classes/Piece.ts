@@ -56,10 +56,12 @@ export class Piece {
       }
 
       for (let distance = 1; distance <= maxDistance; distance++) {
-        const newPosition = new Position(
-          curRow + dRow * distance,
-          curCol + dCol * distance,
-        );
+        const newRow = curRow + dRow * distance;
+        const newCol = curCol + dCol * distance;
+
+        if (newRow < 0 || newCol < 0 || newRow > 13 || newCol > 9) break;
+
+        const newPosition = new Position(newRow, newCol);
 
         if (this.goalie || (!this.goalie && !newPosition.isPositionInGoal())) {
           validMoves.push(newPosition);
@@ -82,7 +84,12 @@ export class Piece {
     const [curRow, curCol] = this.position.getPositionCoordinates();
 
     for (const [dRow, dCol] of DIRECTION_VECTORS) {
-      const newPosition = new Position(curRow + dRow, curCol + dCol);
+      const newRow = curRow + dRow;
+      const newCol = curCol + dCol;
+
+      if (newRow < 0 || newCol < 0 || newRow > 13 || newCol > 9) break;
+
+      const newPosition = new Position(newRow, newCol);
 
       if (this.goalie || (!this.goalie && !newPosition.isPositionInGoal())) {
         validMoves.push(newPosition);

@@ -7,6 +7,7 @@ export const FORWARD_MOVE_DISTANCE = 3;
 export const OTHER_MOVE_DISTANCE = 2;
 
 export const TUTORIAL_PLAYER_COLOR: PlayerColor = "white";
+export const TUTORIAL_OPPONENT_COLOR: PlayerColor = "black";
 
 export const DIRECTION_VECTORS: [number, number][] = [
   [-1, -1], // Up-left

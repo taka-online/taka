@@ -13,6 +13,7 @@ import {
   BOARD_COLS,
   BOARD_ROWS,
   DIRECTION_VECTORS,
+  TUTORIAL_OPPONENT_COLOR,
   TUTORIAL_PLAYER_COLOR,
 } from "@/utils/constants";
 
@@ -28,6 +29,8 @@ interface TutorialState {
   selectedPiece: Piece | null;
   /** Are we waiting for a user to select a direction for the piece **/
   awaitingDirectionSelection: boolean;
+  /** Are we waiting for the user to consecutively pass */
+  awaitingConsecutivePass: boolean;
   /* Is the turn button enabled */
   isTurnButtonEnabled: boolean;
   /** Current step in the tutorial progression */
@@ -54,6 +57,7 @@ export const stepOrder: TutorialStep[] = [
   "turning",
   "movement_with_ball",
   "passing",
+  "consecutive_pass",
   "completed",
 ];
 
@@ -64,29 +68,10 @@ const demoPiece1 = new Piece(
   false,
 );
 
-const demoPiece2 = new Piece(
-  "W2",
-  TUTORIAL_PLAYER_COLOR,
-  new Position(8, 0),
-  false,
-);
-const demoPiece3 = new Piece(
-  "W3",
-  TUTORIAL_PLAYER_COLOR,
-  new Position(8, 4),
-  false,
-);
-const demoPiece4 = new Piece(
-  "W4",
-  TUTORIAL_PLAYER_COLOR,
-  new Position(8, 8),
-  false,
-);
-
 /**
  * Predefined states for each tutorial step. This represents the state we should update. Anything not set won't get updated
  */
-const tutorialStepStates: Record<string, () => void> = {
+const tutorialStepStates: Record<TutorialStep, () => void> = {
   welcome: () => {
     useTutorialStore.setState({
       currentStep: "welcome",
@@ -121,7 +106,29 @@ const tutorialStepStates: Record<string, () => void> = {
       currentStep: "passing",
     });
 
-    setBoardLayout([demoPiece1, demoPiece2, demoPiece3, demoPiece4]);
+    setBoardLayout([
+      demoPiece1,
+      new Piece("W2", TUTORIAL_PLAYER_COLOR, new Position(8, 0), false),
+      new Piece("W3", TUTORIAL_PLAYER_COLOR, new Position(8, 4), false),
+      new Piece("W4", TUTORIAL_PLAYER_COLOR, new Position(8, 8), false),
+    ]);
+  },
+  consecutive_pass: () => {
+    demoPiece1.setPosition(new Position(4, 4));
+    demoPiece1.setFacingDirection("south");
+    demoPiece1.setHasBall(true);
+
+    useTutorialStore.setState({
+      selectedPiece: null,
+      currentStep: "consecutive_pass",
+    });
+
+    setBoardLayout([
+      demoPiece1,
+      new Piece("W2", TUTORIAL_PLAYER_COLOR, new Position(8, 0), false),
+      new Piece("B1", TUTORIAL_OPPONENT_COLOR, new Position(5, 4), false),
+      new Piece("W3", TUTORIAL_PLAYER_COLOR, new Position(8, 4), false),
+    ]);
   },
   completed: () => {
     useTutorialStore.setState({
@@ -135,6 +142,7 @@ const useTutorialStore = create<TutorialState>(() => ({
   pieces: [],
   boardLayout: createBlankBoard(),
   awaitingDirectionSelection: false,
+  awaitingConsecutivePass: false,
   selectedPiece: null,
   isTurnButtonEnabled: false,
   currentStep: "welcome",
@@ -408,8 +416,12 @@ const getTurnTargetsForSelectedPiece = () => {
  * @param position - The position that was clicked
  */
 export const handleSquareClick = (position: Position): void => {
-  const { awaitingDirectionSelection, selectedPiece, currentStep } =
-    useTutorialStore.getState();
+  const {
+    awaitingDirectionSelection,
+    selectedPiece,
+    currentStep,
+    awaitingConsecutivePass,
+  } = useTutorialStore.getState();
   const pieceAtPosition = getPieceAtPosition(position);
 
   // Tutorial is complete, don't let anything happen
@@ -440,6 +452,7 @@ export const handleSquareClick = (position: Position): void => {
     useTutorialStore.setState({
       awaitingDirectionSelection: false,
       selectedPiece: null,
+      isTurnButtonEnabled: false,
     });
 
     if (useTutorialStore.getState().currentStep === "turning") {
@@ -449,25 +462,64 @@ export const handleSquareClick = (position: Position): void => {
     return;
   }
 
-  if (pieceAtPosition) {
+  // If we are awaiting a consecutive pass, the only thing the user can do is make that consecutive pass
+  if (awaitingConsecutivePass) {
+    if (!selectedPiece) {
+      throw new Error(
+        "No selected piece, but we are awaiting a consecutive pass",
+      );
+    }
+
+    if (
+      !pieceAtPosition ||
+      pieceAtPosition.getColor() !== TUTORIAL_PLAYER_COLOR
+    )
+      return;
+
+    const passTargets = getValidPassTargets(selectedPiece);
+
+    // The clicked square must be a pass target
+    if (!passTargets.find((p) => p.equals(pieceAtPosition.getPosition())))
+      return;
+
+    // User is trying to pass
+    passBall(selectedPiece.getPosition(), position);
+
+    // If we just made our consecutive pass, move to next step
+    if (currentStep === "consecutive_pass" && awaitingConsecutivePass) {
+      nextStep();
+      return;
+    }
+  }
+
+  if (pieceAtPosition && pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR) {
     if (selectedPiece) {
+      // If we currently have a piece selected, and we clicked a piece that is our color, we might be trying to pass, so check
       const passTargets = getValidPassTargets(selectedPiece);
 
       if (passTargets.find((p) => p.equals(pieceAtPosition.getPosition()))) {
-        // User is trying to pass
+        // This is a valid pass
+
         passBall(selectedPiece.getPosition(), position);
 
         if (currentStep === "passing") {
           nextStep();
+          return;
         }
-
-        return;
       }
+
+      useTutorialStore.setState({
+        awaitingConsecutivePass: true,
+        selectedPiece: pieceAtPosition,
+      });
+
+      return;
     }
 
-    // Transfer selection over
+    // If there wasn't a selected piece, or there was, but it wasn't a valid pass target, our default action is to transfer selection state over
     useTutorialStore.setState({ selectedPiece: pieceAtPosition });
 
+    // Enable the turn button after we select the piece
     if (currentStep === "turning") {
       useTutorialStore.setState({ isTurnButtonEnabled: true });
     }
