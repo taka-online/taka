@@ -19,12 +19,14 @@ export class Piece {
     color: PlayerColor,
     position: Position,
     hasBall: boolean,
+    facingDirection?: FacingDirection,
   ) {
     this.id = id;
     this.color = color;
     this.position = position;
     this.hasBall = hasBall;
-    this.facingDirection = color === "white" ? "south" : "north";
+    this.facingDirection =
+      facingDirection ?? (color === "white" ? "south" : "north");
   }
 
   /**
