@@ -33,6 +33,8 @@ interface TutorialState {
   awaitingConsecutivePass: boolean;
   /* Is the turn button enabled */
   isTurnButtonEnabled: boolean;
+  /* Whether to enable movement or not. This is used for tutorial steps */
+  isMovementEnabled: boolean;
   /** Current step in the tutorial progression */
   currentStep: TutorialStep;
   /** Set of tutorial steps that have been completed */
@@ -91,11 +93,13 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
 
     useTutorialStore.setState({
       currentStep: "turning",
+      isMovementEnabled: false,
     });
   },
   movement_with_ball: () => {
     useTutorialStore.setState({
       currentStep: "movement_with_ball",
+      isMovementEnabled: true,
     });
   },
   passing: () => {
@@ -104,6 +108,7 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
 
     useTutorialStore.setState({
       currentStep: "passing",
+      isMovementEnabled: false,
     });
 
     setBoardLayout([
@@ -121,6 +126,7 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     useTutorialStore.setState({
       selectedPiece: null,
       currentStep: "consecutive_pass",
+      isMovementEnabled: false,
     });
 
     setBoardLayout([
@@ -134,6 +140,7 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     useTutorialStore.setState({
       currentStep: "completed",
       selectedPiece: null,
+      isMovementEnabled: false,
     });
   },
 };
@@ -145,6 +152,7 @@ const useTutorialStore = create<TutorialState>(() => ({
   awaitingConsecutivePass: false,
   selectedPiece: null,
   isTurnButtonEnabled: false,
+  isMovementEnabled: true,
   currentStep: "welcome",
   completedSteps: new Set<TutorialStep>(),
   tutorialActive: false,
@@ -301,9 +309,7 @@ export const getSquareInfo = (
     return "piece";
   }
 
-  if (state.currentStep === "turning") return "nothing";
-
-  if (isPositionValidMovementTarget(position)) {
+  if (state.isMovementEnabled && isPositionValidMovementTarget(position)) {
     return "movement";
   }
 
@@ -421,6 +427,7 @@ export const handleSquareClick = (position: Position): void => {
     selectedPiece,
     currentStep,
     awaitingConsecutivePass,
+    isMovementEnabled,
   } = useTutorialStore.getState();
   const pieceAtPosition = getPieceAtPosition(position);
 
@@ -529,7 +536,7 @@ export const handleSquareClick = (position: Position): void => {
 
   // No piece, must mean user is trying to move
   if (
-    currentStep !== "turning" &&
+    isMovementEnabled &&
     selectedPiece &&
     isPositionValidMovementTarget(position)
   ) {
