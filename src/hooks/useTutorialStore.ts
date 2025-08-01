@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import {
+  BoardSquareType,
   FacingDirection,
   PlayerColor,
   SquareType,
@@ -24,7 +25,7 @@ interface TutorialState {
   /** Array of all pieces currently on the board */
   pieces: Piece[];
   /** 2D array representing the board layout with pieces or null for empty squares */
-  boardLayout: (Piece | null)[][];
+  boardLayout: BoardSquareType[][];
   /** Position of the currently selected piece, if any */
   selectedPiece: Piece | null;
   /** Are we waiting for a user to select a direction for the piece **/
@@ -60,6 +61,7 @@ export const stepOrder: TutorialStep[] = [
   "movement_with_ball",
   "passing",
   "consecutive_pass",
+  "ball_empty_square",
   "completed",
 ];
 
@@ -119,22 +121,30 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     ]);
   },
   consecutive_pass: () => {
-    demoPiece1.setPosition(new Position(4, 4));
+    // Demo piece 1 will be the final piece to receive ball
+    demoPiece1.setPosition(new Position(8, 4));
     demoPiece1.setFacingDirection("south");
-    demoPiece1.setHasBall(true);
+    demoPiece1.setHasBall(false);
 
     useTutorialStore.setState({
-      selectedPiece: null,
       currentStep: "consecutive_pass",
       isMovementEnabled: false,
     });
 
     setBoardLayout([
-      demoPiece1,
+      new Piece("W3", TUTORIAL_PLAYER_COLOR, new Position(4, 4), true),
       new Piece("W2", TUTORIAL_PLAYER_COLOR, new Position(8, 0), false),
       new Piece("B1", TUTORIAL_OPPONENT_COLOR, new Position(5, 4), false),
-      new Piece("W3", TUTORIAL_PLAYER_COLOR, new Position(8, 4), false),
+      demoPiece1,
     ]);
+  },
+  ball_empty_square: () => {
+    useTutorialStore.setState({
+      currentStep: "ball_empty_square",
+      isMovementEnabled: false,
+    });
+
+    setBoardLayout([demoPiece1]);
   },
   completed: () => {
     useTutorialStore.setState({
@@ -242,16 +252,48 @@ export const setBoardLayout = (pieces: Piece[]) => {
 };
 
 /**
+ * Get the piece or ball at a board square
+ * @param position Position to get info for
+ */
+const getBoardSquare = (position: Position): BoardSquareType => {
+  const state = useTutorialStore.getState();
+  const [row, col] = position.getPositionCoordinates();
+
+  return state.boardLayout[row][col];
+};
+
+/**
  * Gets the piece at a specific position on the board
  * @param position - The position to check
  * @returns The piece at the position or null if empty
  */
 export const getPieceAtPosition = (position: Position): Piece | null => {
-  const state = useTutorialStore.getState();
-  const [row, col] = position.getPositionCoordinates();
-  return state.boardLayout[row][col];
+  const square = getBoardSquare(position);
+
+  return square instanceof Piece ? square : null;
 };
 
+/**
+ * Place a ball at a given position
+ * @param position Position to place ball
+ */
+const placeBallAtPosition = (position: Position): void => {
+  const square = getBoardSquare(position);
+
+  if (square !== null) {
+    throw new Error("Cannot place a ball on an occupied square");
+  }
+
+  const [row, col] = position.getPositionCoordinates();
+
+  useTutorialStore.setState((state) => {
+    const newBoardLayout = state.boardLayout.map((row) => [...row]);
+    newBoardLayout[row][col] = "ball";
+    return {
+      boardLayout: newBoardLayout,
+    };
+  });
+};
 /**
  * Checks if a position is a valid movement target for the selected piece
  * @param position - The position to validate
@@ -294,8 +336,7 @@ export const getSquareInfo = (
     return isSquareTurnTarget ? "turn_target" : "nothing";
   }
 
-  const [row, col] = position.getPositionCoordinates();
-  const piece = useTutorialStore.getState().boardLayout[row][col];
+  const piece = getPieceAtPosition(position);
 
   if (piece && piece.getColor() === currentPlayerColor) {
     if (
@@ -393,12 +434,23 @@ const passBall = (origin: Position, destination: Position) => {
   const originPiece = getPieceAtPosition(origin);
   const destinationPiece = getPieceAtPosition(destination);
 
-  if (!originPiece || !destinationPiece) {
-    throw new Error("There must be a piece at both the origin and destination");
+  if (!originPiece) {
+    throw new Error("There must be a piece at both the origin");
+  }
+
+  if (!originPiece.getHasBall()) {
+    throw new Error(
+      "Trying to pass a ball from a piece that doesn't currently have a ball",
+    );
   }
 
   originPiece.setHasBall(false);
-  destinationPiece.setHasBall(true);
+
+  if (destinationPiece) {
+    destinationPiece.setHasBall(true);
+  } else {
+    placeBallAtPosition(destination);
+  }
 
   // Push an update to the state
   useTutorialStore.setState({});
@@ -477,6 +529,12 @@ export const handleSquareClick = (position: Position): void => {
       );
     }
 
+    if (!selectedPiece.getHasBall()) {
+      throw new Error(
+        "There is a selected piece, but it doesn't have the ball and we are awaiting a consecutive pass",
+      );
+    }
+
     if (
       !pieceAtPosition ||
       pieceAtPosition.getColor() !== TUTORIAL_PLAYER_COLOR
@@ -503,7 +561,7 @@ export const handleSquareClick = (position: Position): void => {
   }
 
   if (pieceAtPosition && pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR) {
-    if (selectedPiece) {
+    if (selectedPiece && selectedPiece.getHasBall()) {
       // If we currently have a piece selected, and we clicked a piece that is our color, we might be trying to pass, so check
       const passTargets = getValidPassTargets(selectedPiece);
 
@@ -548,11 +606,26 @@ export const handleSquareClick = (position: Position): void => {
     deselectPiece();
 
     // If we completed the basic movement successfully, move to next step
-    if (useTutorialStore.getState().currentStep === "basic_movement") {
+    if (currentStep === "basic_movement") {
       nextStep();
-    } else if (
-      useTutorialStore.getState().currentStep === "movement_with_ball"
-    ) {
+    } else if (currentStep === "movement_with_ball") {
+      nextStep();
+    }
+
+    return;
+  }
+
+  // Last action, possible pass to empty square
+  if (
+    currentStep === "ball_empty_square" &&
+    selectedPiece &&
+    !!getValidEmptySquarePassTargets(selectedPiece).find((p) =>
+      p.equals(position),
+    )
+  ) {
+    passBall(selectedPiece.getPosition(), position);
+
+    if (currentStep === "ball_empty_square") {
       nextStep();
     }
 
@@ -563,6 +636,48 @@ export const handleSquareClick = (position: Position): void => {
   if (selectedPiece) {
     deselectPiece();
   }
+};
+
+/**
+ * Get all valid empty square pass targets. This is used for passing the ball to an empty square
+ * @param origin Piece to check pass targets for
+ */
+const getValidEmptySquarePassTargets = (origin: Piece): Position[] => {
+  const validMoves: Position[] = [];
+
+  const [curRow, curCol] = origin.getPosition().getPositionCoordinates();
+  const facingDirection = origin.getFacingDirection();
+
+  for (const [dRow, dCol] of DIRECTION_VECTORS) {
+    if (
+      (facingDirection === "north" && dRow > 0) ||
+      (facingDirection === "east" && dCol < 0) ||
+      (facingDirection === "south" && dRow < 0) ||
+      (facingDirection === "west" && dCol > 0)
+    ) {
+      continue;
+    }
+
+    for (let distance = 1; ; distance++) {
+      const newRow = curRow + dRow * distance;
+      const newCol = curCol + dCol * distance;
+
+      if (newRow < 0 || newRow > 13 || newCol < 0 || newCol > 9) {
+        break;
+      }
+
+      const newPosition = new Position(newRow, newCol);
+
+      if (getPieceAtPosition(newPosition)) {
+        // Break as we can't pass behind a piece
+        break;
+      }
+
+      validMoves.push(newPosition);
+    }
+  }
+
+  return validMoves;
 };
 
 /**

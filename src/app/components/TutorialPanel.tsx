@@ -53,6 +53,12 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
           content: "TODO",
         };
 
+      case "ball_empty_square":
+        return {
+          title: "Passing to an empty square",
+          content: "TODO",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",

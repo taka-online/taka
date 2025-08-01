@@ -1,4 +1,6 @@
 // Types
+import { Piece } from "@/classes/Piece";
+
 export type PlayerColor = "white" | "black";
 
 export type TutorialStep =
@@ -8,6 +10,7 @@ export type TutorialStep =
   | "movement_with_ball"
   | "passing"
   | "consecutive_pass"
+  | "ball_empty_square"
   | "completed";
 
 export type FacingDirection = "north" | "south" | "west" | "east";
@@ -19,3 +22,5 @@ export type FacingDirection = "north" | "south" | "west" | "east";
  * turn target - turn, clickable
  */
 export type SquareType = "nothing" | "piece" | "movement" | "turn_target" | "pass_target";
+
+export type BoardSquareType = Piece | "ball" | null;

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Piece from "./Piece";
+import { Piece as PieceClass } from "@/classes/Piece";
 import {
   BOARD_COLS,
   BOARD_ROWS,
@@ -128,7 +129,7 @@ const TutorialGameBoard: React.FC = () => {
                       </div>
                     ) : (
                       <>
-                        {piece && (
+                        {piece !== null && piece instanceof PieceClass && (
                           <Piece
                             piece={piece}
                             isSelected={
@@ -139,11 +140,11 @@ const TutorialGameBoard: React.FC = () => {
                           />
                         )}
 
-                        {/*{!piece && isBallAtPosition(rowIndex, colIndex) && (*/}
-                        {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
-                        {/*    <div className="text-lg">⚽</div>*/}
-                        {/*  </div>*/}
-                        {/*)}*/}
+                        {piece === "ball" && (
+                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                            <div className="text-lg">⚽</div>
+                          </div>
+                        )}
 
                         {/*{isOverlappingPosition(rowIndex, colIndex) && (*/}
                         {/*  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">*/}
