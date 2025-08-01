@@ -497,6 +497,9 @@ export const handleSquareClick = (position: Position): void => {
       nextStep();
       return;
     }
+
+    // No other actions besides passing, so don't allow anything else
+    return;
   }
 
   if (pieceAtPosition && pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR) {
