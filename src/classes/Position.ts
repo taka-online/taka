@@ -17,7 +17,7 @@ export class Position {
 
   isPositionInGoal() {
     return (
-      this.row >= 3 && this.row <= 6 && (this.col === 0 || this.col === 13)
+      this.col >= 3 && this.col <= 6 && (this.row === 0 || this.row === 13)
     );
   }
 

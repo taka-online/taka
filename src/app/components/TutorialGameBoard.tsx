@@ -23,10 +23,12 @@ const TutorialGameBoard: React.FC = () => {
   } = useTutorialBoard();
 
   const colLabels = Array.from({ length: BOARD_COLS }, (_, i) =>
-    String.fromCharCode(65 + i),
+    // String.fromCharCode(65 + i),
+    i.toString()
   ); // A-J
   const rowLabels = Array.from({ length: BOARD_ROWS }, (_, i) =>
-    (i + 1).toString(),
+    // (i + 1).toString(),
+    i.toString()
   ); // 1-14
 
   return (

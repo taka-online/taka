@@ -41,17 +41,13 @@ export class Piece {
         (this.color === "white" && dRow > 0) ||
         (this.color === "black" && dRow < 0);
 
-      const isTowardOwnGoal =
-        (this.color === "white" && dRow < 0) ||
-        (this.color === "black" && dRow > 0);
-
       const isHorizontal = dCol === 0 && dRow !== 0; // horizontal moves (same row)
       const isVertical = dRow === 0 && dCol !== 0; // vertical moves (same column)
 
       let maxDistance = 0;
       if (isTowardOpponentGoal) {
         maxDistance = FORWARD_MOVE_DISTANCE;
-      } else if (isTowardOwnGoal || isHorizontal || isVertical) {
+      } else if (isHorizontal || isVertical) {
         maxDistance = OTHER_MOVE_DISTANCE;
       }
 
