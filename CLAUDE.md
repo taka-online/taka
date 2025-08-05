@@ -21,6 +21,7 @@ This is a Next.js 15 frontend application for "Taka" - a turn-based football str
 src/
 ├── app/
 │   ├── components/
+│   │   ├── BoardCell.tsx           # Individual board cell component
 │   │   ├── Header.tsx              # Common header component
 │   │   ├── Piece.tsx               # Individual game piece component
 │   │   ├── SoccerBallIcon.tsx      # Soccer ball SVG component
@@ -40,6 +41,9 @@ src/
 │   └── Position.ts                 # Board position class with coordinates
 ├── hooks/
 │   └── useTutorialStore.ts         # Zustand store for tutorial state
+├── services/
+│   ├── boardHelpers.ts             # Board manipulation and utility functions
+│   └── gameValidation.ts           # Game logic validation functions
 ├── types/
 │   └── types.ts                    # TypeScript type definitions
 └── utils/
@@ -63,22 +67,40 @@ src/
 The app features a comprehensive tutorial system built with Zustand for state management:
 
 - **Tutorial Store** (`useTutorialStore.ts`): Manages tutorial progression, board state, piece selection, and game interactions
-- **Step Progression**: Seven tutorial steps from welcome to completion, each with predefined board states
+- **Step Progression**: Eleven tutorial steps from welcome to completion, each with predefined board states
 - **Interactive Board** (`TutorialGameBoard.tsx`): Handles click events, piece selection, movement validation, and ball passing
 - **Tutorial Panel** (`TutorialPanel.tsx`): Displays step-by-step instructions and progress tracking
 
 ### Game Logic Classes
 
 - **Piece Class** (`classes/Piece.ts`): Handles piece movement rules, ball possession, facing direction, and movement validation
+  - Two movement patterns: standard movement (3 forward, 2 horizontal/backward) vs ball movement (1 square in any direction)
+  - Tracks color, position, ball possession, and facing direction
+  - Built-in goal area restrictions for non-goalie pieces
 - **Position Class** (`classes/Position.ts`): Manages board coordinates and position-based logic
-- **Movement Rules**: Different movement patterns for pieces with/without ball, directional facing constraints
+  - 14x10 coordinate system (rows 0-13, columns 0-9)
+  - Goal detection logic for positions (0,3-6) and (13,3-6)
+  - Immutable position objects with equality checking
+
+### Service Layer
+
+- **Board Helpers** (`services/boardHelpers.ts`): Core board manipulation functions
+  - Board creation, piece placement, and layout management
+  - Ball placement and movement utilities
+  - Adjacent position/piece calculations
+  - Board state transformations with immutable updates
+- **Game Validation** (`services/gameValidation.ts`): Movement and action validation
+  - Movement target calculation with path blocking
+  - Pass target validation with line-of-sight and facing direction rules
+  - Turn target generation for direction changes
+  - Empty square pass target calculation
 
 ### Game Board Components
 
 #### Static Game Board (`StaticGameBoard.tsx`)
 
-- Renders a 10x14 grid football field for the landing page
-- Uses coordinate system (A-J rows, 1-14 columns)
+- Renders a 14x10 grid football field for the landing page  
+- Uses coordinate system (rows 0-13, columns 0-9)
 - Displays static initial game positions for white and black teams
 - Each team has 11 pieces including 1 goalie
 
@@ -88,6 +110,7 @@ The app features a comprehensive tutorial system built with Zustand for state ma
 - Handles piece selection, movement targets, pass targets, and turn indicators
 - Real-time visual feedback for valid moves and interactions
 - Integrated with tutorial step progression logic
+- Uses `BoardCell` components for individual squares with click handling
 
 ### Page Structure
 
@@ -135,6 +158,37 @@ The app features a comprehensive tutorial system built with Zustand for state ma
 - Development server runs on port 8000 (both dev and start commands)
 - Prettier integration for consistent code formatting
 
-## Claude Warnings
+## Important Development Guidelines
 
-- Never run the build command#
+### Board Coordinate System
+- The game uses a 14x10 grid (14 rows, 10 columns)
+- Rows are indexed 0-13 (representing positions 1-14 in game terms)
+- Columns are indexed 0-9 (representing positions A-J in game terms) 
+- Goal areas are at rows 0 and 13, columns 3-6
+
+### Tutorial Step Flow
+The tutorial follows this progression:
+1. `welcome` - Introduction
+2. `basic_movement` - Basic piece movement without ball
+3. `turning` - Direction changes for pieces with ball
+4. `movement_with_ball` - Movement when possessing the ball
+5. `passing` - Basic passing to other pieces  
+6. `consecutive_pass` - Chained passing sequences
+7. `ball_empty_square` - Passing to empty squares
+8. `ball_pickup` - Moving to pick up balls from empty squares
+9. `receiving_passes` - Receiving passes from empty squares
+10. `chip_pass` - Advanced passing over opponents
+11. `shooting` - Scoring goals
+12. `completed` - Tutorial completion
+
+### State Management Patterns
+- All board state updates must create new arrays/objects for React reactivity
+- Use the service layer functions (`boardHelpers.ts`, `gameValidation.ts`) for game logic
+- The Zustand store manages both UI state and game state
+- Tutorial progression is handled through predefined state configurations
+
+### Game Rules Implementation
+- Pieces have different movement patterns based on ball possession
+- Pass validation includes facing direction (90-degree cone) and line-of-sight
+- Ball pickup happens automatically when moving to a square containing a ball
+- Goal areas have special restrictions for non-goalie pieces
