@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import {
-  BoardSquareType,
+  BoardType,
   PlayerColor,
   SquareType,
   TutorialStep,
@@ -26,6 +26,9 @@ import {
   getPieceAtPosition as getPieceAtPositionHelper,
   placeBallAtPosition as placeBallAtPositionHelper,
   movePieceOnBoard,
+  getAdjacentPieces,
+  findBall,
+  getAdjacentPositions,
 } from "@/services/boardHelpers";
 
 /**
@@ -35,13 +38,19 @@ interface TutorialState {
   /** Array of all pieces currently on the board */
   pieces: Piece[];
   /** 2D array representing the board layout with pieces or null for empty squares */
-  boardLayout: BoardSquareType[][];
+  boardLayout: BoardType;
   /** Position of the currently selected piece, if any */
   selectedPiece: Piece | null;
   /** Are we waiting for a user to select a direction for the piece **/
   awaitingDirectionSelection: boolean;
   /** Are we waiting for the user to consecutively pass */
   awaitingConsecutivePass: boolean;
+  /** The person that just sent a pass that needs to be picked up **/
+  passSender: Piece | null;
+  /** Are we waiting for the user to receive a pass from an empty square */
+  awaitingReceivePass: boolean;
+  /** Show retry button for invalid pass attempts */
+  showRetryButton?: boolean;
   /* Is the turn button enabled */
   isTurnButtonEnabled: boolean;
   /* Whether to enable movement or not. This is used for tutorial steps */
@@ -64,6 +73,7 @@ export const stepOrder: TutorialStep[] = [
   "consecutive_pass",
   "ball_empty_square",
   "ball_pickup",
+  "receiving_passes",
   "completed",
 ];
 
@@ -162,6 +172,27 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     // Set up board layout with piece at (4,4) and ball at (6,4)
     setBoardLayout([demoPiece1], [new Position(6, 4)]);
   },
+  receiving_passes: () => {
+    // Set up a scenario where player passes to empty square and needs to receive
+    // Place piece with ball at (4,4) and another piece at (7,4) to receive
+    demoPiece1.setPosition(new Position(4, 4));
+    demoPiece1.setHasBall(true);
+    demoPiece1.setFacingDirection("south");
+
+    useTutorialStore.setState({
+      currentStep: "receiving_passes",
+      isMovementEnabled: false,
+      selectedPiece: null,
+      awaitingReceivePass: false,
+    });
+
+    // Place pieces so that there are no direct passing targets at (6,4)
+    // This forces the user to pass to an empty square
+    setBoardLayout([
+      demoPiece1,
+      new Piece("W2", TUTORIAL_PLAYER_COLOR, new Position(7, 3), false),
+    ]);
+  },
   completed: () => {
     useTutorialStore.setState({
       currentStep: "completed",
@@ -176,12 +207,15 @@ const useTutorialStore = create<TutorialState>(() => ({
   boardLayout: createBlankBoard(),
   awaitingDirectionSelection: false,
   awaitingConsecutivePass: false,
+  awaitingReceivePass: false,
+  passSender: null,
   selectedPiece: null,
   isTurnButtonEnabled: false,
   isMovementEnabled: true,
   currentStep: "welcome",
   completedSteps: new Set<TutorialStep>(),
   tutorialActive: false,
+  showRetryButton: false,
 }));
 
 /**
@@ -256,6 +290,7 @@ const placeBallAtPosition = (position: Position): void => {
     return { boardLayout: newBoardLayout };
   });
 };
+
 /**
  * Checks if a position is a valid movement target for the selected piece
  * @param position - The position to validate
@@ -283,6 +318,8 @@ export const getSquareInfo = (
 ): SquareType => {
   const state = useTutorialStore.getState();
 
+  if (state.showRetryButton) return "nothing";
+
   // Tutorial is complete, don't let anything happen
   if (state.currentStep === "completed") return "nothing";
 
@@ -292,24 +329,64 @@ export const getSquareInfo = (
       ? getTurnTargets(state.selectedPiece)
       : [];
 
-    const isSquareTurnTarget = !!turnTargets.find((e) =>
+    const isSquareTurnTarget = turnTargets.some((e) =>
       e.position.equals(position),
     );
 
     return isSquareTurnTarget ? "turn_target" : "nothing";
   }
 
-  const piece = getPieceAtPosition(position);
+  const pieceAtPosition = getPieceAtPosition(position);
 
-  if (piece && piece.getColor() === currentPlayerColor) {
-    if (
-      state.selectedPiece &&
-      state.selectedPiece.getHasBall() &&
-      getValidPassTargets(state.selectedPiece, state.boardLayout).find((p) =>
-        p.equals(position),
-      )
-    ) {
-      return "pass_target";
+  // If we are awaiting receive pass, only allow clicking pieces within one square of ball
+  if (state.awaitingReceivePass) {
+    if (!state.selectedPiece) {
+      const piece = getPieceAtPosition(position);
+
+      if (!piece || piece.getColor() !== currentPlayerColor) return "nothing";
+
+      // Find the ball
+      const ballPos = findBall(state.boardLayout);
+
+      if (!ballPos) return "nothing";
+
+      const adjPiecesToBall = getAdjacentPieces(
+        ballPos,
+        TUTORIAL_PLAYER_COLOR,
+        state.boardLayout,
+      );
+
+      if (adjPiecesToBall.some((p) => p === pieceAtPosition)) return "piece";
+
+      return "nothing";
+    } else {
+      const adjPositions = getAdjacentPositions(
+        state.selectedPiece.getPosition(),
+      );
+      const ballPos = findBall(state.boardLayout);
+
+      if (!ballPos) {
+        throw new Error("Can't find ball on board");
+      }
+
+      const positionIsAdjToSelectedPiece =
+        adjPositions.filter((p) => p.equals(ballPos) && p.equals(position))
+          .length > 0;
+
+      return positionIsAdjToSelectedPiece ? "movement" : "nothing";
+    }
+  }
+
+  if (pieceAtPosition) {
+    if (state.selectedPiece && state.selectedPiece.getHasBall()) {
+      const passTargets = getValidPassTargets(
+        state.selectedPiece,
+        state.boardLayout,
+      );
+
+      const positionIsPassTarget = passTargets.find((p) => p.equals(position));
+
+      if (positionIsPassTarget) return "pass_target";
     }
 
     return "piece";
@@ -319,9 +396,10 @@ export const getSquareInfo = (
     return "movement";
   }
 
-  // Check for empty square pass targets (only in ball_empty_square step)
+  // Check for empty square pass targets (only in ball_empty_square and receiving_passes steps)
   if (
-    state.currentStep === "ball_empty_square" &&
+    (state.currentStep === "ball_empty_square" ||
+      state.currentStep === "receiving_passes") &&
     state.selectedPiece &&
     state.selectedPiece.getHasBall() &&
     getValidEmptySquarePassTargets(state.selectedPiece, state.boardLayout).find(
@@ -369,7 +447,7 @@ const passBall = (origin: Position, destination: Position) => {
  * Handle turn target clicks during direction selection
  */
 const handleTurnTarget = (position: Position): void => {
-  const { selectedPiece } = useTutorialStore.getState();
+  const { selectedPiece, currentStep } = useTutorialStore.getState();
 
   if (!selectedPiece) {
     throw new Error(
@@ -397,7 +475,7 @@ const handleTurnTarget = (position: Position): void => {
     isTurnButtonEnabled: false,
   });
 
-  if (useTutorialStore.getState().currentStep === "turning") {
+  if (currentStep === "turning" || currentStep === "receiving_passes") {
     nextStep();
   }
 };
@@ -421,7 +499,7 @@ const handlePieceSelection = (position: Position): void => {
     const state = useTutorialStore.getState();
     const passTargets = getValidPassTargets(selectedPiece, state.boardLayout);
 
-    if (passTargets.find((p) => p.equals(pieceAtPosition.getPosition()))) {
+    if (passTargets.some((p) => p.equals(pieceAtPosition.getPosition()))) {
       // This is a valid pass
       passBall(selectedPiece.getPosition(), position);
 
@@ -479,7 +557,7 @@ const handleConsecutivePass = (position: Position): void => {
   const passTargets = getValidPassTargets(selectedPiece, state.boardLayout);
 
   // The clicked square must be a pass target
-  if (!passTargets.find((p) => p.equals(pieceAtPosition.getPosition()))) {
+  if (!passTargets.some((p) => p.equals(pieceAtPosition.getPosition()))) {
     return;
   }
 
@@ -496,7 +574,8 @@ const handleConsecutivePass = (position: Position): void => {
  * Handle movement to empty squares or squares with balls
  */
 const handleMovement = (position: Position): void => {
-  const { selectedPiece, currentStep } = useTutorialStore.getState();
+  const { selectedPiece, currentStep, awaitingReceivePass } =
+    useTutorialStore.getState();
 
   if (!selectedPiece) {
     return;
@@ -507,6 +586,15 @@ const handleMovement = (position: Position): void => {
   const isPickingUpBall = boardSquare === "ball";
 
   movePiece(selectedPiece, position);
+
+  // Handle receiving pass completion
+  if (awaitingReceivePass && isPickingUpBall) {
+    useTutorialStore.setState({
+      awaitingDirectionSelection: true,
+    });
+    return;
+  }
+
   deselectPiece();
 
   // Check for step progression
@@ -523,7 +611,8 @@ const handleMovement = (position: Position): void => {
  * Handle passing to empty squares
  */
 const handleEmptySquarePass = (position: Position): void => {
-  const { selectedPiece, currentStep } = useTutorialStore.getState();
+  const { selectedPiece, currentStep, boardLayout } =
+    useTutorialStore.getState();
 
   if (!selectedPiece) {
     return;
@@ -533,6 +622,29 @@ const handleEmptySquarePass = (position: Position): void => {
 
   if (currentStep === "ball_empty_square") {
     nextStep();
+  } else if (currentStep === "receiving_passes") {
+    const adjPieces = getAdjacentPieces(
+      position,
+      TUTORIAL_PLAYER_COLOR,
+      boardLayout,
+    ).filter((e) => e !== selectedPiece);
+
+    // If there are no pieces nearby, show the retry button
+    if (adjPieces.length === 0) {
+      useTutorialStore.setState({
+        selectedPiece: null,
+        showRetryButton: true,
+      });
+      return;
+    }
+
+    // Valid pass - pieces are nearby to receive
+    useTutorialStore.setState({
+      awaitingReceivePass: true,
+      selectedPiece: null,
+      passSender: selectedPiece,
+      isMovementEnabled: true,
+    });
   }
 };
 
@@ -552,7 +664,11 @@ const handleDeselection = (): void => {
  * @param position - The position that was clicked
  */
 export const handleSquareClick = (position: Position): void => {
-  const { currentStep } = useTutorialStore.getState();
+  const { currentStep, awaitingConsecutivePass, showRetryButton } =
+    useTutorialStore.getState();
+
+  // If we need to retry a step, don't let anything happen
+  if (showRetryButton) return;
 
   // Tutorial is complete, don't let anything happen
   if (currentStep === "completed") return;
@@ -565,11 +681,9 @@ export const handleSquareClick = (position: Position): void => {
     case "turn_target":
       return handleTurnTarget(position);
     case "pass_target":
-      // Pass target can be either consecutive pass or regular piece selection
-      const { awaitingConsecutivePass } = useTutorialStore.getState();
-      return awaitingConsecutivePass
-        ? handleConsecutivePass(position)
-        : handlePieceSelection(position);
+      if (awaitingConsecutivePass) return handleConsecutivePass(position);
+
+      return handlePieceSelection(position);
     case "piece":
       return handlePieceSelection(position);
     case "movement":
@@ -580,6 +694,19 @@ export const handleSquareClick = (position: Position): void => {
     default:
       return handleDeselection();
   }
+};
+
+const resetState = (completedSteps?: Set<TutorialStep>) => {
+  const newState: Record<string, unknown> = {
+    selectedPiece: null,
+    awaitingConsecutivePass: false,
+    awaitingReceivePass: false,
+    showRetryButton: false,
+  };
+
+  if (completedSteps) newState.completedSteps = completedSteps;
+
+  useTutorialStore.setState(newState);
 };
 
 /**
@@ -599,12 +726,7 @@ export const nextStep = () => {
   newCompletedSteps.add(state.currentStep);
 
   tutorialStepStates[nextStep]();
-
-  useTutorialStore.setState({
-    completedSteps: newCompletedSteps,
-    selectedPiece: null,
-    awaitingConsecutivePass: false,
-  });
+  resetState(newCompletedSteps);
 };
 
 /**
@@ -620,6 +742,16 @@ export const handleTurnPiece = () => {
   useTutorialStore.setState({
     awaitingDirectionSelection: true,
   });
+};
+
+/**
+ * Handle retry button click to reset the receiving passes step
+ */
+export const handleRetry = () => {
+  const { currentStep } = useTutorialStore.getState();
+
+  tutorialStepStates[currentStep]();
+  resetState();
 };
 
 /**

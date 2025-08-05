@@ -12,6 +12,7 @@ export type TutorialStep =
   | "consecutive_pass"
   | "ball_empty_square"
   | "ball_pickup"
+  | "receiving_passes"
   | "completed";
 
 export type FacingDirection = "north" | "south" | "west" | "east";
@@ -33,3 +34,5 @@ export type SquareType =
   | "empty_pass_target";
 
 export type BoardSquareType = Piece | "ball" | null;
+
+export type BoardType = BoardSquareType[][];

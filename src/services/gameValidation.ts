@@ -1,6 +1,7 @@
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import { DIRECTION_VECTORS, BOARD_ROWS, BOARD_COLS } from "@/utils/constants";
+import { BoardType } from "@/types/types";
 
 /**
  * Utility functions for game validation and calculations
@@ -14,10 +15,13 @@ import { DIRECTION_VECTORS, BOARD_ROWS, BOARD_COLS } from "@/utils/constants";
  */
 export const getValidMovementTargets = (
   piece: Piece,
-  boardLayout: (Piece | "ball" | null)[][],
+  boardLayout: BoardType,
 ): Position[] => {
-  const validMoves: Position[] = [];
+  // Get raw movement target from piece
   const allMoves = piece.getMovementTargets();
+
+  // Account for other pieces and remove blocked paths
+  const validMoves: Position[] = [];
 
   for (const pos of allMoves) {
     const [pRow, pCol] = pos.getPositionCoordinates();
@@ -38,7 +42,7 @@ export const getValidMovementTargets = (
  */
 export const getValidPassTargets = (
   origin: Piece,
-  boardLayout: (Piece | "ball" | null)[][],
+  boardLayout: BoardType,
 ): Position[] => {
   const validMoves: Position[] = [];
 
@@ -84,7 +88,7 @@ export const getValidPassTargets = (
  */
 export const getValidEmptySquarePassTargets = (
   origin: Piece,
-  boardLayout: (Piece | "ball" | null)[][],
+  boardLayout: BoardType,
 ): Position[] => {
   const validMoves: Position[] = [];
 
@@ -171,8 +175,9 @@ export const getTurnTargets = (
 export const isPositionValidMovementTarget = (
   piece: Piece,
   position: Position,
-  boardLayout: (Piece | "ball" | null)[][],
+  boardLayout: BoardType,
 ): boolean => {
   const targets = getValidMovementTargets(piece, boardLayout);
-  return !!targets.find((target) => target.equals(position));
+
+  return targets.some((target) => target.equals(position));
 };

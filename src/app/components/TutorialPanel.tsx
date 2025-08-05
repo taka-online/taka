@@ -3,6 +3,7 @@ import {
   nextStep,
   stepOrder,
   useTutorialBoard,
+  handleRetry,
 } from "@/hooks/useTutorialStore";
 import { TutorialStep } from "@/types/types";
 
@@ -67,6 +68,13 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             "Click on the piece to select it, then click on the ball to move the piece there and pick up the ball.",
         };
 
+      case "receiving_passes":
+        return {
+          title: "Receiving Passes",
+          content:
+            "Pass the ball to an empty square, then move a piece within one square of the ball to pick it up. This allows for more strategic positioning.",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",
@@ -76,7 +84,7 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
     }
   };
 
-  const { currentStep, completedSteps } = useTutorialBoard();
+  const { currentStep, completedSteps, showRetryButton } = useTutorialBoard();
 
   const tutorialContent = getTutorialContent(currentStep);
 
@@ -118,6 +126,14 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             className="w-full cursor-pointer rounded bg-blue-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-600"
           >
             Start Learning
+          </button>
+        )}
+        {showRetryButton && (
+          <button
+            onClick={handleRetry}
+            className="w-full cursor-pointer rounded bg-red-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-600"
+          >
+            Retry - No pieces nearby!
           </button>
         )}
       </div>

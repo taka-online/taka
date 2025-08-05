@@ -1,6 +1,6 @@
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
-import { BoardSquareType } from "@/types/types";
+import { BoardSquareType, BoardType, PlayerColor } from "@/types/types";
 import { BOARD_ROWS, BOARD_COLS } from "@/utils/constants";
 
 /**
@@ -11,7 +11,7 @@ import { BOARD_ROWS, BOARD_COLS } from "@/utils/constants";
  * Creates a BOARD_ROWS x BOARD_COLS blank board filled with null values
  * @returns A 2D array representing an empty game board
  */
-export const createBlankBoard = (): BoardSquareType[][] =>
+export const createBlankBoard = (): BoardType =>
   Array.from({ length: BOARD_ROWS }, () =>
     (Array(BOARD_COLS) as (Piece | null)[]).fill(null),
   );
@@ -25,7 +25,7 @@ export const createBlankBoard = (): BoardSquareType[][] =>
 export const createBoardLayout = (
   pieces: Piece[],
   balls?: Position[],
-): BoardSquareType[][] => {
+): BoardType => {
   const boardLayout = createBlankBoard();
 
   pieces.forEach((piece) => {
@@ -55,7 +55,7 @@ export const createBoardLayout = (
  */
 export const getBoardSquare = (
   position: Position,
-  boardLayout: BoardSquareType[][],
+  boardLayout: BoardType,
 ): BoardSquareType => {
   const [row, col] = position.getPositionCoordinates();
   return boardLayout[row][col];
@@ -69,9 +69,10 @@ export const getBoardSquare = (
  */
 export const getPieceAtPosition = (
   position: Position,
-  boardLayout: BoardSquareType[][],
+  boardLayout: BoardType,
 ): Piece | null => {
   const square = getBoardSquare(position, boardLayout);
+
   return square instanceof Piece ? square : null;
 };
 
@@ -83,8 +84,8 @@ export const getPieceAtPosition = (
  */
 export const placeBallAtPosition = (
   position: Position,
-  boardLayout: BoardSquareType[][],
-): BoardSquareType[][] => {
+  boardLayout: BoardType,
+): BoardType => {
   const square = getBoardSquare(position, boardLayout);
 
   if (square !== null) {
@@ -108,8 +109,8 @@ export const placeBallAtPosition = (
 export const movePieceOnBoard = (
   piece: Piece,
   newPosition: Position,
-  boardLayout: BoardSquareType[][],
-): BoardSquareType[][] => {
+  boardLayout: BoardType,
+): BoardType => {
   if (getPieceAtPosition(newPosition, boardLayout)) {
     throw new Error("There can't be a piece at the new location.");
   }
@@ -130,4 +131,75 @@ export const movePieceOnBoard = (
   newBoardLayout[nRow][nCol] = piece;
 
   return newBoardLayout;
+};
+
+/**
+ * Get all adjacent positions to a given position
+ * @param position Position to check
+ */
+export const getAdjacentPositions = (position: Position): Position[] => {
+  const [row, col] = position.getPositionCoordinates();
+
+  return [
+    new Position(row - 1, col), // north
+    new Position(row + 1, col), // south
+    new Position(row, col - 1), // west
+    new Position(row, col + 1), // east
+    new Position(row - 1, col - 1), // northwest
+    new Position(row - 1, col + 1), // northeast
+    new Position(row + 1, col - 1), // southwest
+    new Position(row + 1, col + 1), // southeast
+  ];
+};
+
+/**
+ * Get all pieces of playerColor within 1 square
+ * @param position Position to check
+ * @param playerColor Player color to check pieces for
+ * @param boardLayout Board layout to check against
+ */
+export const getAdjacentPieces = (
+  position: Position,
+  playerColor: PlayerColor,
+  boardLayout: BoardType,
+): Piece[] => {
+  const pieces: Piece[] = [];
+
+  const adjacentPositions = getAdjacentPositions(position);
+
+  for (const adjPos of adjacentPositions) {
+    const [adjRow, adjCol] = adjPos.getPositionCoordinates();
+
+    // Check if position is within board bounds
+    if (
+      adjRow >= 0 &&
+      adjRow < BOARD_ROWS &&
+      adjCol >= 0 &&
+      adjCol < BOARD_COLS
+    ) {
+      const piece = getPieceAtPosition(adjPos, boardLayout);
+
+      if (piece?.getColor() !== playerColor) continue;
+
+      if (piece) pieces.push(piece);
+    }
+  }
+
+  return pieces;
+};
+
+/**
+ * Get the position of the first ball we find
+ * @param boardLayout Current board layout
+ */
+export const findBall = (boardLayout: BoardType): Position | null => {
+  for (let row_idx = 0; row_idx < BOARD_ROWS; row_idx++) {
+    for (let col_idx = 0; col_idx < BOARD_COLS; col_idx++) {
+      if (boardLayout[row_idx][col_idx] === "ball") {
+        return new Position(row_idx, col_idx);
+      }
+    }
+  }
+
+  return null;
 };
