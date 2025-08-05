@@ -203,3 +203,56 @@ export const findBall = (boardLayout: BoardType): Position | null => {
 
   return null;
 };
+
+/**
+ * Swap positions of two pieces on the board and handle tackle logic
+ * @param tackler - The piece performing the tackle
+ * @param target - The piece being tackled (must have ball)
+ * @param boardLayout - Current board layout
+ * @returns New board layout with pieces swapped and ball transferred
+ */
+export const swapPiecePositions = (
+  tackler: Piece,
+  target: Piece,
+  boardLayout: BoardType,
+): BoardType => {
+  if (!target.getHasBall()) {
+    throw new Error("Target piece must have ball to be tackled");
+  }
+
+  const tacklerPos = tackler.getPosition();
+  const targetPos = target.getPosition();
+
+  const [tacklerRow, tacklerCol] = tacklerPos.getPositionCoordinates();
+  const [targetRow, targetCol] = targetPos.getPositionCoordinates();
+
+  // Calculate vertical direction tackler moved (toward goal)
+  const rowDiff = targetRow - tacklerRow;
+  let newFacingDirection = tackler.getFacingDirection();
+
+  if (rowDiff > 0) {
+    // Tackler moved south (toward opponent goal for white)
+    newFacingDirection = tackler.getColor() === "white" ? "south" : "north";
+  } else if (rowDiff < 0) {
+    // Tackler moved north (toward opponent goal for black)
+    newFacingDirection = tackler.getColor() === "white" ? "north" : "south";
+  }
+
+  // Create new board layout
+  const newBoardLayout = boardLayout.map((row) => [...row]);
+
+  // Transfer ball and update positions
+  target.setHasBall(false);
+  tackler.setHasBall(true);
+  tackler.setFacingDirection(newFacingDirection);
+
+  // Swap positions
+  tackler.setPosition(targetPos);
+  target.setPosition(tacklerPos);
+
+  // Update board layout
+  newBoardLayout[tacklerRow][tacklerCol] = target;
+  newBoardLayout[targetRow][targetCol] = tackler;
+
+  return newBoardLayout;
+};

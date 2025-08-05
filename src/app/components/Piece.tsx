@@ -6,9 +6,10 @@ interface PieceProps {
   piece: PieceClass;
   isSelected: boolean;
   isPassTarget: boolean;
+  isTackleTarget?: boolean;
 }
 
-const Piece: React.FC<PieceProps> = ({ piece, isSelected, isPassTarget }) => {
+const Piece: React.FC<PieceProps> = ({ piece, isSelected, isPassTarget, isTackleTarget = false }) => {
   // Soccer ball component that positions based on facing direction
   const SoccerBallIcon: React.FC<{ direction: FacingDirection }> = ({
     direction,
@@ -57,6 +58,10 @@ const Piece: React.FC<PieceProps> = ({ piece, isSelected, isPassTarget }) => {
         } ${
           isPassTarget
             ? "ring-opacity-75 animate-pulse ring-4 ring-green-500"
+            : ""
+        } ${
+          isTackleTarget
+            ? "ring-opacity-75 animate-pulse ring-4 ring-red-500"
             : ""
         }`}
       />

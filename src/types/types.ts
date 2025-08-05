@@ -15,6 +15,7 @@ export type TutorialStep =
   | "receiving_passes"
   | "chip_pass"
   | "shooting"
+  | "tackling"
   | "completed";
 
 export type FacingDirection = "north" | "south" | "west" | "east";
@@ -33,7 +34,8 @@ export type SquareType =
   | "movement"
   | "turn_target"
   | "pass_target"
-  | "empty_pass_target";
+  | "empty_pass_target"
+  | "tackle_target";
 
 export type BoardSquareType = Piece | "ball" | null;
 

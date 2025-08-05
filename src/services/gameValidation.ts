@@ -2,6 +2,7 @@ import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import { DIRECTION_VECTORS, BOARD_ROWS, BOARD_COLS } from "@/utils/constants";
 import { BoardType } from "@/types/types";
+import { getAdjacentPositions } from "@/services/boardHelpers";
 
 /**
  * Utility functions for game validation and calculations
@@ -185,4 +186,81 @@ export const isPositionValidMovementTarget = (
   const targets = getValidMovementTargets(piece, boardLayout);
 
   return targets.some((target) => target.equals(position));
+};
+
+/**
+ * Checks if a tackler can tackle a target piece based on facing direction
+ * @param tackler - The piece attempting to tackle
+ * @param target - The target piece with the ball
+ * @returns True if tackle is allowed, false if target is facing away
+ */
+export const canTackle = (tackler: Piece, target: Piece): boolean => {
+  const tacklerPos = tackler.getPosition();
+  const targetPos = target.getPosition();
+  const targetFacing = target.getFacingDirection();
+
+  const [tacklerRow, tacklerCol] = tacklerPos.getPositionCoordinates();
+  const [targetRow, targetCol] = targetPos.getPositionCoordinates();
+
+  // Calculate direction from target to tackler
+  const rowDiff = tacklerRow - targetRow;
+  const colDiff = tacklerCol - targetCol;
+
+  // Determine if target is facing away from tackler
+  switch (targetFacing) {
+    case "north":
+      // Target faces north, can't tackle if tackler is to the south
+      return rowDiff <= 0;
+    case "south":
+      // Target faces south, can't tackle if tackler is to the north
+      return rowDiff >= 0;
+    case "west":
+      // Target faces west, can't tackle if tackler is to the east
+      return colDiff <= 0;
+    case "east":
+      // Target faces east, can't tackle if tackler is to the west
+      return colDiff >= 0;
+    default:
+      return true;
+  }
+};
+
+/**
+ * Get all valid tackle targets for a piece
+ * @param tackler - Piece attempting to tackle
+ * @param boardLayout - Current board layout
+ * @returns Array of positions with opponent pieces that can be tackled
+ */
+export const getValidTackleTargets = (
+  tackler: Piece,
+  boardLayout: BoardType,
+): Position[] => {
+  const validTargets: Position[] = [];
+  const tacklerPos = tackler.getPosition();
+  const adjacentPositions = getAdjacentPositions(tacklerPos);
+
+  for (const pos of adjacentPositions) {
+    const [row, col] = pos.getPositionCoordinates();
+
+    // Check if position is within board bounds
+    if (row < 0 || row >= BOARD_ROWS || col < 0 || col >= BOARD_COLS) {
+      continue;
+    }
+
+    const square = boardLayout[row][col];
+
+    // Must be an opponent piece with the ball
+    if (
+      square instanceof Piece &&
+      square.getColor() !== tackler.getColor() &&
+      square.getHasBall()
+    ) {
+      // Check if tackle is allowed (not facing away)
+      if (canTackle(tackler, square)) {
+        validTargets.push(pos);
+      }
+    }
+  }
+
+  return validTargets;
 };

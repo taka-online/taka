@@ -87,6 +87,13 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
           content: "TODO",
         };
 
+      case "tackling":
+        return {
+          title: "Tackling",
+          content:
+            "Select your white piece and click on the highlighted black piece to tackle! You can steal the ball from adjacent opponents if they're not facing away from you. After tackling, you'll swap positions and gain possession of the ball.",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",

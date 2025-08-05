@@ -18,6 +18,7 @@ import {
   getValidEmptySquarePassTargets,
   getTurnTargets,
   isPositionValidMovementTarget as isValidMovementTarget,
+  getValidTackleTargets,
 } from "@/services/gameValidation";
 import {
   createBlankBoard,
@@ -29,6 +30,7 @@ import {
   getAdjacentPieces,
   findBall,
   getAdjacentPositions,
+  swapPiecePositions,
 } from "@/services/boardHelpers";
 
 /**
@@ -76,6 +78,7 @@ export const stepOrder: TutorialStep[] = [
   "receiving_passes",
   "chip_pass",
   "shooting",
+  "tackling",
   "completed",
 ];
 
@@ -219,6 +222,19 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
       new Piece("W1", TUTORIAL_PLAYER_COLOR, new Position(9, 4), true),
     ]);
   },
+  tackling: () => {
+    useTutorialStore.setState({
+      currentStep: "tackling",
+      isMovementEnabled: false,
+    });
+
+    // Set up tackling scenario: white piece adjacent to black piece with ball
+    // Black piece faces east (perpendicular to white piece) so tackle is allowed
+    setBoardLayout([
+      new Piece("W1", TUTORIAL_PLAYER_COLOR, new Position(6, 4), false),
+      new Piece("B1", TUTORIAL_OPPONENT_COLOR, new Position(6, 5), true, "west"),
+    ]);
+  },
   completed: () => {
     useTutorialStore.setState({
       currentStep: "completed",
@@ -238,7 +254,7 @@ const useTutorialStore = create<TutorialState>(() => ({
   selectedPiece: null,
   isTurnButtonEnabled: false,
   isMovementEnabled: true,
-  currentStep: "shooting",
+  currentStep: "tackling",
   completedSteps: new Set<TutorialStep>(),
   tutorialActive: false,
   showRetryButton: true,
@@ -413,6 +429,25 @@ export const getSquareInfo = (
       const positionIsPassTarget = passTargets.find((p) => p.equals(position));
 
       if (positionIsPassTarget) return "pass_target";
+    }
+
+    // Check for tackle targets (only in tackling step)
+    if (
+      state.currentStep === "tackling" &&
+      state.selectedPiece &&
+      !state.selectedPiece.getHasBall() &&
+      pieceAtPosition.getColor() !== TUTORIAL_PLAYER_COLOR
+    ) {
+      const tackleTargets = getValidTackleTargets(
+        state.selectedPiece,
+        state.boardLayout,
+      );
+
+      const positionIsTackleTarget = tackleTargets.find((p) =>
+        p.equals(position),
+      );
+
+      if (positionIsTackleTarget) return "tackle_target";
     }
 
     return pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR
@@ -690,6 +725,38 @@ const handleEmptySquarePass = (position: Position): void => {
 };
 
 /**
+ * Handle tackle target clicks
+ */
+const handleTackle = (position: Position): void => {
+  const { selectedPiece, currentStep } = useTutorialStore.getState();
+
+  if (!selectedPiece) {
+    return;
+  }
+
+  const targetPiece = getPieceAtPosition(position);
+
+  if (!targetPiece || !targetPiece.getHasBall()) {
+    return;
+  }
+
+  // Perform the tackle
+  useTutorialStore.setState((state) => {
+    const newBoardLayout = swapPiecePositions(
+      selectedPiece,
+      targetPiece,
+      state.boardLayout,
+    );
+    return { boardLayout: newBoardLayout, selectedPiece: null };
+  });
+
+  // Progress to next step after successful tackle
+  if (currentStep === "tackling") {
+    nextStep();
+  }
+};
+
+/**
  * Handle deselection when clicking on nothing
  */
 const handleDeselection = (): void => {
@@ -731,6 +798,8 @@ export const handleSquareClick = (position: Position): void => {
       return handleMovement(position);
     case "empty_pass_target":
       return handleEmptySquarePass(position);
+    case "tackle_target":
+      return handleTackle(position);
     case "nothing":
     default:
       return handleDeselection();
