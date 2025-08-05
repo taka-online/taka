@@ -75,6 +75,12 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             "Pass the ball to an empty square, then move a piece within one square of the ball to pick it up. This allows for more strategic positioning.",
         };
 
+      case "chip_pass":
+        return {
+          title: "Chip Passes",
+          content: "TODO",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",

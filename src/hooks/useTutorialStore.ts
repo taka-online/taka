@@ -74,6 +74,7 @@ export const stepOrder: TutorialStep[] = [
   "ball_empty_square",
   "ball_pickup",
   "receiving_passes",
+  "chip_pass",
   "completed",
 ];
 
@@ -182,8 +183,6 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     useTutorialStore.setState({
       currentStep: "receiving_passes",
       isMovementEnabled: false,
-      selectedPiece: null,
-      awaitingReceivePass: false,
     });
 
     // Place pieces so that there are no direct passing targets at (6,4)
@@ -191,6 +190,22 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     setBoardLayout([
       demoPiece1,
       new Piece("W2", TUTORIAL_PLAYER_COLOR, new Position(7, 3), false),
+    ]);
+  },
+  chip_pass: () => {
+    useTutorialStore.setState({
+      currentStep: "chip_pass",
+      isMovementEnabled: false,
+    });
+
+    setBoardLayout([
+      new Piece("W1", TUTORIAL_PLAYER_COLOR, new Position(4, 4), true),
+      new Piece("W2", TUTORIAL_PLAYER_COLOR, new Position(8, 4), false),
+      new Piece("W3", TUTORIAL_PLAYER_COLOR, new Position(4, 1), false),
+      new Piece("W4", TUTORIAL_PLAYER_COLOR, new Position(4, 8), false),
+      new Piece("B1", TUTORIAL_OPPONENT_COLOR, new Position(4, 3), false),
+      new Piece("B2", TUTORIAL_OPPONENT_COLOR, new Position(4, 5), false),
+      new Piece("B3", TUTORIAL_OPPONENT_COLOR, new Position(6, 4), false),
     ]);
   },
   completed: () => {
@@ -212,10 +227,10 @@ const useTutorialStore = create<TutorialState>(() => ({
   selectedPiece: null,
   isTurnButtonEnabled: false,
   isMovementEnabled: true,
-  currentStep: "welcome",
+  currentStep: "chip_pass",
   completedSteps: new Set<TutorialStep>(),
   tutorialActive: false,
-  showRetryButton: false,
+  showRetryButton: true,
 }));
 
 /**
@@ -389,7 +404,9 @@ export const getSquareInfo = (
       if (positionIsPassTarget) return "pass_target";
     }
 
-    return "piece";
+    return pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR
+      ? "piece"
+      : "nothing";
   }
 
   if (state.isMovementEnabled && isPositionValidMovementTarget(position)) {
@@ -503,7 +520,7 @@ const handlePieceSelection = (position: Position): void => {
       // This is a valid pass
       passBall(selectedPiece.getPosition(), position);
 
-      if (currentStep === "passing") {
+      if (currentStep === "passing" || currentStep === "chip_pass") {
         nextStep();
         return;
       }

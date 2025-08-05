@@ -71,9 +71,14 @@ export const getValidPassTargets = (
       const square = boardLayout[newRow][newCol];
 
       if (square instanceof Piece) {
-        validMoves.push(newPosition);
-        // Break as we can't pass behind a piece
-        break;
+        if (square.getColor() === origin.getColor()) {
+          validMoves.push(newPosition);
+          // Break as we can't pass behind a piece
+          break;
+        } else if (distance === 1) {
+          // If this is an adjacent square AND the piece that is adjacent to the current piece is an opponent piece, we cannot chip pass, so break this path
+          break;
+        }
       }
     }
   }
