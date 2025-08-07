@@ -12,6 +12,7 @@ import { Position } from "@/classes/Position";
 import {
   getSquareInfo,
   handleTurnPiece,
+  handleArrowKeyTurn,
   handleUnactivatedGoalieClick,
   useTutorialBoard,
   handleBallDragEnd,
@@ -26,6 +27,8 @@ const TutorialGameBoard: React.FC = () => {
     whiteUnactivatedGoaliePiece,
     isDragging,
     draggedPiece,
+    awaitingDirectionSelection,
+    currentStep,
   } = useTutorialBoard();
 
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
@@ -124,6 +127,51 @@ const TutorialGameBoard: React.FC = () => {
       );
     };
   }, []);
+
+  // Handle arrow keys for direction selection
+  React.useEffect(() => {
+    // Allow arrow keys during direction selection or during turning step with selected piece
+    const shouldHandleArrowKeys = 
+      (awaitingDirectionSelection && selectedPiece) ||
+      (currentStep === "turning" && selectedPiece);
+      
+    if (!shouldHandleArrowKeys) {
+      return;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent default behavior to avoid scrolling
+      const { key } = e;
+      if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
+        return;
+      }
+
+      e.preventDefault();
+
+      // Map arrow keys to directions and call the arrow key handler
+      switch (key) {
+        case "ArrowUp":
+          handleArrowKeyTurn("north");
+          break;
+        case "ArrowDown":
+          handleArrowKeyTurn("south");
+          break;
+        case "ArrowLeft":
+          handleArrowKeyTurn("west");
+          break;
+        case "ArrowRight":
+          handleArrowKeyTurn("east");
+          break;
+        default:
+          return;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [awaitingDirectionSelection, selectedPiece, currentStep]);
 
   const colLabels = Array.from({ length: BOARD_COLS }, (_, i) =>
     // String.fromCharCode(65 + i),

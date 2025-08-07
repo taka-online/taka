@@ -27,7 +27,7 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Turning (Facing Direction)",
           content:
-            "Select the piece with the ball, then click 'Turn Piece' to change its facing direction.",
+            "Select the piece with the ball, then click 'Turn Piece' to change its facing direction. You can also use arrow keys (↑↓←→) to turn directly!",
         };
 
       case "basic_movement":

@@ -197,3 +197,7 @@ The tutorial follows this progression:
 - Pass validation includes facing direction (90-degree cone) and line-of-sight
 - Ball pickup happens automatically when moving to a square containing a ball
 - Goal areas have special restrictions for non-goalie pieces
+
+## Warnings and Recommendations
+
+- **Never run `npm run build`** - This command is not recommended for this project's development workflow

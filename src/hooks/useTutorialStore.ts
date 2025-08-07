@@ -5,6 +5,7 @@ import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import {
   BoardType,
+  FacingDirection,
   PlayerColor,
   SquareType,
   TutorialStep,
@@ -1285,6 +1286,45 @@ export const handleBallDragEnd = () => {
     draggedPiece: null,
     dragStartPosition: null,
   });
+};
+
+/**
+ * Handle arrow key direction selection
+ * @param direction - The direction to turn the selected piece
+ */
+export const handleArrowKeyTurn = (direction: FacingDirection): void => {
+  const { selectedPiece, awaitingDirectionSelection, currentStep } =
+    useTutorialStore.getState();
+
+  if (!selectedPiece) {
+    return;
+  }
+
+  // If we're in the turning step with a selected piece but not yet awaiting direction,
+  // automatically enter direction selection mode
+  if (currentStep === "turning" && !awaitingDirectionSelection) {
+    useTutorialStore.setState({
+      awaitingDirectionSelection: true,
+    });
+  }
+
+  // Now check if we should proceed with the turn
+  const state = useTutorialStore.getState();
+  if (!state.awaitingDirectionSelection) {
+    return;
+  }
+
+  // Get turn targets for the selected piece
+  const turnTargets = getTurnTargets(selectedPiece);
+
+  // Find the turn target for this direction
+  const turnTarget = turnTargets.find(
+    (target) => target.direction === direction,
+  );
+
+  if (turnTarget) {
+    handleTurnTarget(turnTarget.position);
+  }
 };
 
 /**
