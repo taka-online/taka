@@ -57,43 +57,44 @@ const BoardCell: React.FC<BoardCellProps> = ({
       className={borderClasses}
       onClick={() => handleSquareClick(position)}
     >
-      {/* If this square is a turn target, then that is all we care about */}
-      {squareInfo === "turn_target" ? (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      {/* Render piece with reduced opacity if turn target */}
+      {piece !== null && piece instanceof PieceClass && (
+        <div className={squareInfo === "turn_target" ? "opacity-30" : ""}>
+          <Piece
+            piece={piece}
+            isSelected={
+              selectedPiece
+                ?.getPositionOrThrowIfUnactivated()
+                ?.equals(position) ?? false
+            }
+            isPassTarget={squareInfo === "pass_target"}
+            isTackleTarget={squareInfo === "tackle_target"}
+          />
+        </div>
+      )}
+
+      {/* Turn target indicator */}
+      {squareInfo === "turn_target" && (
+        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
           <div className="animate-pulse text-2xl text-yellow-400">↻</div>
         </div>
-      ) : (
-        <>
-          {piece !== null && piece instanceof PieceClass && (
-            <Piece
-              piece={piece}
-              isSelected={
-                selectedPiece
-                  ?.getPositionOrThrowIfUnactivated()
-                  ?.equals(position) ?? false
-              }
-              isPassTarget={squareInfo === "pass_target"}
-              isTackleTarget={squareInfo === "tackle_target"}
-            />
-          )}
+      )}
 
-          {squareInfo === "movement" && piece !== "ball" && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-              <div className="bg-opacity-90 h-5 w-5 animate-pulse rounded-full border-2 border-blue-600 bg-blue-400 shadow-md" />
-            </div>
-          )}
+      {squareInfo === "movement" && piece !== "ball" && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <div className="bg-opacity-90 h-5 w-5 animate-pulse rounded-full border-2 border-blue-600 bg-blue-400 shadow-md" />
+        </div>
+      )}
 
-          {piece === "ball" && (
-            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-              <div className="relative text-lg">
-                ⚽
-                {squareInfo === "movement" && (
-                  <div className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-blue-400 opacity-60 mix-blend-multiply" />
-                )}
-              </div>
-            </div>
-          )}
-        </>
+      {piece === "ball" && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+          <div className="relative text-lg">
+            ⚽
+            {squareInfo === "movement" && (
+              <div className="absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-blue-400 opacity-60 mix-blend-multiply" />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
