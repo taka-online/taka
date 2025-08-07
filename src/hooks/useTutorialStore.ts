@@ -91,6 +91,25 @@ export const stepOrder: TutorialStep[] = [
   "completed",
 ];
 
+const WHITE_GOALIE_ACTIVATION_TARGETS: Position[] = [
+  new Position(0, 3),
+  new Position(0, 4),
+  new Position(0, 5),
+  new Position(0, 6),
+  new Position(1, 3),
+  new Position(1, 4),
+  new Position(1, 5),
+  new Position(1, 6),
+  new Position(2, 3),
+  new Position(3, 2),
+  new Position(2, 6),
+  new Position(3, 7),
+  new Position(2, 4),
+  new Position(3, 4),
+  new Position(2, 5),
+  new Position(3, 5),
+];
+
 const demoPiece1 = new Piece({
   id: "W1",
   color: TUTORIAL_PLAYER_COLOR,
@@ -963,11 +982,11 @@ export const getSquareInfo = (
     state.selectedPiece &&
     state.selectedPiece === state.whiteUnactivatedGoaliePiece
   ) {
-    const [row, col] = position.getPositionCoordinates();
-    // Check if position is in white goal area (R0C3-R0C6 and R1C3-R1C6)
-    const isInGoalArea = (row === 0 || row === 1) && col >= 3 && col <= 6;
+    const isGoalActivationTarget = WHITE_GOALIE_ACTIVATION_TARGETS.some((e) =>
+      e.equals(position),
+    );
 
-    return isInGoalArea ? "movement" : "nothing";
+    return isGoalActivationTarget ? "movement" : "nothing";
   }
 
   const pieceAtPosition = getPieceAtPosition(position);
