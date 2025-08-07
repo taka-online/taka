@@ -422,199 +422,6 @@ const movePiece = (piece: Piece, newPosition: Position) => {
 };
 
 /**
- * Sets the board layout with the given pieces
- * @param pieces - Array of pieces to place on the board
- * @param balls - Where to place balls
- */
-export const setBoardLayout = (pieces: Piece[], balls?: Position[]) => {
-  const boardLayout = createBoardLayout(pieces, balls);
-
-  useTutorialStore.setState({
-    pieces: [...pieces],
-    boardLayout,
-  });
-};
-
-/**
- * Gets the piece at a specific position on the board
- * @param position - The position to check
- * @returns The piece at the position or null if empty
- */
-export const getPieceAtPosition = (position: Position): Piece | null => {
-  const { boardLayout } = useTutorialStore.getState();
-  return getPieceAtPositionHelper(position, boardLayout);
-};
-
-/**
- * Place a ball at a given position
- * @param position Position to place ball
- */
-const placeBallAtPosition = (position: Position): void => {
-  useTutorialStore.setState((state) => {
-    const newBoardLayout = placeBallAtPositionHelper(
-      position,
-      state.boardLayout,
-    );
-    return { boardLayout: newBoardLayout };
-  });
-};
-
-/**
- * Checks if a position is a valid movement target for the selected piece
- * @param position - The position to validate
- * @returns True if the position is a valid movement target
- */
-export const isPositionValidMovementTarget = (position: Position): boolean => {
-  const { selectedPiece, boardLayout } = useTutorialStore.getState();
-
-  if (!selectedPiece) {
-    return false;
-  }
-
-  return isValidMovementTarget(selectedPiece, position, boardLayout);
-};
-
-/**
- * Get the info for a square
- * @param position Current square position
- * @param currentPlayerColor Current player color
- * @return The type that the square should display
- */
-export const getSquareInfo = (
-  position: Position,
-  currentPlayerColor: PlayerColor,
-): SquareType => {
-  const state = useTutorialStore.getState();
-
-  if (state.showRetryButton) return "nothing";
-
-  // Tutorial is complete, don't let anything happen
-  if (state.currentStep === "completed") return "nothing";
-
-  // If we are waiting direction selection, the only actions are to turn, transfer selection, or deselect
-  if (state.awaitingDirectionSelection) {
-    const turnTargets = state.selectedPiece
-      ? getTurnTargets(state.selectedPiece)
-      : [];
-
-    const isSquareTurnTarget = turnTargets.some((e) =>
-      e.position.equals(position),
-    );
-
-    return isSquareTurnTarget ? "turn_target" : "nothing";
-  }
-
-  // If unactivated white goalie is selected, show movement targets in goal area
-  if (
-    state.selectedPiece &&
-    state.selectedPiece === state.whiteUnactivatedGoaliePiece
-  ) {
-    const [row, col] = position.getPositionCoordinates();
-    // Check if position is in white goal area (R0C3-R0C6 and R1C3-R1C6)
-    const isInGoalArea = (row === 0 || row === 1) && col >= 3 && col <= 6;
-
-    return isInGoalArea ? "movement" : "nothing";
-  }
-
-  const pieceAtPosition = getPieceAtPosition(position);
-
-  // If we are awaiting receive pass, only allow clicking pieces within one square of ball
-  if (state.awaitingReceivePass) {
-    if (!state.selectedPiece) {
-      const piece = getPieceAtPosition(position);
-
-      if (!piece || piece.getColor() !== currentPlayerColor) return "nothing";
-
-      // Find the ball
-      const ballPos = findBall(state.boardLayout);
-
-      if (!ballPos) return "nothing";
-
-      const adjPiecesToBall = getAdjacentPieces(
-        ballPos,
-        TUTORIAL_PLAYER_COLOR,
-        state.boardLayout,
-      );
-
-      if (adjPiecesToBall.some((p) => p === pieceAtPosition)) return "piece";
-
-      return "nothing";
-    } else {
-      const adjPositions = getAdjacentPositions(
-        state.selectedPiece.getPositionOrThrowIfUnactivated(),
-      );
-      const ballPos = findBall(state.boardLayout);
-
-      if (!ballPos) {
-        throw new Error("Can't find ball on board");
-      }
-
-      const positionIsAdjToSelectedPiece =
-        adjPositions.filter((p) => p.equals(ballPos) && p.equals(position))
-          .length > 0;
-
-      return positionIsAdjToSelectedPiece ? "movement" : "nothing";
-    }
-  }
-
-  if (pieceAtPosition) {
-    if (state.selectedPiece && state.selectedPiece.getHasBall()) {
-      const passTargets = getValidPassTargets(
-        state.selectedPiece,
-        state.boardLayout,
-      );
-
-      const positionIsPassTarget = passTargets.find((p) => p.equals(position));
-
-      if (positionIsPassTarget) return "pass_target";
-    }
-
-    // Check for tackle targets (only in tackling step)
-    if (
-      state.currentStep === "tackling" &&
-      state.selectedPiece &&
-      !state.selectedPiece.getHasBall() &&
-      pieceAtPosition.getColor() !== TUTORIAL_PLAYER_COLOR
-    ) {
-      const tackleTargets = getValidTackleTargets(
-        state.selectedPiece,
-        state.boardLayout,
-      );
-
-      const positionIsTackleTarget = tackleTargets.find((p) =>
-        p.equals(position),
-      );
-
-      if (positionIsTackleTarget) return "tackle_target";
-    }
-
-    return pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR
-      ? "piece"
-      : "nothing";
-  }
-
-  if (state.isMovementEnabled && isPositionValidMovementTarget(position)) {
-    return "movement";
-  }
-
-  // Check for empty square pass targets (only in ball_empty_square and receiving_passes steps)
-  if (
-    (state.currentStep === "ball_empty_square" ||
-      state.currentStep === "receiving_passes" ||
-      state.currentStep === "shooting") &&
-    state.selectedPiece &&
-    state.selectedPiece.getHasBall() &&
-    getValidEmptySquarePassTargets(state.selectedPiece, state.boardLayout).find(
-      (p) => p.equals(position),
-    )
-  ) {
-    return "empty_pass_target";
-  }
-
-  return "nothing";
-};
-
-/**
  * Pass the ball
  * @param origin Origin piece to pass ball from
  * @param destination Destination to pass ball to
@@ -948,6 +755,216 @@ const handleDeselection = (): void => {
 };
 
 /**
+ * Reset the tutorial state. This should be called after every step transition.
+ * @param completedSteps Optional param to update the completed steps
+ */
+const resetState = (completedSteps?: Set<TutorialStep>) => {
+  const newState: Record<string, unknown> = {
+    selectedPiece: null,
+    awaitingConsecutivePass: false,
+    awaitingReceivePass: false,
+    showRetryButton: false,
+  };
+
+  if (completedSteps) newState.completedSteps = completedSteps;
+
+  useTutorialStore.setState(newState);
+};
+
+/**
+ * Sets the board layout with the given pieces
+ * @param pieces - Array of pieces to place on the board
+ * @param balls - Where to place balls
+ */
+export const setBoardLayout = (pieces: Piece[], balls?: Position[]) => {
+  const boardLayout = createBoardLayout(pieces, balls);
+
+  useTutorialStore.setState({
+    pieces: [...pieces],
+    boardLayout,
+  });
+};
+
+/**
+ * Gets the piece at a specific position on the board
+ * @param position - The position to check
+ * @returns The piece at the position or null if empty
+ */
+export const getPieceAtPosition = (position: Position): Piece | null => {
+  const { boardLayout } = useTutorialStore.getState();
+  return getPieceAtPositionHelper(position, boardLayout);
+};
+
+/**
+ * Place a ball at a given position
+ * @param position Position to place ball
+ */
+const placeBallAtPosition = (position: Position): void => {
+  useTutorialStore.setState((state) => {
+    const newBoardLayout = placeBallAtPositionHelper(
+      position,
+      state.boardLayout,
+    );
+    return { boardLayout: newBoardLayout };
+  });
+};
+
+/**
+ * Checks if a position is a valid movement target for the selected piece
+ * @param position - The position to validate
+ * @returns True if the position is a valid movement target
+ */
+export const isPositionValidMovementTarget = (position: Position): boolean => {
+  const { selectedPiece, boardLayout } = useTutorialStore.getState();
+
+  if (!selectedPiece) {
+    return false;
+  }
+
+  return isValidMovementTarget(selectedPiece, position, boardLayout);
+};
+
+/**
+ * Get the info for a square
+ * @param position Current square position
+ * @param currentPlayerColor Current player color
+ * @return The type that the square should display
+ */
+export const getSquareInfo = (
+  position: Position,
+  currentPlayerColor: PlayerColor,
+): SquareType => {
+  const state = useTutorialStore.getState();
+
+  if (state.showRetryButton) return "nothing";
+
+  // Tutorial is complete, don't let anything happen
+  if (state.currentStep === "completed") return "nothing";
+
+  // If we are waiting direction selection, the only actions are to turn, transfer selection, or deselect
+  if (state.awaitingDirectionSelection) {
+    const turnTargets = state.selectedPiece
+      ? getTurnTargets(state.selectedPiece)
+      : [];
+
+    const isSquareTurnTarget = turnTargets.some((e) =>
+      e.position.equals(position),
+    );
+
+    return isSquareTurnTarget ? "turn_target" : "nothing";
+  }
+
+  // If unactivated white goalie is selected, show movement targets in goal area
+  if (
+    state.selectedPiece &&
+    state.selectedPiece === state.whiteUnactivatedGoaliePiece
+  ) {
+    const [row, col] = position.getPositionCoordinates();
+    // Check if position is in white goal area (R0C3-R0C6 and R1C3-R1C6)
+    const isInGoalArea = (row === 0 || row === 1) && col >= 3 && col <= 6;
+
+    return isInGoalArea ? "movement" : "nothing";
+  }
+
+  const pieceAtPosition = getPieceAtPosition(position);
+
+  // If we are awaiting receive pass, only allow clicking pieces within one square of ball
+  if (state.awaitingReceivePass) {
+    if (!state.selectedPiece) {
+      const piece = getPieceAtPosition(position);
+
+      if (!piece || piece.getColor() !== currentPlayerColor) return "nothing";
+
+      // Find the ball
+      const ballPos = findBall(state.boardLayout);
+
+      if (!ballPos) return "nothing";
+
+      const adjPiecesToBall = getAdjacentPieces(
+        ballPos,
+        TUTORIAL_PLAYER_COLOR,
+        state.boardLayout,
+      );
+
+      if (adjPiecesToBall.some((p) => p === pieceAtPosition)) return "piece";
+
+      return "nothing";
+    } else {
+      const adjPositions = getAdjacentPositions(
+        state.selectedPiece.getPositionOrThrowIfUnactivated(),
+      );
+      const ballPos = findBall(state.boardLayout);
+
+      if (!ballPos) {
+        throw new Error("Can't find ball on board");
+      }
+
+      const positionIsAdjToSelectedPiece =
+        adjPositions.filter((p) => p.equals(ballPos) && p.equals(position))
+          .length > 0;
+
+      return positionIsAdjToSelectedPiece ? "movement" : "nothing";
+    }
+  }
+
+  if (pieceAtPosition) {
+    if (state.selectedPiece && state.selectedPiece.getHasBall()) {
+      const passTargets = getValidPassTargets(
+        state.selectedPiece,
+        state.boardLayout,
+      );
+
+      const positionIsPassTarget = passTargets.find((p) => p.equals(position));
+
+      if (positionIsPassTarget) return "pass_target";
+    }
+
+    // Check for tackle targets (only in tackling step)
+    if (
+      state.currentStep === "tackling" &&
+      state.selectedPiece &&
+      !state.selectedPiece.getHasBall() &&
+      pieceAtPosition.getColor() !== TUTORIAL_PLAYER_COLOR
+    ) {
+      const tackleTargets = getValidTackleTargets(
+        state.selectedPiece,
+        state.boardLayout,
+      );
+
+      const positionIsTackleTarget = tackleTargets.find((p) =>
+        p.equals(position),
+      );
+
+      if (positionIsTackleTarget) return "tackle_target";
+    }
+
+    return pieceAtPosition.getColor() === TUTORIAL_PLAYER_COLOR
+      ? "piece"
+      : "nothing";
+  }
+
+  if (state.isMovementEnabled && isPositionValidMovementTarget(position)) {
+    return "movement";
+  }
+
+  // Check for empty square pass targets (only in ball_empty_square and receiving_passes steps)
+  if (
+    (state.currentStep === "ball_empty_square" ||
+      state.currentStep === "receiving_passes" ||
+      state.currentStep === "shooting") &&
+    state.selectedPiece &&
+    state.selectedPiece.getHasBall() &&
+    getValidEmptySquarePassTargets(state.selectedPiece, state.boardLayout).find(
+      (p) => p.equals(position),
+    )
+  ) {
+    return "empty_pass_target";
+  }
+
+  return "nothing";
+};
+
+/**
  * Handles clicking on a square in the tutorial board
  * @param position - The position that was clicked
  */
@@ -984,19 +1001,6 @@ export const handleSquareClick = (position: Position): void => {
     default:
       return handleDeselection();
   }
-};
-
-const resetState = (completedSteps?: Set<TutorialStep>) => {
-  const newState: Record<string, unknown> = {
-    selectedPiece: null,
-    awaitingConsecutivePass: false,
-    awaitingReceivePass: false,
-    showRetryButton: false,
-  };
-
-  if (completedSteps) newState.completedSteps = completedSteps;
-
-  useTutorialStore.setState(newState);
 };
 
 /**
