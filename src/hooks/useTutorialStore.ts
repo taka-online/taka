@@ -488,7 +488,11 @@ const handleTurnTarget = (position: Position): void => {
   if (
     currentStep === "turning" ||
     currentStep === "receiving_passes" ||
-    currentStep === "tackling"
+    currentStep === "tackling" ||
+    currentStep === "passing" ||
+    currentStep === "consecutive_pass" ||
+    currentStep === "ball_pickup" ||
+    currentStep === "chip_pass"
   ) {
     nextStep();
   }
@@ -521,16 +525,21 @@ const handlePieceSelection = (position: Position): void => {
       // This is a valid pass
       passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
 
-      if (currentStep === "passing" || currentStep === "chip_pass") {
-        nextStep();
-        return;
-      }
-
       // Set up for consecutive pass
       useTutorialStore.setState({
-        awaitingConsecutivePass: true,
         selectedPiece: pieceAtPosition,
       });
+
+      if (currentStep === "consecutive_pass") {
+        useTutorialStore.setState({
+          awaitingConsecutivePass: true,
+        });
+      } else if (currentStep === "passing" || currentStep === "chip_pass") {
+        useTutorialStore.setState({
+          awaitingDirectionSelection: true,
+        });
+      }
+
       return;
     }
   }
@@ -548,7 +557,7 @@ const handlePieceSelection = (position: Position): void => {
  * Handle pass target clicks during consecutive passing
  */
 const handleConsecutivePass = (position: Position): void => {
-  const { selectedPiece, currentStep } = useTutorialStore.getState();
+  const { selectedPiece } = useTutorialStore.getState();
 
   if (!selectedPiece) {
     throw new Error(
@@ -587,9 +596,10 @@ const handleConsecutivePass = (position: Position): void => {
   passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
 
   // If we just made our consecutive pass, move to next step
-  if (currentStep === "consecutive_pass") {
-    nextStep();
-  }
+  useTutorialStore.setState({
+    awaitingDirectionSelection: true,
+    selectedPiece: pieceAtPosition,
+  });
 };
 
 /**
@@ -640,14 +650,19 @@ const handleMovement = (position: Position): void => {
     return;
   }
 
-  deselectPiece();
+  if (isPickingUpBall) {
+    useTutorialStore.setState({
+      awaitingDirectionSelection: true,
+    });
+  } else {
+    deselectPiece();
+  }
 
   // Check for step progression
-  if (currentStep === "basic_movement") {
-    nextStep();
-  } else if (currentStep === "movement_with_ball") {
-    nextStep();
-  } else if (currentStep === "ball_pickup" && isPickingUpBall) {
+  if (
+    currentStep === "basic_movement" ||
+    currentStep === "movement_with_ball"
+  ) {
     nextStep();
   }
 };
@@ -744,7 +759,12 @@ const handleDeselection = (): void => {
 
   if (
     awaitingDirectionSelection &&
-    (currentStep === "tackling" || currentStep === "receiving_passes")
+    (currentStep === "tackling" ||
+      currentStep === "receiving_passes" ||
+      currentStep === "passing" ||
+      currentStep === "consecutive_pass" ||
+      currentStep === "ball_pickup" ||
+      currentStep === "chip_pass")
   ) {
     return;
   }
