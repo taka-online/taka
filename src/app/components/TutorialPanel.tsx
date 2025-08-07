@@ -51,6 +51,13 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             "Select your piece with the ball, then click on a highlighted teammate to pass. You can only pass in the direction you are facing.",
         };
 
+      case "passing_right":
+        return {
+          title: "Passing Rules (Different Direction)",
+          content:
+            "Select your piece with the ball, then click on a highlighted teammate to pass. You can only pass in the direction you are facing.",
+        };
+
       case "consecutive_pass":
         return {
           title: "Consecutive Passes",

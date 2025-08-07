@@ -74,6 +74,7 @@ export const stepOrder: TutorialStep[] = [
   "movement_with_ball",
   "turning",
   "passing",
+  "passing_right",
   "consecutive_pass",
   "ball_empty_square",
   "ball_pickup",
@@ -130,6 +131,56 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
 
     useTutorialStore.setState({
       currentStep: "passing",
+      isMovementEnabled: false,
+    });
+
+    setBoardLayout([
+      demoPiece1,
+      new Piece({
+        id: "W2",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(8, 0),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W3",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(8, 4),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W4",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(8, 8),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W5",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(4, 0),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W6",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(4, 8),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W7",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(1, 4),
+        hasBall: false,
+      }),
+    ]);
+  },
+  passing_right: () => {
+    demoPiece1.setPosition(new Position(4, 4));
+    demoPiece1.setFacingDirection("east");
+    demoPiece1.setHasBall(true);
+
+    useTutorialStore.setState({
+      currentStep: "passing_right",
       isMovementEnabled: false,
     });
 
@@ -490,6 +541,7 @@ const handleTurnTarget = (position: Position): void => {
     currentStep === "receiving_passes" ||
     currentStep === "tackling" ||
     currentStep === "passing" ||
+    currentStep === "passing_right" ||
     currentStep === "consecutive_pass" ||
     currentStep === "ball_pickup" ||
     currentStep === "chip_pass"
@@ -534,7 +586,11 @@ const handlePieceSelection = (position: Position): void => {
         useTutorialStore.setState({
           awaitingConsecutivePass: true,
         });
-      } else if (currentStep === "passing" || currentStep === "chip_pass") {
+      } else if (
+        currentStep === "passing" ||
+        currentStep === "passing_right" ||
+        currentStep === "chip_pass"
+      ) {
         useTutorialStore.setState({
           awaitingDirectionSelection: true,
         });
@@ -762,6 +818,7 @@ const handleDeselection = (): void => {
     (currentStep === "tackling" ||
       currentStep === "receiving_passes" ||
       currentStep === "passing" ||
+      currentStep === "passing_right" ||
       currentStep === "consecutive_pass" ||
       currentStep === "ball_pickup" ||
       currentStep === "chip_pass")
