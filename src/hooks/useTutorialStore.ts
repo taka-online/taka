@@ -398,6 +398,13 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
         hasBall: true,
         facingDirection: "west",
       }),
+      new Piece({
+        id: "B2",
+        color: TUTORIAL_OPPONENT_COLOR,
+        position: new Position(6, 3),
+        hasBall: true,
+        facingDirection: "west",
+      }),
     ]);
   },
   activating_goalies: () => {
