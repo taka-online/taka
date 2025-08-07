@@ -95,7 +95,7 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
 
       case "shooting":
         return {
-          title: "Shooting (Special Pass to Goal)",
+          title: "Shooting (Pass to Goal)",
           content:
             "Select your piece with the ball, then click on a highlighted goal square to shoot!",
         };
