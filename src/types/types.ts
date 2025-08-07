@@ -7,8 +7,8 @@ export type PlayerColor = "white" | "black";
 export type TutorialStep =
   | "welcome"
   | "basic_movement"
-  | "turning"
   | "movement_with_ball"
+  | "turning"
   | "passing"
   | "consecutive_pass"
   | "ball_empty_square"

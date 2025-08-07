@@ -71,8 +71,8 @@ interface TutorialState {
 export const stepOrder: TutorialStep[] = [
   "welcome",
   "basic_movement",
-  "turning",
   "movement_with_ball",
+  "turning",
   "passing",
   "consecutive_pass",
   "ball_empty_square",
@@ -110,18 +110,18 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
 
     setBoardLayout([demoPiece1]);
   },
-  turning: () => {
+  movement_with_ball: () => {
     demoPiece1.setHasBall(true);
 
     useTutorialStore.setState({
-      currentStep: "turning",
-      isMovementEnabled: false,
-    });
-  },
-  movement_with_ball: () => {
-    useTutorialStore.setState({
       currentStep: "movement_with_ball",
       isMovementEnabled: true,
+    });
+  },
+  turning: () => {
+    useTutorialStore.setState({
+      currentStep: "turning",
+      isMovementEnabled: false,
     });
   },
   passing: () => {
