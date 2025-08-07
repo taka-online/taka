@@ -1,5 +1,10 @@
 import React from "react";
-import { handleRetry, nextStep, stepOrder, useTutorialBoard } from "@/hooks/useTutorialStore";
+import {
+  handleRetry,
+  nextStep,
+  stepOrder,
+  useTutorialBoard,
+} from "@/hooks/useTutorialStore";
 import { TutorialStep } from "@/types/types";
 
 interface TutorialPanelProps {
@@ -36,21 +41,21 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Dribbling (Movement with Ball)",
           content:
-            "A piece with the ball can 'dribble' by moving exactly one square in any direction (vertical, horizontal, or diagonal) to an adjacent empty square.\n\nKey rules:\n• Only 1 square movement (more restrictive than normal 2-3 squares)\n• Must be to an adjacent empty square\n• After dribbling, you must set the piece's new facing direction\n\nDribbling and setting direction completes your turn.,
+            "A piece with the ball can 'dribble' by moving exactly one square in any direction (vertical, horizontal, or diagonal) to an adjacent empty square.\n\nKey rules:\n• Only 1 square movement (more restrictive than normal 2-3 squares)\n• Must be to an adjacent empty square\n• After dribbling, you must set the piece's new facing direction\n\nDribbling and setting direction completes your turn.",
         };
 
       case "passing":
         return {
           title: "Passing Rules",
           content:
-            "Passes travel in straight lines (vertical, horizontal, diagonal) and are restricted by facing direction.\n\nPassing zones (180-degree cone from front):\n• Facing opponent's goal: forward and forward-diagonally\n• Facing left/right: sideways and diagonally in that direction\n• Facing own goal: cannot pass (must turn first)\n\nSelect your piece with the ball, then click on a highlighted teammate within your passing zone."
+            "Passes travel in straight lines (vertical, horizontal, diagonal) and are restricted by facing direction.\n\nPassing zones (180-degree cone from front):\n• Facing opponent's goal: forward and forward-diagonally\n• Facing left/right: sideways and diagonally in that direction\n• Facing own goal: cannot pass (must turn first)\n\nSelect your piece with the ball, then click on a highlighted teammate within your passing zone.",
         };
 
       case "consecutive_pass":
         return {
           title: "Consecutive Passes",
           content:
-            "You can make two passes in a single turn under specific conditions:\n\n1. First pass goes from Piece A to stationary Piece B\n   (Piece B cannot move to receive)\n\n2. Piece B immediately makes a second pass to Piece C or empty square\n   (facing direction determined by pass path)\n\n3. Final receiver (Piece C) cannot move to receive the second pass\n\nThe entire Pass A→B→C sequence counts as one turn, allowing quick ball movement through multiple teammates."
+            "You can make two passes in a single turn under specific conditions:\n\n1. First pass goes from Piece A to stationary Piece B\n   (Piece B cannot move to receive)\n\n2. Piece B immediately makes a second pass to Piece C or empty square\n   (facing direction determined by pass path)\n\n3. Final receiver (Piece C) cannot move to receive the second pass\n\nThe entire Pass A→B→C sequence counts as one turn, allowing quick ball movement through multiple teammates.",
         };
 
       case "ball_empty_square":
@@ -78,14 +83,14 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Chip Pass (Passing Over Pieces)",
           content:
-            "Chip passes can travel over any number of pieces on their way to the target.\n\nBlocking rules:\n• A chip pass is BLOCKED if an opponent occupies the square that is both immediately adjacent to the passer AND on the direct line of the pass\n\nRestrictions:\n• Cannot make two consecutive chip passes in the same turn\n• Follow same facing direction restrictions as normal passes\n\nThis allows you to pass over defenders to reach teammates behind them."
+            "Chip passes can travel over any number of pieces on their way to the target.\n\nBlocking rules:\n• A chip pass is BLOCKED if an opponent occupies the square that is both immediately adjacent to the passer AND on the direct line of the pass\n\nRestrictions:\n• Cannot make two consecutive chip passes in the same turn\n• Follow same facing direction restrictions as normal passes\n\nThis allows you to pass over defenders to reach teammates behind them.",
         };
 
       case "shooting":
         return {
           title: "Shooting (Special Pass to Goal)",
           content:
-            "Shooting is a special type of pass subject to all passing rules.\n\nShooting Zone requirements:\n• White team: columns 10-14 (5 columns closest to black goal)\n• Black team: columns 1-5 (5 columns closest to white goal)\n\nGoal Zone squares:\n• White's goal: D1, E1, F1, G1\n• Black's goal: D14, E14, F14, G14\n\nGoalies can block shots if positioned on the straight-line path from shooter to goal.\n\nShoot at a goal square!"
+            "Shooting is a special type of pass subject to all passing rules.\n\nShooting Zone requirements:\n• White team: columns 10-14 (5 columns closest to black goal)\n• Black team: columns 1-5 (5 columns closest to white goal)\n\nGoal Zone squares:\n• White's goal: D1, E1, F1, G1\n• Black's goal: D14, E14, F14, G14\n\nGoalies can block shots if positioned on the straight-line path from shooter to goal.\n\nShoot at a goal square!",
         };
 
       case "tackling":

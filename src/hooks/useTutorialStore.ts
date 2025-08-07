@@ -3,13 +3,22 @@
 import { create } from "zustand";
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
-import { BoardType, PlayerColor, SquareType, TutorialStep } from "@/types/types";
-import { TUTORIAL_OPPONENT_COLOR, TUTORIAL_PLAYER_COLOR } from "@/utils/constants";
+import {
+  BoardType,
+  PlayerColor,
+  SquareType,
+  TutorialStep,
+} from "@/types/types";
+import {
+  TUTORIAL_OPPONENT_COLOR,
+  TUTORIAL_PLAYER_COLOR,
+} from "@/utils/constants";
 import {
   getTurnTargets,
   getValidEmptySquarePassTargets,
   getValidPassTargets,
-  getValidTackleTargets
+  getValidTackleTargets,
+  isPositionValidMovementTarget as isValidMovementTarget,
 } from "@/services/gameValidation";
 import {
   createBlankBoard,
@@ -21,7 +30,7 @@ import {
   getPieceAtPosition as getPieceAtPositionHelper,
   movePieceOnBoard,
   placeBallAtPosition as placeBallAtPositionHelper,
-  swapPiecePositions
+  swapPiecePositions,
 } from "@/services/boardHelpers";
 
 /**
