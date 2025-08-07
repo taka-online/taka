@@ -153,6 +153,24 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
         position: new Position(8, 8),
         hasBall: false,
       }),
+      new Piece({
+        id: "W5",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(4, 0),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W6",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(4, 8),
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W7",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(1, 4),
+        hasBall: false,
+      }),
     ]);
   },
   consecutive_pass: () => {
