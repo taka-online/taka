@@ -88,6 +88,7 @@ export const stepOrder: TutorialStep[] = [
   "shooting",
   "tackling",
   "activating_goalies",
+  "blocking_shots",
   "completed",
 ];
 
@@ -445,6 +446,31 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
     // Set up goalie activation scenario - show unactivated goalie at intersection
     setBoardLayout([]);
   },
+  blocking_shots: () => {
+    const goalie = new Piece({
+      id: "WG",
+      color: TUTORIAL_PLAYER_COLOR,
+      position: "white_unactivated",
+      hasBall: false,
+      isGoalie: true,
+    });
+
+    useTutorialStore.setState({
+      currentStep: "blocking_shots",
+      isMovementEnabled: false,
+      whiteUnactivatedGoaliePiece: goalie,
+    });
+
+    // Set up blocking scenario: black piece with ball on (3,2), need to activate goalie on (1,4)
+    setBoardLayout([
+      new Piece({
+        id: "B1",
+        color: TUTORIAL_OPPONENT_COLOR,
+        position: new Position(3, 2),
+        hasBall: true,
+      }),
+    ]);
+  },
   completed: () => {
     useTutorialStore.setState({
       currentStep: "completed",
@@ -732,6 +758,37 @@ const handleMovement = (position: Position): void => {
     // Progress to next step after goalie activation
     if (currentStep === "activating_goalies") {
       nextStep();
+    } else if (currentStep === "blocking_shots") {
+      // Check if goalie was placed on the correct position (1,4) to block the shot
+      const targetPosition = new Position(1, 4);
+      if (position.equals(targetPosition)) {
+        nextStep();
+      } else {
+        // Wrong position - show retry button and reset the goalie
+        const goalie = new Piece({
+          id: "WG",
+          color: TUTORIAL_PLAYER_COLOR,
+          position: "white_unactivated",
+          hasBall: false,
+          isGoalie: true,
+        });
+
+        useTutorialStore.setState({
+          whiteUnactivatedGoaliePiece: goalie,
+          selectedPiece: null,
+          showRetryButton: true,
+        });
+
+        // Remove the incorrectly placed goalie from the board
+        setBoardLayout([
+          new Piece({
+            id: "B1",
+            color: TUTORIAL_OPPONENT_COLOR,
+            position: new Position(3, 2),
+            hasBall: true,
+          }),
+        ]);
+      }
     }
     return;
   }
@@ -986,7 +1043,12 @@ export const getSquareInfo = (
       e.equals(position),
     );
 
-    return isGoalActivationTarget ? "movement" : "nothing";
+    // Only allow activation if the position is a valid target AND there's no piece there
+    if (isGoalActivationTarget && !getPieceAtPosition(position)) {
+      return "movement";
+    }
+
+    return "nothing";
   }
 
   const pieceAtPosition = getPieceAtPosition(position);
@@ -1013,6 +1075,11 @@ export const getSquareInfo = (
 
       return "nothing";
     } else {
+      // Don't try to get adjacent positions for unactivated goalies
+      if (state.selectedPiece === state.whiteUnactivatedGoaliePiece) {
+        return "nothing";
+      }
+      
       const adjPositions = getAdjacentPositions(
         state.selectedPiece.getPositionOrThrowIfUnactivated(),
       );

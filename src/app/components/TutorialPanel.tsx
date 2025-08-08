@@ -114,6 +114,13 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             "Goalies are special pieces with unique abilities:\n\n1. Only goalies can enter their own Goal Zone squares (4 squares of your goal area)\n\n2. Outside the Goal Zone, they move and act like normal pieces\n\n3. Goalies automatically block shots on goal if positioned on the straight-line path from shooter to goal (no action required)\n\n4. Opponents cannot chip pass over goalies when shooting from the last row (Row A or J)\n\nClick the unactivated goalie at the intersection, then place it in your goal area to activate it.",
         };
 
+      case "blocking_shots":
+        return {
+          title: "Blocking Shots (Defensive Positioning)",
+          content:
+            "Now let's practice using your goalie defensively!\n\nThe black piece on the board has the ball and can shoot at your goal. You need to position your goalie to block the shot.\n\nClick the unactivated goalie at the intersection, then place it on position (B5) to block the direct line between the shooter and your goal.",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",

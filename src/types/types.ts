@@ -19,6 +19,7 @@ export type TutorialStep =
   | "shooting"
   | "tackling"
   | "activating_goalies"
+  | "blocking_shots"
   | "completed";
 
 export type FacingDirection = "north" | "south" | "west" | "east";
