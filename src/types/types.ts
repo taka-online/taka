@@ -10,7 +10,6 @@ export type TutorialStep =
   | "movement_with_ball"
   | "turning"
   | "passing"
-  | "passing_right"
   | "consecutive_pass"
   | "ball_empty_square"
   | "ball_pickup"

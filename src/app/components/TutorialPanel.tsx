@@ -27,42 +27,35 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Turning (Facing Direction)",
           content:
-            "Select the piece with the ball, then click 'Turn Piece' to change its facing direction. You can also use arrow keys (↑↓←→) to turn directly!",
+            "Every time the ball is on a new square with a piece you decide the direction the piece is facing. To do this select the piece with the ball, then click which way you want it to face. You can also use arrow keys (↑↓←→) to turn. ",
         };
 
       case "basic_movement":
         return {
           title: "Basic Movement",
           content:
-            "Click the white piece, then click a highlighted destination square to move it.",
+            "Click the white piece, then click a highlighted destination square to move it.\n\nYou can move up to three squares forward and two sideways or backward.",
         };
 
       case "movement_with_ball":
         return {
           title: "Dribbling (Movement with Ball)",
           content:
-            "Click the piece with the ball, then click a highlighted adjacent square to dribble. You'll then need to set its new facing direction.",
+            "Drag the piece with the ball to an adjacent square to dribble.",
         };
 
       case "passing":
         return {
           title: "Passing Rules",
           content:
-            "Select your piece with the ball, then click on a highlighted teammate to pass. You can only pass in the direction you are facing.",
-        };
-
-      case "passing_right":
-        return {
-          title: "Passing Rules (Different Direction)",
-          content:
-            "Select your piece with the ball, then click on a highlighted teammate to pass. You can only pass in the direction you are facing.",
+            "Select your piece with the ball, then click on a highlighted teammate to pass. You can only pass in the direction you are facing. After the pass, don't forget to choose the facing direction of the piece.",
         };
 
       case "consecutive_pass":
         return {
           title: "Consecutive Passes",
           content:
-            "Make your first pass, then immediately make a second pass with the receiving piece. This counts as one turn.",
+            "Make your first pass, then immediately make a second pass with the receiving piece. This counts as one turn. You cannot chip pass twice when consecutive passing.",
         };
 
       case "ball_empty_square":
@@ -83,14 +76,14 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Receiving Passes (Moving to Pick Up)",
           content:
-            "Pass the ball to an empty square near a teammate, then move that teammate to pick up the ball.",
+            "Pass to an empty square one square away from a teammate. You can move your piece one square to receive the ball.",
         };
 
       case "chip_pass":
         return {
           title: "Chip Pass (Passing Over Pieces)",
           content:
-            "Select your piece with the ball, then click 'Chip Pass' and choose a highlighted teammate to pass over defenders.",
+            "Select your piece with the ball, then pass to a highlighted teammate to pass over defenders. You can pass over pieces as long as they are not directly in front of the direction you are passing.",
         };
 
       case "shooting":
@@ -104,14 +97,14 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Tackling (Stealing the Ball)",
           content:
-            "You can tackle (steal the ball from) an opponent if:\n\n1. Your piece is adjacent (vertically, horizontally, or diagonally) to their piece with the ball\n\n2. You're positioned in front of or to the side of their piece relative to their facing direction\n   (You cannot tackle from behind)\n\nAfter a successful tackle:\n• The two pieces swap positions\n• You gain possession of the ball\n• Your piece's facing direction is automatically set based on tackle direction\n\nSelect your white piece and click the highlighted opponent!",
+            "You can tackle (steal the ball from) an opponent if your piece is adjacent (vertically, horizontally, or diagonally) to their piece with the ball. You cannot tackle from behind.\n\nAfter a successful tackle you swap positions and get to make a move.",
         };
 
       case "activating_goalies":
         return {
           title: "Activating Goalies (Special Pieces)",
           content:
-            "Goalies are special pieces with unique abilities:\n\n1. Only goalies can enter their own Goal Zone squares (4 squares of your goal area)\n\n2. Outside the Goal Zone, they move and act like normal pieces\n\n3. Goalies automatically block shots on goal if positioned on the straight-line path from shooter to goal (no action required)\n\n4. Opponents cannot chip pass over goalies when shooting from the last row (Row A or J)\n\nClick the unactivated goalie at the intersection, then place it in your goal area to activate it.",
+            "Goalies are normal pieces but are the only ones allowed to enter the goal.\n\nGoalies block shots when they are on the square the opponents trying to shoot in. They have no blocking ability when they are in their starting circle ",
         };
 
       case "blocking_shots":
