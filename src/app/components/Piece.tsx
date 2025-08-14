@@ -12,6 +12,7 @@ interface PieceProps {
   isPassTarget: boolean;
   isTackleTarget?: boolean;
   isDragging?: boolean;
+  isOffside?: boolean;
 }
 
 const Piece: React.FC<PieceProps> = ({
@@ -20,6 +21,7 @@ const Piece: React.FC<PieceProps> = ({
   isPassTarget,
   isTackleTarget = false,
   isDragging = false,
+  isOffside = false,
 }) => {
   const isGoalie = piece.getIsGoalie();
 
@@ -52,7 +54,6 @@ const Piece: React.FC<PieceProps> = ({
   };
 
   const canBeTackled = false;
-  const isOffside = false;
   const hasBall = piece.getHasBall();
   const { currentStep } = useTutorialBoard();
 

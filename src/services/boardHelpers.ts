@@ -209,6 +209,31 @@ export const findBall = (boardLayout: BoardType): Position | null => {
 };
 
 /**
+ * Find the ball position - either loose or with a piece
+ * @param boardLayout - Current board layout
+ * @returns Position of the ball or null if not found
+ */
+export const findBallPosition = (boardLayout: BoardType): Position | null => {
+  // First check for loose ball
+  const looseBall = findBall(boardLayout);
+  if (looseBall) {
+    return looseBall;
+  }
+
+  // Ball is with a piece, find which piece has it
+  for (let row = 0; row < BOARD_ROWS; row++) {
+    for (let col = 0; col < BOARD_COLS; col++) {
+      const square = boardLayout[row][col];
+      if (square instanceof Piece && square.getHasBall()) {
+        return new Position(row, col);
+      }
+    }
+  }
+  
+  return null;
+};
+
+/**
  * Swap positions of two pieces on the board and handle tackle logic
  * @param tackler - The piece performing the tackle
  * @param target - The piece being tackled (must have ball)

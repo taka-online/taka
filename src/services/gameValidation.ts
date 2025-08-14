@@ -2,11 +2,87 @@ import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import { BOARD_COLS, BOARD_ROWS, DIRECTION_VECTORS } from "@/utils/constants";
 import { BoardType } from "@/types/types";
-import { getAdjacentPositions } from "@/services/boardHelpers";
+import { getAdjacentPositions, findBallPosition } from "@/services/boardHelpers";
 
 /**
  * Utility functions for game validation and calculations
  */
+
+/**
+ * Checks if a piece is in an offside position
+ * @param piece - The piece to check for offside
+ * @param ballPosition - Position of the ball
+ * @param boardLayout - Current board layout
+ * @returns True if the piece is offside
+ */
+export const isPlayerOffside = (
+  piece: Piece,
+  ballPosition: Position,
+  boardLayout: BoardType,
+): boolean => {
+  const piecePos = piece.getPositionOrThrowIfUnactivated();
+  const [pieceRow] = piecePos.getPositionCoordinates();
+  const [ballRow] = ballPosition.getPositionCoordinates();
+  const pieceColor = piece.getColor();
+  
+  // Determine which goal the piece is attacking
+  // White attacks toward black's goal at row 13 (higher row numbers)
+  // Black attacks toward white's goal at row 0 (lower row numbers)
+  const isWhite = pieceColor === "white";
+  
+  // Check if piece is closer to opponent's goal than the ball
+  const closerToGoalThanBall = isWhite 
+    ? pieceRow > ballRow // For white, higher row number = closer to black's goal (row 13)
+    : pieceRow < ballRow; // For black, lower row number = closer to white's goal (row 0)
+    
+  if (!closerToGoalThanBall) {
+    return false; // Not ahead of ball, so not offside
+  }
+  
+  // Find all opponent pieces and sort by distance to their own goal
+  const opponentPieces: Piece[] = [];
+  
+  for (let row = 0; row < BOARD_ROWS; row++) {
+    for (let col = 0; col < BOARD_COLS; col++) {
+      const square = boardLayout[row][col];
+      if (square instanceof Piece && square.getColor() !== pieceColor) {
+        opponentPieces.push(square);
+      }
+    }
+  }
+  
+  // Sort opponent pieces by distance to their goal (closest to farthest)
+  opponentPieces.sort((a, b) => {
+    const [aRow] = a.getPositionOrThrowIfUnactivated().getPositionCoordinates();
+    const [bRow] = b.getPositionOrThrowIfUnactivated().getPositionCoordinates();
+    
+    if (isWhite) {
+      // White is attacking black, so sort black pieces by distance to their own goal (row 13)
+      // Higher row = closer to their goal, so descending sort
+      return bRow - aRow;
+    } else {
+      // Black is attacking white, so sort white pieces by distance to their own goal (row 0)  
+      // Lower row = closer to their goal, so ascending sort
+      return aRow - bRow;
+    }
+  });
+  
+  // Get the second-to-last opponent (second closest to their own goal)
+  if (opponentPieces.length < 2) {
+    return false; // If fewer than 2 opponents, cannot be offside
+  }
+  
+  const secondToLastOpponent = opponentPieces[1];
+  const [secondOpponentRow] = secondToLastOpponent.getPositionOrThrowIfUnactivated().getPositionCoordinates();
+  
+  
+  // Check if piece is closer to goal than second-to-last opponent
+  if (isWhite) {
+    return pieceRow > secondOpponentRow; // White piece is closer to black goal (higher row)
+  } else {
+    return pieceRow < secondOpponentRow; // Black piece is closer to white goal (lower row)
+  }
+};
 
 /**
  * Gets all valid movement positions for a piece. Accounts for blocked paths due to other pieces
@@ -40,10 +116,12 @@ export const getValidMovementTargets = (
  * Get all valid pass targets for a piece
  * @param origin - Piece to get pass targets of
  * @param boardLayout - Current board layout
+ * @param checkOffside - Whether to check for offside (default: false)
  */
 export const getValidPassTargets = (
   origin: Piece,
   boardLayout: BoardType,
+  checkOffside: boolean = false,
 ): Position[] => {
   const validMoves: Position[] = [];
 
@@ -51,6 +129,9 @@ export const getValidPassTargets = (
     .getPositionOrThrowIfUnactivated()
     .getPositionCoordinates();
   const facingDirection = origin.getFacingDirection();
+  
+  // Get ball position for offside checks (only if needed)
+  const ballPosition = checkOffside ? (findBallPosition(boardLayout) || origin.getPositionOrThrowIfUnactivated()) : null;
 
   for (const [dRow, dCol] of DIRECTION_VECTORS) {
     if (
@@ -75,13 +156,17 @@ export const getValidPassTargets = (
 
       if (square instanceof Piece) {
         if (square.getColor() === origin.getColor()) {
-          validMoves.push(newPosition);
+          // Check if the target piece is offside (only if checkOffside is true)
+          if (!checkOffside || !isPlayerOffside(square, ballPosition!, boardLayout)) {
+            validMoves.push(newPosition);
+          }
           // Break as we can't pass behind a piece
           break;
         } else if (distance === 1) {
           // If this is an adjacent square AND the piece that is adjacent to the current piece is an opponent piece, we cannot chip pass, so break this path
           break;
         }
+        // For opponent pieces at distance > 1, continue the loop to allow chip passes
       }
     }
   }

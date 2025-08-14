@@ -144,6 +144,10 @@ export class Piece {
     this.hasBall = hasBall;
   }
 
+  getId() {
+    return this.id;
+  }
+
   getHasBall() {
     return this.hasBall;
   }

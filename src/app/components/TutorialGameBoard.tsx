@@ -295,6 +295,7 @@ const TutorialGameBoard: React.FC = () => {
               isSelected={false}
               isPassTarget={false}
               isTackleTarget={false}
+              isOffside={false}
             />
           </div>
         </div>

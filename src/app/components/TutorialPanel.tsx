@@ -125,7 +125,14 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Blocking Shots (Defensive Positioning)",
           content:
-            "Now let's practice using your goalie defensively!\n\nThe black piece on the board has the ball and can shoot at your goal. You need to position your goalie to block the shot.\n\nClick the unactivated goalie at the intersection, then place it on position (B5) to block the direct line between the shooter and your goal.",
+            "Now let's practice using your goalie defensively!\n\nThe black piece on the board has the ball and can shoot at your goal. You need to position your goalie to block the shot.\n\nClick the unactivated goalie at the intersection, then place it on either position (A6) or (B5) to block the shot path.",
+        };
+
+      case "offside":
+        return {
+          title: "Offside Rule",
+          content:
+            "A piece is offside if it's closer to the opponent's goal than both the ball and the second-to-last opposing piece.\n\nLook at the board: you have two white pieces ahead of the ball. Notice that only ONE piece is highlighted as a valid pass target - the other is in an offside position!\n\nSelect your piece with the ball and pass to the highlighted (onside) teammate.",
         };
 
       case "completed":

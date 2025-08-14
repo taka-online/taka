@@ -5,7 +5,7 @@ import Piece from "./Piece";
 import { Piece as PieceClass } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import { BoardSquareType, SquareType } from "@/types/types";
-import { handleSquareClick, useTutorialBoard } from "@/hooks/useTutorialStore";
+import { handleSquareClick, useTutorialBoard, isPieceOffside } from "@/hooks/useTutorialStore";
 import { BOARD_COLS } from "@/utils/constants";
 
 interface BoardCellProps {
@@ -88,6 +88,7 @@ const BoardCell: React.FC<BoardCellProps> = ({
             isPassTarget={squareInfo === "pass_target"}
             isTackleTarget={squareInfo === "tackle_target"}
             isDragging={false}
+            isOffside={isPieceOffside(piece)}
           />
         </div>
       )}

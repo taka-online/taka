@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
 import {
+  BoardSquareType,
   BoardType,
   FacingDirection,
   PlayerColor,
@@ -20,11 +21,13 @@ import {
   getValidPassTargets,
   getValidTackleTargets,
   isPositionValidMovementTarget as isValidMovementTarget,
+  isPlayerOffside,
 } from "@/services/gameValidation";
 import {
   createBlankBoard,
   createBoardLayout,
   findBall,
+  findBallPosition,
   getAdjacentPieces,
   getAdjacentPositions,
   getBoardSquare as getBoardSquareHelper,
@@ -90,6 +93,7 @@ export const stepOrder: TutorialStep[] = [
   "tackling_positioning",
   "activating_goalies",
   "blocking_shots",
+  "offside",
   "completed",
 ];
 
@@ -479,6 +483,57 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
       }),
     ]);
   },
+  offside: () => {
+    useTutorialStore.setState({
+      currentStep: "offside",
+      isMovementEnabled: false,
+    });
+
+    // Set up offside scenario:
+    // - White piece with ball at (6,4) facing south
+    // - White piece at (10,3) in offside position (will NOT be highlighted)
+    // - White piece at (8,3) in onside position (WILL be highlighted)
+    // - Black pieces positioned to create offside situation
+    setBoardLayout([
+      new Piece({
+        id: "W1",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(6, 4),
+        hasBall: true,
+        facingDirection: "south",
+      }),
+      new Piece({
+        id: "W2",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(10, 0), // Offside position
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W3",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(9, 7), // Onside position
+        hasBall: false,
+      }),
+      new Piece({
+        id: "B1",
+        color: TUTORIAL_OPPONENT_COLOR,
+        position: new Position(9, 4), // Closest to own goal
+        hasBall: false,
+      }),
+      new Piece({
+        id: "B2",
+        color: TUTORIAL_OPPONENT_COLOR,
+        position: new Position(9, 6), // Second-to-last opponent
+        hasBall: false,
+      }),
+      new Piece({
+        id: "B3",
+        color: TUTORIAL_OPPONENT_COLOR,
+        position: new Position(7, 4), // Third opponent
+        hasBall: false,
+      }),
+    ]);
+  },
   completed: () => {
     useTutorialStore.setState({
       currentStep: "completed",
@@ -615,7 +670,8 @@ const handleTurnTarget = (position: Position): void => {
     currentStep === "passing" ||
     currentStep === "consecutive_pass" ||
     currentStep === "ball_pickup" ||
-    currentStep === "chip_pass"
+    currentStep === "chip_pass" ||
+    currentStep === "offside"
   ) {
     nextStep();
   }
@@ -638,7 +694,12 @@ const handlePieceSelection = (position: Position): void => {
   // Check if this is a pass target
   if (selectedPiece && selectedPiece.getHasBall()) {
     const state = useTutorialStore.getState();
-    const passTargets = getValidPassTargets(selectedPiece, state.boardLayout);
+    const checkOffside = state.currentStep === "offside";
+    const passTargets = getValidPassTargets(
+      selectedPiece,
+      state.boardLayout,
+      checkOffside,
+    );
 
     if (
       passTargets.some((p) =>
@@ -653,11 +714,18 @@ const handlePieceSelection = (position: Position): void => {
         selectedPiece: pieceAtPosition,
       });
 
-      if (currentStep === "consecutive_pass" || currentStep === "consecutive_pass_to_score") {
+      if (
+        currentStep === "consecutive_pass" ||
+        currentStep === "consecutive_pass_to_score"
+      ) {
         useTutorialStore.setState({
           awaitingConsecutivePass: true,
         });
-      } else if (currentStep === "passing" || currentStep === "chip_pass") {
+      } else if (
+        currentStep === "passing" ||
+        currentStep === "chip_pass" ||
+        currentStep === "offside"
+      ) {
         useTutorialStore.setState({
           awaitingDirectionSelection: true,
         });
@@ -704,7 +772,12 @@ const handleConsecutivePass = (position: Position): void => {
   }
 
   const state = useTutorialStore.getState();
-  const passTargets = getValidPassTargets(selectedPiece, state.boardLayout);
+  const checkOffside = state.currentStep === "offside";
+  const passTargets = getValidPassTargets(
+    selectedPiece,
+    state.boardLayout,
+    checkOffside,
+  );
 
   // The clicked square must be a pass target
   if (
@@ -763,9 +836,9 @@ const handleMovement = (position: Position): void => {
     if (currentStep === "activating_goalies") {
       nextStep();
     } else if (currentStep === "blocking_shots") {
-      // Check if goalie was placed on the correct position (1,4) to block the shot
-      const targetPosition = new Position(1, 4);
-      if (position.equals(targetPosition)) {
+      // Check if goalie was placed on a valid position to block the shot
+      const validPositions = [new Position(1, 4), new Position(0, 5)];
+      if (validPositions.some(pos => position.equals(pos))) {
         nextStep();
       } else {
         // Wrong position - show retry button and reset the goalie
@@ -865,7 +938,10 @@ const handleEmptySquarePass = (position: Position): void => {
       passSender: selectedPiece,
       isMovementEnabled: true,
     });
-  } else if (currentStep === "shooting" || currentStep === "consecutive_pass_to_score") {
+  } else if (
+    currentStep === "shooting" ||
+    currentStep === "consecutive_pass_to_score"
+  ) {
     if (!position.isPositionInGoal()) {
       useTutorialStore.setState({
         selectedPiece: null,
@@ -923,7 +999,8 @@ const handleDeselection = (): void => {
       currentStep === "passing" ||
       currentStep === "consecutive_pass" ||
       currentStep === "ball_pickup" ||
-      currentStep === "chip_pass")
+      currentStep === "chip_pass" ||
+      currentStep === "offside")
   ) {
     return;
   }
@@ -1004,6 +1081,32 @@ export const isPositionValidMovementTarget = (position: Position): boolean => {
   }
 
   return isValidMovementTarget(selectedPiece, position, boardLayout);
+};
+
+/**
+ * Checks if a piece is in an offside position
+ * @param piece - The piece to check
+ * @returns True if the piece is offside
+ */
+export const isPieceOffside = (piece: BoardSquareType): boolean => {
+  // Safety check: only check offside for actual Piece instances  
+  if (!(piece instanceof Piece)) {
+    return false;
+  }
+
+  const { boardLayout, currentStep } = useTutorialStore.getState();
+
+  // Only show offside during the offside tutorial step
+  if (currentStep !== "offside") {
+    return false;
+  }
+
+  const ballPosition = findBallPosition(boardLayout);
+  if (!ballPosition) {
+    return false;
+  }
+
+  return isPlayerOffside(piece, ballPosition, boardLayout);
 };
 
 /**
@@ -1101,9 +1204,11 @@ export const getSquareInfo = (
 
   if (pieceAtPosition) {
     if (state.selectedPiece && state.selectedPiece.getHasBall()) {
+      const checkOffside = state.currentStep === "offside";
       const passTargets = getValidPassTargets(
         state.selectedPiece,
         state.boardLayout,
+        checkOffside,
       );
 
       const positionIsPassTarget = passTargets.find((p) => p.equals(position));
@@ -1113,7 +1218,8 @@ export const getSquareInfo = (
 
     // Check for tackle targets (only in tackling step)
     if (
-      (state.currentStep === "tackling" || state.currentStep === "tackling_positioning") &&
+      (state.currentStep === "tackling" ||
+        state.currentStep === "tackling_positioning") &&
       state.selectedPiece &&
       !state.selectedPiece.getHasBall() &&
       pieceAtPosition.getColor() !== TUTORIAL_PLAYER_COLOR
