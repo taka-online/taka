@@ -104,7 +104,7 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Activating Goalies (Special Pieces)",
           content:
-            "Goalies are normal pieces but are the only ones allowed to enter the goal.\n\nGoalies block shots when they are on the square the opponents trying to shoot in. They have no blocking ability when they are in their starting circle ",
+            "Goalies are normal pieces but are the only ones allowed to enter the goal.\n\nGoalies block shots when they are on the square the opponents trying to shoot in. They have no blocking ability when they are in their starting circle",
         };
 
       case "blocking_shots":
