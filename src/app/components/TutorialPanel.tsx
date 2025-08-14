@@ -139,7 +139,7 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Tutorial Complete!",
           content:
-            "Congratulations! You've learned the basics of Taka. You're ready to play the full game!",
+            "Congratulations! You've learned the basics of Taka. You're ready to play the full game!\n\n**How to Win:** Score more goals than your opponent within the agreed number of moves or time limit.\n\n**Draw Conditions:**\n• **Stalemate:** If the ball doesn't move to a new square for 50 consecutive turns\n• **Repetition:** If the same sequence of moves between two pieces is repeated more than twice\n\nGood luck and have fun playing!",
         };
     }
   };
