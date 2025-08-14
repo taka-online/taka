@@ -58,6 +58,13 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             "Make your first pass, then immediately make a second pass with the receiving piece. This counts as one turn. You cannot chip pass twice when consecutive passing.",
         };
 
+      case "consecutive_pass_to_score":
+        return {
+          title: "Consecutive Pass to Score",
+          content:
+            "The opponent is blocking your direct path to the goal! Pass horizontally to your teammate, then immediately have them shoot at the goal. Remember: this counts as one turn.",
+        };
+
       case "ball_empty_square":
         return {
           title: "Passing to Open Square",
