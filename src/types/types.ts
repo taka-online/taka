@@ -22,6 +22,7 @@ export type TutorialStep =
   | "activating_goalies"
   | "blocking_shots"
   | "offside"
+  | "shooting_zone_pass"
   | "completed";
 
 export type FacingDirection = "north" | "south" | "west" | "east";

@@ -94,6 +94,7 @@ export const stepOrder: TutorialStep[] = [
   "activating_goalies",
   "blocking_shots",
   "offside",
+  "shooting_zone_pass",
   "completed",
 ];
 
@@ -534,6 +535,38 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
       }),
     ]);
   },
+  shooting_zone_pass: () => {
+    useTutorialStore.setState({
+      currentStep: "shooting_zone_pass",
+      isMovementEnabled: false,
+    });
+
+    // Set up scenario demonstrating cross-zone pass rule
+    // White's shooting zone: rows 9-13 (closest to black's goal at row 13)
+    // Black's shooting zone: rows 0-4 (closest to white's goal at row 0)
+    // Player is in white's shooting zone and needs to pass across to black's zone
+    setBoardLayout([
+      new Piece({
+        id: "W1",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(4, 4), // In white's shooting zone (rows 9-13)
+        hasBall: true,
+        facingDirection: "south",
+      }),
+      new Piece({
+        id: "W2",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(9, 4), // Teammate in black's zone (rows 0-4) - crosses zones
+        hasBall: false,
+      }),
+      new Piece({
+        id: "W3",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(4, 9), // Teammate in same white zone - no zone crossing
+        hasBall: false,
+      }),
+    ]);
+  },
   completed: () => {
     useTutorialStore.setState({
       currentStep: "completed",
@@ -671,10 +704,36 @@ const handleTurnTarget = (position: Position): void => {
     currentStep === "consecutive_pass" ||
     currentStep === "ball_pickup" ||
     currentStep === "chip_pass" ||
-    currentStep === "offside"
+    currentStep === "offside" ||
+    currentStep === "shooting_zone_pass"
   ) {
     nextStep();
   }
+};
+
+/**
+ * Checks if a pass crosses shooting zones (full move rule)
+ */
+const isCrossZonePass = (
+  fromPosition: Position,
+  toPosition: Position,
+): boolean => {
+  const [fromRow] = fromPosition.getPositionCoordinates();
+  const [toRow] = toPosition.getPositionCoordinates();
+
+  // White's shooting zone: rows 9-13, Black's shooting zone: rows 0-4
+  // Middle zone: rows 5-8
+  const isFromWhiteZone = fromRow >= 9;
+  const isFromBlackZone = fromRow <= 4;
+  const isToWhiteZone = toRow >= 9;
+  const isToBlackZone = toRow <= 4;
+
+  // Cross-zone if passing from one shooting zone to another, or from shooting zone to middle/other shooting zone
+  return (
+    (isFromWhiteZone && (isToBlackZone || (toRow >= 5 && toRow <= 8))) ||
+    (isFromBlackZone && (isToWhiteZone || (toRow >= 5 && toRow <= 8))) ||
+    (fromRow >= 5 && fromRow <= 8 && (isToWhiteZone || isToBlackZone))
+  );
 };
 
 /**
@@ -707,24 +766,42 @@ const handlePieceSelection = (position: Position): void => {
       )
     ) {
       // This is a valid pass
-      passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
+      const fromPosition = selectedPiece.getPositionOrThrowIfUnactivated();
+      passBall(fromPosition, position);
 
       // Select the piece that received the pass
       useTutorialStore.setState({
         selectedPiece: pieceAtPosition,
       });
 
+      // Check if this is a cross-zone pass for shooting_zone_pass step
+      if (
+        currentStep === "shooting_zone_pass" &&
+        isCrossZonePass(fromPosition, position)
+      ) {
+        // Cross-zone pass - only allow direction selection, no consecutive passes
+        useTutorialStore.setState({
+          awaitingDirectionSelection: true,
+        });
+        return;
+      }
+
       if (
         currentStep === "consecutive_pass" ||
-        currentStep === "consecutive_pass_to_score"
+        currentStep === "consecutive_pass_to_score" ||
+        (currentStep === "shooting_zone_pass" &&
+          !isCrossZonePass(fromPosition, position))
       ) {
+        // Allow consecutive passes for same-zone passes in shooting_zone_pass step
         useTutorialStore.setState({
           awaitingConsecutivePass: true,
         });
       } else if (
         currentStep === "passing" ||
         currentStep === "chip_pass" ||
-        currentStep === "offside"
+        currentStep === "offside" ||
+        (currentStep === "shooting_zone_pass" &&
+          isCrossZonePass(fromPosition, position))
       ) {
         useTutorialStore.setState({
           awaitingDirectionSelection: true,
@@ -838,7 +915,7 @@ const handleMovement = (position: Position): void => {
     } else if (currentStep === "blocking_shots") {
       // Check if goalie was placed on a valid position to block the shot
       const validPositions = [new Position(1, 4), new Position(0, 5)];
-      if (validPositions.some(pos => position.equals(pos))) {
+      if (validPositions.some((pos) => position.equals(pos))) {
         nextStep();
       } else {
         // Wrong position - show retry button and reset the goalie
@@ -1089,7 +1166,7 @@ export const isPositionValidMovementTarget = (position: Position): boolean => {
  * @returns True if the piece is offside
  */
 export const isPieceOffside = (piece: BoardSquareType): boolean => {
-  // Safety check: only check offside for actual Piece instances  
+  // Safety check: only check offside for actual Piece instances
   if (!(piece instanceof Piece)) {
     return false;
   }

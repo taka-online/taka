@@ -135,11 +135,18 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
             "A piece is offside if it's closer to the opponent's goal than both the ball and the second-to-last opposing piece.\n\nLook at the board: you have two white pieces ahead of the ball. Notice that only ONE piece is highlighted as a valid pass target - the other is in an offside position!\n\nSelect your piece with the ball and pass to the highlighted (onside) teammate.",
         };
 
+      case "shooting_zone_pass":
+        return {
+          title: "Cross-Zone Pass Rule",
+          content:
+            "Moving the ball from your own shooting zone into the opponent's zone (or vice versa) counts as a full move.\n\nYou're in your shooting zone (bottom area). You have two pass options:\n• Pass to teammate in opponent's zone (top area) - This crosses zones, so NO consecutive passes allowed, only direction selection\n• Pass within same zone (bottom area) - Normal rules apply, consecutive passes allowed\n\nTry both types of passes to see the difference!",
+        };
+
       case "completed":
         return {
           title: "Tutorial Complete!",
           content:
-            "Congratulations! You've learned the basics of Taka. You're ready to play the full game!\n\n**How to Win:** Score more goals than your opponent within the agreed number of moves or time limit.\n\n**Draw Conditions:**\n• **Stalemate:** If the ball doesn't move to a new square for 50 consecutive turns\n• **Repetition:** If the same sequence of moves between two pieces is repeated more than twice\n\nGood luck and have fun playing!",
+            "Congratulations! You've learned the basics of Taka. You're ready to play the full game!\n\nHow to Win:\nScore more goals than your opponent within the agreed number of moves or time limit.\n\nDraw Conditions:\n• Stalemate: If the ball doesn't move to a new square for 50 consecutive turns\n• Repetition: If the same sequence of moves between two pieces is repeated more than twice\n\nGood luck and have fun playing!",
         };
     }
   };
