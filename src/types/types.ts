@@ -11,6 +11,7 @@ export type TutorialStep =
   | "turning"
   | "passing"
   | "consecutive_pass"
+  | "consecutive_pass_to_score"
   | "ball_empty_square"
   | "ball_pickup"
   | "receiving_passes"

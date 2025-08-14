@@ -85,6 +85,7 @@ export const stepOrder: TutorialStep[] = [
   "chip_pass",
   "consecutive_pass",
   "shooting",
+  "consecutive_pass_to_score",
   "tackling",
   "activating_goalies",
   "blocking_shots",
@@ -229,6 +230,37 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
         hasBall: false,
       }),
       demoPiece1,
+    ]);
+  },
+  consecutive_pass_to_score: () => {
+    // Set up a scenario where the user needs to make consecutive passes to score
+    // Position: piece with ball at (10, 4), opponent blocking at (11, 4), teammate at (10, 6) to pass to horizontally
+    useTutorialStore.setState({
+      currentStep: "consecutive_pass_to_score",
+      isMovementEnabled: false,
+    });
+
+    setBoardLayout([
+      new Piece({
+        id: "W1",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(10, 4),
+        hasBall: true,
+        facingDirection: "east",
+      }),
+      new Piece({
+        id: "W2",
+        color: TUTORIAL_PLAYER_COLOR,
+        position: new Position(10, 6),
+        hasBall: false,
+        facingDirection: "south",
+      }),
+      new Piece({
+        id: "B1",
+        color: TUTORIAL_OPPONENT_COLOR,
+        position: new Position(11, 4),
+        hasBall: false,
+      }),
     ]);
   },
   ball_empty_square: () => {
@@ -593,7 +625,7 @@ const handlePieceSelection = (position: Position): void => {
         selectedPiece: pieceAtPosition,
       });
 
-      if (currentStep === "consecutive_pass") {
+      if (currentStep === "consecutive_pass" || currentStep === "consecutive_pass_to_score") {
         useTutorialStore.setState({
           awaitingConsecutivePass: true,
         });
@@ -805,10 +837,8 @@ const handleEmptySquarePass = (position: Position): void => {
       passSender: selectedPiece,
       isMovementEnabled: true,
     });
-  } else if (currentStep === "shooting") {
-    const goalPos = new Position(13, 4);
-
-    if (!position.equals(goalPos)) {
+  } else if (currentStep === "shooting" || currentStep === "consecutive_pass_to_score") {
+    if (!position.isPositionInGoal()) {
       useTutorialStore.setState({
         selectedPiece: null,
         showRetryButton: true,
@@ -1084,7 +1114,8 @@ export const getSquareInfo = (
   if (
     (state.currentStep === "ball_empty_square" ||
       state.currentStep === "receiving_passes" ||
-      state.currentStep === "shooting") &&
+      state.currentStep === "shooting" ||
+      state.currentStep === "consecutive_pass_to_score") &&
     state.selectedPiece &&
     state.selectedPiece.getHasBall() &&
     getValidEmptySquarePassTargets(state.selectedPiece, state.boardLayout).find(
