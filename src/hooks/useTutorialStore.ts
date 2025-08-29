@@ -121,6 +121,7 @@ const DRIBBLE_ACTIVE_STEPS: Set<TutorialStep> = new Set([
   "movement_with_ball",
   "ball_pickup",
   "tackling",
+  "tackling_positioning",
 ]);
 
 const demoPiece1 = new Piece({
@@ -1004,7 +1005,11 @@ const handleEmptySquarePass = (position: Position): void => {
 
   passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
 
-  if (currentStep === "ball_empty_square" || currentStep === "tackling") {
+  if (
+    currentStep === "ball_empty_square" ||
+    currentStep === "tackling" ||
+    currentStep === "tackling_positioning"
+  ) {
     nextStep();
   } else if (currentStep === "ball_pickup") {
     // For ball_pickup step, any passing action completes the turn
@@ -1346,7 +1351,8 @@ export const getSquareInfo = (
       state.currentStep === "receiving_passes" ||
       state.currentStep === "shooting" ||
       state.currentStep === "consecutive_pass_to_score" ||
-      state.currentStep === "tackling") &&
+      state.currentStep === "tackling" ||
+      state.currentStep === "tackling_positioning") &&
     state.selectedPiece &&
     state.selectedPiece.getHasBall() &&
     getValidEmptySquarePassTargets(state.selectedPiece, state.boardLayout).find(
@@ -1550,7 +1556,11 @@ export const handleMouseBallDrop = (position: Position) => {
 
     // Check for step progression
     const { currentStep } = useTutorialStore.getState();
-    if (currentStep === "movement_with_ball" || currentStep === "tackling") {
+    if (
+      currentStep === "movement_with_ball" ||
+      currentStep === "tackling" ||
+      currentStep === "tackling_positioning"
+    ) {
       nextStep();
     } else if (currentStep === "ball_pickup" && !isPickingUpBall) {
       // For ball_pickup step, only advance after performing an action with the ball (not the initial pickup)
