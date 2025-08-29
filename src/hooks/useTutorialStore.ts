@@ -559,12 +559,6 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
         position: new Position(9, 4), // Teammate in black's zone (rows 0-4) - crosses zones
         hasBall: false,
       }),
-      new Piece({
-        id: "W3",
-        color: TUTORIAL_PLAYER_COLOR,
-        position: new Position(4, 9), // Teammate in same white zone - no zone crossing
-        hasBall: false,
-      }),
     ]);
   },
   completed: () => {
