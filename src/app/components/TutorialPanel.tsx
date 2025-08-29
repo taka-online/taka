@@ -76,7 +76,7 @@ const TutorialPanel: React.FC<TutorialPanelProps> = ({ className = "" }) => {
         return {
           title: "Ball Pickup (Gaining Possession)",
           content:
-            "Click the piece, then click on the ball to move there and pick it up. After picking up the ball, you can dribble or turn.",
+            "Click the piece, then click on the ball to move there and pick it up. After picking up the ball, you can pass, dribble or turn.",
         };
 
       case "receiving_passes":

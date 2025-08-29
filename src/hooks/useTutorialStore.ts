@@ -117,6 +117,12 @@ const WHITE_GOALIE_ACTIVATION_TARGETS: Position[] = [
   new Position(3, 5),
 ];
 
+const DRIBBLE_ACTIVE_STEPS: Set<TutorialStep> = new Set([
+  "movement_with_ball",
+  "ball_pickup",
+  "tackling",
+]);
+
 const demoPiece1 = new Piece({
   id: "W1",
   color: TUTORIAL_PLAYER_COLOR,
@@ -403,13 +409,6 @@ const tutorialStepStates: Record<TutorialStep, () => void> = {
         id: "B1",
         color: TUTORIAL_OPPONENT_COLOR,
         position: new Position(6, 5),
-        hasBall: true,
-        facingDirection: "west",
-      }),
-      new Piece({
-        id: "B2",
-        color: TUTORIAL_OPPONENT_COLOR,
-        position: new Position(6, 3),
         hasBall: true,
         facingDirection: "west",
       }),
@@ -806,6 +805,10 @@ const handlePieceSelection = (position: Position): void => {
         useTutorialStore.setState({
           awaitingDirectionSelection: true,
         });
+      } else if (currentStep === "ball_pickup") {
+        // For ball_pickup step, any passing action completes the turn
+        deselectPiece();
+        nextStep();
       }
 
       return;
@@ -816,7 +819,7 @@ const handlePieceSelection = (position: Position): void => {
   useTutorialStore.setState({ selectedPiece: pieceAtPosition });
 
   // Enable the turn button after we select the piece
-  if (currentStep === "turning") {
+  if (currentStep === "turning" || currentStep === "tackling") {
     useTutorialStore.setState({ isTurnButtonEnabled: true });
   }
 };
@@ -961,9 +964,16 @@ const handleMovement = (position: Position): void => {
   }
 
   if (isPickingUpBall) {
-    useTutorialStore.setState({
-      awaitingDirectionSelection: true,
-    });
+    // For ball_pickup step, don't force direction selection - let user freely dribble or choose to turn
+    if (currentStep === "ball_pickup") {
+      useTutorialStore.setState({
+        isTurnButtonEnabled: true,
+      });
+    } else {
+      useTutorialStore.setState({
+        awaitingDirectionSelection: true,
+      });
+    }
   } else {
     deselectPiece();
   }
@@ -973,6 +983,10 @@ const handleMovement = (position: Position): void => {
     currentStep === "basic_movement" ||
     currentStep === "movement_with_ball"
   ) {
+    nextStep();
+  } else if (currentStep === "ball_pickup" && !isPickingUpBall) {
+    // For ball_pickup step, only advance after performing an action with the ball (not the initial pickup)
+    deselectPiece();
     nextStep();
   }
 };
@@ -990,7 +1004,11 @@ const handleEmptySquarePass = (position: Position): void => {
 
   passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
 
-  if (currentStep === "ball_empty_square") {
+  if (currentStep === "ball_empty_square" || currentStep === "tackling") {
+    nextStep();
+  } else if (currentStep === "ball_pickup") {
+    // For ball_pickup step, any passing action completes the turn
+    useTutorialStore.setState({ selectedPiece: null });
     nextStep();
   } else if (currentStep === "receiving_passes") {
     const adjPieces = getAdjacentPieces(
@@ -1056,7 +1074,8 @@ const handleTackle = (position: Position): void => {
     );
     return {
       boardLayout: newBoardLayout,
-      awaitingDirectionSelection: true,
+      isTurnButtonEnabled: true,
+      isMovementEnabled: true,
     };
   });
 };
@@ -1070,9 +1089,7 @@ const handleDeselection = (): void => {
 
   if (
     awaitingDirectionSelection &&
-    (currentStep === "tackling" ||
-      currentStep === "tackling_positioning" ||
-      currentStep === "receiving_passes" ||
+    (currentStep === "receiving_passes" ||
       currentStep === "passing" ||
       currentStep === "consecutive_pass" ||
       currentStep === "ball_pickup" ||
@@ -1322,12 +1339,14 @@ export const getSquareInfo = (
     return "movement";
   }
 
-  // Check for empty square pass targets (only in ball_empty_square and receiving_passes steps)
+  // Check for empty square pass targets
   if (
     (state.currentStep === "ball_empty_square" ||
+      state.currentStep === "ball_pickup" ||
       state.currentStep === "receiving_passes" ||
       state.currentStep === "shooting" ||
-      state.currentStep === "consecutive_pass_to_score") &&
+      state.currentStep === "consecutive_pass_to_score" ||
+      state.currentStep === "tackling") &&
     state.selectedPiece &&
     state.selectedPiece.getHasBall() &&
     getValidEmptySquarePassTargets(state.selectedPiece, state.boardLayout).find(
@@ -1407,7 +1426,12 @@ export const handleTurnPiece = () => {
 
   if (!selectedPiece) return;
 
-  if (currentStep !== "turning") return;
+  if (
+    currentStep !== "turning" &&
+    currentStep !== "ball_pickup" &&
+    currentStep !== "tackling"
+  )
+    return;
 
   useTutorialStore.setState({
     awaitingDirectionSelection: true,
@@ -1447,13 +1471,22 @@ export const handleBallDragStart = (
   initialX?: number,
   initialY?: number,
 ) => {
+  const { currentStep } = useTutorialStore.getState();
+
+  if (!DRIBBLE_ACTIVE_STEPS.has(currentStep)) {
+    return;
+  }
+
+  if (piece.getColor() !== TUTORIAL_PLAYER_COLOR) return;
+
   if (!piece.getHasBall()) return;
+
+  handlePieceSelection(piece.getPositionOrThrowIfUnactivated());
 
   useTutorialStore.setState({
     isDragging: true,
     draggedPiece: piece,
     dragStartPosition: piece.getPositionOrThrowIfUnactivated(),
-    selectedPiece: piece,
   });
 
   // If initial position provided, dispatch a custom event to set initial mouse position
@@ -1463,43 +1496,6 @@ export const handleBallDragStart = (
         detail: { x: initialX, y: initialY },
       }),
     );
-  }
-};
-
-/**
- * Handle ball drag over a position
- */
-export const handleBallDragOver = (position: Position, event: DragEvent) => {
-  const { draggedPiece } = useTutorialStore.getState();
-
-  if (!draggedPiece || !isPositionValidMovementTarget(position)) {
-    event.dataTransfer!.dropEffect = "none";
-    return;
-  }
-
-  event.preventDefault();
-  event.dataTransfer!.dropEffect = "move";
-};
-
-/**
- * Handle ball drop on a position
- */
-export const handleBallDrop = (position: Position, event: DragEvent) => {
-  event.preventDefault();
-
-  const { draggedPiece } = useTutorialStore.getState();
-
-  if (!draggedPiece) {
-    handleBallDragEnd();
-    return;
-  }
-
-  if (isPositionValidMovementTarget(position)) {
-    // Valid drop - execute the movement
-    handleMovement(position);
-  } else {
-    // Invalid drop - snap back to original position
-    handleBallDragEnd();
   }
 };
 
@@ -1526,13 +1522,27 @@ export const handleMouseBallDrop = (position: Position) => {
     const isPickingUpBall = boardSquare === "ball";
 
     if (isPickingUpBall) {
-      useTutorialStore.setState({
-        awaitingDirectionSelection: true,
-        selectedPiece: draggedPiece,
-        isDragging: false,
-        draggedPiece: null,
-        dragStartPosition: null,
-      });
+      // Check current step for different ball pickup behavior
+      const { currentStep } = useTutorialStore.getState();
+
+      if (currentStep === "ball_pickup") {
+        // For ball_pickup step, don't force direction selection - let user freely dribble or choose to turn
+        useTutorialStore.setState({
+          selectedPiece: draggedPiece,
+          isTurnButtonEnabled: true,
+          isDragging: false,
+          draggedPiece: null,
+          dragStartPosition: null,
+        });
+      } else {
+        useTutorialStore.setState({
+          awaitingDirectionSelection: true,
+          selectedPiece: draggedPiece,
+          isDragging: false,
+          draggedPiece: null,
+          dragStartPosition: null,
+        });
+      }
     } else {
       deselectPiece();
       handleBallDragEnd();
@@ -1540,7 +1550,14 @@ export const handleMouseBallDrop = (position: Position) => {
 
     // Check for step progression
     const { currentStep } = useTutorialStore.getState();
-    if (currentStep === "movement_with_ball") {
+    if (currentStep === "movement_with_ball" || currentStep === "tackling") {
+      nextStep();
+    } else if (currentStep === "ball_pickup" && !isPickingUpBall) {
+      // For ball_pickup step, only advance after performing an action with the ball (not the initial pickup)
+      const { selectedPiece } = useTutorialStore.getState();
+      if (selectedPiece) {
+        deselectPiece();
+      }
       nextStep();
     }
   } else {

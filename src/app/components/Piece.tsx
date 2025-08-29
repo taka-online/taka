@@ -58,15 +58,6 @@ const Piece: React.FC<PieceProps> = ({
   const { currentStep } = useTutorialBoard();
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!hasBall) {
-      return;
-    }
-
-    // Only allow dragging during the dribbling step
-    if (currentStep !== "movement_with_ball") {
-      return;
-    }
-
     e.preventDefault();
     // Start drag immediately with current mouse position
     handleBallDragStart(piece, e.clientX, e.clientY);
@@ -78,7 +69,7 @@ const Piece: React.FC<PieceProps> = ({
     >
       <div
         onMouseDown={handleMouseDown}
-        className={`h-10 w-10 rounded-full border-2 shadow-md transition-all duration-200 ${hasBall && currentStep === "movement_with_ball" ? "cursor-grab active:cursor-grabbing" : ""} ${
+        className={`h-10 w-10 rounded-full border-2 shadow-md transition-all duration-200 ${hasBall && (currentStep === "movement_with_ball" || currentStep === "ball_pickup" || currentStep === "passing" || currentStep === "consecutive_pass" || currentStep === "chip_pass" || currentStep === "shooting" || currentStep === "consecutive_pass_to_score" || currentStep === "offside" || currentStep === "shooting_zone_pass") ? "cursor-grab active:cursor-grabbing" : ""} ${
           piece.getColor() === "white"
             ? "border-gray-400 bg-white"
             : "border-gray-600 bg-gray-900"
