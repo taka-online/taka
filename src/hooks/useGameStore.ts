@@ -15,7 +15,9 @@ import {
 } from "@/types/types";
 import { create } from "zustand";
 import {
+  addPieceToBoard,
   createBoardLayout,
+  getBoardSquare,
   getPieceAtPosition,
 } from "@/services/game/boardHelpers";
 import { Position } from "@/classes/Position";
@@ -78,8 +80,11 @@ const piece4 = new Piece({
 const useGameStore = create<GameState>(() => ({
   gameId: "",
   pieces: [piece1, piece2, piece3, piece4],
-  balls: [],
-  boardLayout: createBoardLayout([piece1, piece2, piece3, piece4]),
+  balls: [new Position(12, 6)],
+  boardLayout: createBoardLayout(
+    [piece1, piece2, piece3, piece4],
+    [new Position(12, 6)],
+  ),
   selectedPiece: null,
   playerColor: "black",
   playerTurn: "black",
@@ -101,7 +106,7 @@ export const handleTurnPieceButtonClick = () => {
   });
 };
 
-export const handleArrowKeyTurn = async (direction: FacingDirection) => {
+export const handleArrowKeyTurn = (direction: FacingDirection) => {
   const { selectedPiece } = useGameStore.getState();
 
   if (!selectedPiece) {
@@ -176,10 +181,7 @@ export const getSquareInfo = (position: Position): SquareInfoType => {
     return { visual: "nothing", clickable: false };
   }
 
-  const playersGoalie =
-    state.playerColor === "white"
-      ? state.whiteUnactivatedGoaliePiece
-      : state.blackUnactivatedGoaliePiece;
+  const playersGoalie = getUnactivatedGoalie();
 
   // If unactivated white goalie is selected, show movement targets in goal area
   if (state.selectedPiece && state.selectedPiece === playersGoalie) {
@@ -259,7 +261,84 @@ const handlePieceClick = (position: Position): void => {
   });
 };
 
-const handleMovementClick = (position: Position): void => {};
+const getUnactivatedGoalie = () => {
+  const {
+    playerColor,
+    whiteUnactivatedGoaliePiece,
+    blackUnactivatedGoaliePiece,
+  } = useGameStore.getState();
+
+  return playerColor === "white"
+    ? whiteUnactivatedGoaliePiece
+    : blackUnactivatedGoaliePiece;
+};
+
+const handleMovementClick = (position: Position): void => {
+  const { selectedPiece } = useGameStore.getState();
+
+  if (!selectedPiece) {
+    throw new Error(
+      "Attempting to move a piece, but there isn't a selected piece",
+    );
+  }
+
+  // Pieces with the ball are not allowed to move by click
+  if (selectedPiece.getHasBall()) {
+    throw new Error("Attempting to move a piece with the ball by clicking.");
+  }
+
+  // If the selected piece is an unactivated goalie, activate it
+  const unactivatedGoalie = getUnactivatedGoalie();
+  if (selectedPiece === unactivatedGoalie) {
+    activateGoalie(unactivatedGoalie, position);
+
+    deselectPiece();
+
+    return;
+  }
+};
+
+/**
+ * Remove an unactivated goalie
+ * @param color Color of goalie to deactivate
+ */
+const removeUnactivatedGoalie = (color: PlayerColor): void => {
+  if (color === "white") {
+    useGameStore.setState({
+      whiteUnactivatedGoaliePiece: null,
+    });
+  } else if (color === "black") {
+    useGameStore.setState({
+      blackUnactivatedGoaliePiece: null,
+    });
+  }
+};
+
+/**
+ * Activate an unactivated goalie
+ * @param goalie Goalie piece to activate
+ * @param position Position to activate the goalie on
+ */
+const activateGoalie = (goalie: Piece, position: Position): void => {
+  const { boardLayout, playerColor } = useGameStore.getState();
+
+  goalie.setPosition(position);
+
+  // Check if a ball is where the goalie is going to activate
+  const square = getBoardSquare(position, boardLayout);
+
+  if (square === "ball") {
+    goalie.setHasBall(true);
+  }
+
+  const newBoard = addPieceToBoard(goalie, boardLayout);
+
+  useGameStore.setState({
+    boardLayout: newBoard,
+  });
+
+  removeUnactivatedGoalie(playerColor);
+};
 
 const handleTurnTargetClick = (position: Position): void => {
   const { selectedPiece } = useGameStore.getState();

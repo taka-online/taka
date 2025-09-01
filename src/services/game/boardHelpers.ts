@@ -289,3 +289,26 @@ export const swapPiecePositions = (
 
   return newBoardLayout;
 };
+
+/**
+ * Add a new piece to the board. This is used to activate goalies. When calling this function, make sure to check if a
+ * ball is at the piece's position
+ * @param piece Piece to add. Position is inferred from this piece
+ * @param boardLayout Current board layout
+ */
+export const addPieceToBoard = (piece: Piece, boardLayout: BoardType) => {
+  const pos = piece.getPositionOrThrowIfUnactivated();
+
+  const square = getBoardSquare(pos, boardLayout);
+
+  if (square instanceof Piece) {
+    throw new Error("Trying to add a piece on top of another piece");
+  }
+
+  const [row, col] = pos.getPositionCoordinates();
+
+  // This will overwrite any balls
+  boardLayout[row][col] = piece;
+
+  return boardLayout;
+};
