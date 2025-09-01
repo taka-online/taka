@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import BoardCell from "./BoardCell";
-import Piece from "./Piece";
+import TutorialBoardCell from "./TutorialBoardCell";
+import Piece from "../game/Piece";
 import {
   BOARD_COLS,
   BOARD_ROWS,
@@ -231,7 +231,7 @@ const TutorialGameBoard: React.FC = () => {
                 );
 
                 return (
-                  <BoardCell
+                  <TutorialBoardCell
                     key={`cell-${rowIndex}-${colIndex}`}
                     position={position}
                     piece={piece}

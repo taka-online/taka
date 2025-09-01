@@ -1,8 +1,17 @@
 import { Piece } from "@/classes/Piece";
 import { Position } from "@/classes/Position";
-import { BOARD_COLS, BOARD_ROWS, DIRECTION_VECTORS, FORWARD_MOVE_DISTANCE, OTHER_MOVE_DISTANCE } from "@/utils/constants";
+import {
+  BOARD_COLS,
+  BOARD_ROWS,
+  DIRECTION_VECTORS,
+  FORWARD_MOVE_DISTANCE,
+  OTHER_MOVE_DISTANCE,
+} from "@/utils/constants";
 import { BoardType } from "@/types/types";
-import { getAdjacentPositions, findBallPosition } from "@/services/boardHelpers";
+import {
+  getAdjacentPositions,
+  findBallPositions,
+} from "@/services/game/boardHelpers";
 
 /**
  * Utility functions for game validation and calculations
@@ -24,24 +33,24 @@ export const isPlayerOffside = (
   const [pieceRow] = piecePos.getPositionCoordinates();
   const [ballRow] = ballPosition.getPositionCoordinates();
   const pieceColor = piece.getColor();
-  
+
   // Determine which goal the piece is attacking
   // White attacks toward black's goal at row 13 (higher row numbers)
   // Black attacks toward white's goal at row 0 (lower row numbers)
   const isWhite = pieceColor === "white";
-  
+
   // Check if piece is closer to opponent's goal than the ball
-  const closerToGoalThanBall = isWhite 
+  const closerToGoalThanBall = isWhite
     ? pieceRow > ballRow // For white, higher row number = closer to black's goal (row 13)
     : pieceRow < ballRow; // For black, lower row number = closer to white's goal (row 0)
-    
+
   if (!closerToGoalThanBall) {
     return false; // Not ahead of ball, so not offside
   }
-  
+
   // Find all opponent pieces and sort by distance to their own goal
   const opponentPieces: Piece[] = [];
-  
+
   for (let row = 0; row < BOARD_ROWS; row++) {
     for (let col = 0; col < BOARD_COLS; col++) {
       const square = boardLayout[row][col];
@@ -50,32 +59,33 @@ export const isPlayerOffside = (
       }
     }
   }
-  
+
   // Sort opponent pieces by distance to their goal (closest to farthest)
   opponentPieces.sort((a, b) => {
     const [aRow] = a.getPositionOrThrowIfUnactivated().getPositionCoordinates();
     const [bRow] = b.getPositionOrThrowIfUnactivated().getPositionCoordinates();
-    
+
     if (isWhite) {
       // White is attacking black, so sort black pieces by distance to their own goal (row 13)
       // Higher row = closer to their goal, so descending sort
       return bRow - aRow;
     } else {
-      // Black is attacking white, so sort white pieces by distance to their own goal (row 0)  
+      // Black is attacking white, so sort white pieces by distance to their own goal (row 0)
       // Lower row = closer to their goal, so ascending sort
       return aRow - bRow;
     }
   });
-  
+
   // Get the second-to-last opponent (second closest to their own goal)
   if (opponentPieces.length < 2) {
     return false; // If fewer than 2 opponents, cannot be offside
   }
-  
+
   const secondToLastOpponent = opponentPieces[1];
-  const [secondOpponentRow] = secondToLastOpponent.getPositionOrThrowIfUnactivated().getPositionCoordinates();
-  
-  
+  const [secondOpponentRow] = secondToLastOpponent
+    .getPositionOrThrowIfUnactivated()
+    .getPositionCoordinates();
+
   // Check if piece is closer to goal than second-to-last opponent
   if (isWhite) {
     return pieceRow > secondOpponentRow; // White piece is closer to black goal (higher row)
@@ -95,7 +105,9 @@ export const getValidMovementTargets = (
   boardLayout: BoardType,
 ): Position[] => {
   const validMoves: Position[] = [];
-  const [curRow, curCol] = piece.getPositionOrThrowIfUnactivated().getPositionCoordinates();
+  const [curRow, curCol] = piece
+    .getPositionOrThrowIfUnactivated()
+    .getPositionCoordinates();
 
   // Get movement distance based on ball possession
   const hasBall = piece.getHasBall();
@@ -106,20 +118,19 @@ export const getValidMovementTargets = (
   for (const [dRow, dCol] of DIRECTION_VECTORS) {
     // Calculate max distance for this direction
     let maxDistance = 0;
-    
+
     if (hasBall) {
       // Ball movement: 1 square in any direction
       maxDistance = 1;
     } else {
       // Standard movement rules
       const isTowardOpponentGoal =
-        (color === "white" && dRow > 0) ||
-        (color === "black" && dRow < 0);
-      
+        (color === "white" && dRow > 0) || (color === "black" && dRow < 0);
+
       const isHorizontal = dCol === 0 && dRow !== 0;
       const isVertical = dRow === 0 && dCol !== 0;
       const isDiagonal = dRow !== 0 && dCol !== 0;
-      
+
       if (isTowardOpponentGoal) {
         maxDistance = FORWARD_MOVE_DISTANCE;
       } else if (isHorizontal || isVertical || isDiagonal) {
@@ -133,7 +144,12 @@ export const getValidMovementTargets = (
       const newCol = curCol + dCol * distance;
 
       // Check bounds
-      if (newRow < 0 || newRow >= BOARD_ROWS || newCol < 0 || newCol >= BOARD_COLS) {
+      if (
+        newRow < 0 ||
+        newRow >= BOARD_ROWS ||
+        newCol < 0 ||
+        newCol >= BOARD_COLS
+      ) {
         break;
       }
 
@@ -179,9 +195,12 @@ export const getValidPassTargets = (
     .getPositionOrThrowIfUnactivated()
     .getPositionCoordinates();
   const facingDirection = origin.getFacingDirection();
-  
+
   // Get ball position for offside checks (only if needed)
-  const ballPosition = checkOffside ? (findBallPosition(boardLayout) || origin.getPositionOrThrowIfUnactivated()) : null;
+  const ballPosition = checkOffside
+    ? findBallPositions(boardLayout)[0] ||
+      origin.getPositionOrThrowIfUnactivated()
+    : null;
 
   for (const [dRow, dCol] of DIRECTION_VECTORS) {
     if (
@@ -207,7 +226,10 @@ export const getValidPassTargets = (
       if (square instanceof Piece) {
         if (square.getColor() === origin.getColor()) {
           // Check if the target piece is offside (only if checkOffside is true)
-          if (!checkOffside || !isPlayerOffside(square, ballPosition!, boardLayout)) {
+          if (
+            !checkOffside ||
+            !isPlayerOffside(square, ballPosition!, boardLayout)
+          ) {
             validMoves.push(newPosition);
           }
           // Break as we can't pass behind a piece

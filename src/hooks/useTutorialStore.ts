@@ -8,7 +8,7 @@ import {
   BoardType,
   FacingDirection,
   PlayerColor,
-  SquareType,
+  TutorialSquareType,
   TutorialStep,
 } from "@/types/types";
 import {
@@ -22,12 +22,12 @@ import {
   getValidTackleTargets,
   isPositionValidMovementTarget as isValidMovementTarget,
   isPlayerOffside,
-} from "@/services/gameValidation";
+} from "@/services/game/gameValidation";
 import {
   createBlankBoard,
   createBoardLayout,
-  findBall,
-  findBallPosition,
+  findLooseBalls,
+  findBallPositions,
   getAdjacentPieces,
   getAdjacentPositions,
   getBoardSquare as getBoardSquareHelper,
@@ -35,7 +35,7 @@ import {
   movePieceOnBoard,
   placeBallAtPosition as placeBallAtPositionHelper,
   swapPiecePositions,
-} from "@/services/boardHelpers";
+} from "@/services/game/boardHelpers";
 
 /**
  * State interface for the tutorial store
@@ -96,25 +96,6 @@ export const stepOrder: TutorialStep[] = [
   "offside",
   "shooting_zone_pass",
   "completed",
-];
-
-const WHITE_GOALIE_ACTIVATION_TARGETS: Position[] = [
-  new Position(0, 3),
-  new Position(0, 4),
-  new Position(0, 5),
-  new Position(0, 6),
-  new Position(1, 3),
-  new Position(1, 4),
-  new Position(1, 5),
-  new Position(1, 6),
-  new Position(2, 3),
-  new Position(3, 2),
-  new Position(2, 6),
-  new Position(3, 7),
-  new Position(2, 4),
-  new Position(3, 4),
-  new Position(2, 5),
-  new Position(3, 5),
 ];
 
 const DRIBBLE_ACTIVE_STEPS: Set<TutorialStep> = new Set([
@@ -1198,12 +1179,12 @@ export const isPieceOffside = (piece: BoardSquareType): boolean => {
     return false;
   }
 
-  const ballPosition = findBallPosition(boardLayout);
-  if (!ballPosition) {
+  const ballPositions = findBallPositions(boardLayout);
+  if (ballPositions.length !== 1) {
     return false;
   }
 
-  return isPlayerOffside(piece, ballPosition, boardLayout);
+  return isPlayerOffside(piece, ballPositions[0], boardLayout);
 };
 
 /**
@@ -1215,7 +1196,7 @@ export const isPieceOffside = (piece: BoardSquareType): boolean => {
 export const getSquareInfo = (
   position: Position,
   currentPlayerColor: PlayerColor,
-): SquareType => {
+): TutorialSquareType => {
   const state = useTutorialStore.getState();
 
   if (state.showRetryButton) return "nothing";
@@ -1241,9 +1222,9 @@ export const getSquareInfo = (
     state.selectedPiece &&
     state.selectedPiece === state.whiteUnactivatedGoaliePiece
   ) {
-    const isGoalActivationTarget = WHITE_GOALIE_ACTIVATION_TARGETS.some((e) =>
-      e.equals(position),
-    );
+    const isGoalActivationTarget = state.whiteUnactivatedGoaliePiece
+      .getGoalieActivationTargets()
+      .some((e) => e.equals(position));
 
     // Only allow activation if the position is a valid target AND there's no piece there
     if (isGoalActivationTarget && !getPieceAtPosition(position)) {
@@ -1263,12 +1244,12 @@ export const getSquareInfo = (
       if (!piece || piece.getColor() !== currentPlayerColor) return "nothing";
 
       // Find the ball
-      const ballPos = findBall(state.boardLayout);
+      const ballPos = findLooseBalls(state.boardLayout);
 
-      if (!ballPos) return "nothing";
+      if (ballPos.length !== 0) return "nothing";
 
       const adjPiecesToBall = getAdjacentPieces(
-        ballPos,
+        ballPos[0],
         TUTORIAL_PLAYER_COLOR,
         state.boardLayout,
       );
@@ -1285,14 +1266,14 @@ export const getSquareInfo = (
       const adjPositions = getAdjacentPositions(
         state.selectedPiece.getPositionOrThrowIfUnactivated(),
       );
-      const ballPos = findBall(state.boardLayout);
+      const ballPos = findLooseBalls(state.boardLayout);
 
       if (!ballPos) {
         throw new Error("Can't find ball on board");
       }
 
       const positionIsAdjToSelectedPiece =
-        adjPositions.filter((p) => p.equals(ballPos) && p.equals(position))
+        adjPositions.filter((p) => p.equals(ballPos[0]) && p.equals(position))
           .length > 0;
 
       return positionIsAdjToSelectedPiece ? "movement" : "nothing";
