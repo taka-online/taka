@@ -25,6 +25,7 @@ import {
 import { Position } from "@/classes/Position";
 import {
   getTurnTargets,
+  getValidEmptySquarePassTargets,
   getValidPassTargets,
   isCrossZonePass,
   isPositionValidMovementTarget,
@@ -246,6 +247,17 @@ export const getSquareInfo = (position: Position): SquareInfoType => {
     }
   }
 
+  // Check if this position is an empty square pass target
+  if (state.selectedPiece && state.selectedPiece.getHasBall()) {
+    const isValidEmptySquarePassTarget = getValidEmptySquarePassTargets(
+      state.selectedPiece,
+      state.boardLayout,
+    ).find((p) => p.equals(position));
+
+    if (isValidEmptySquarePassTarget)
+      return { visual: "empty_pass_target", clickable: true };
+  }
+
   return { visual: "nothing", clickable: false };
 };
 
@@ -281,9 +293,27 @@ export const handleSquareClick = (position: Position): void => {
       return handleTurnTargetClick(position);
     case "pass_target":
       return handlePassTargetClick(position);
+    case "empty_pass_target":
+      return handleEmptySquarePassTargetClick(position);
     default:
       return handleBlankSquareClick();
   }
+};
+
+const handleEmptySquarePassTargetClick = (position: Position): void => {
+  const { selectedPiece } = useGameStore.getState();
+
+  if (!selectedPiece) {
+    throw new Error(
+      "Trying to pass the ball to an empty square, but there is no selected piece",
+    );
+  }
+
+  passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
+
+  deselectPiece();
+
+  // TODO: Receiving pass
 };
 
 /**
