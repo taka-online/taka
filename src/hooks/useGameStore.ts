@@ -437,6 +437,14 @@ const handleEmptySquarePassTargetClick = (position: Position): void => {
     );
   }
 
+  // Check for scoring
+  if (position.isPositionInGoal()) {
+    selectedPiece.setHasBall(false);
+
+    endTurn();
+    return;
+  }
+
   passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
 
   if (
@@ -743,8 +751,6 @@ const handleBlankSquareClick = (): void => {
   const { selectedPiece } = useGameStore.getState();
 
   if (!selectedPiece) return;
-
-  // TODO: Block scenarios where we can't deselect the piece
 
   deselectPiece();
 };
