@@ -10,8 +10,11 @@ import {
   handleUnactivatedGoalieClick,
   isCurrentPlayersTurn,
   useGameBoard,
+  handleBallDragEnd,
+  handleMouseBallDrop,
 } from "@/hooks/useGameStore";
 import GameBoardCell from "@/components/game/GameBoardCell";
+import Piece from "@/components/game/Piece";
 
 const GameBoard: React.FC = () => {
   const {
@@ -24,7 +27,12 @@ const GameBoard: React.FC = () => {
     playerTurn,
     awaitingConsecutivePass,
     receivingPassPosition,
+    isDragging,
+    draggedPiece,
   } = useGameBoard();
+
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [showFloatingPiece, setShowFloatingPiece] = React.useState(false);
 
   // Handle arrow keys for direction selection
   React.useEffect(() => {
@@ -61,6 +69,98 @@ const GameBoard: React.FC = () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showDirectionArrows, selectedPiece]);
+
+  // Handle mouse events for dragging
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+        // Show floating piece after first mouse move
+        setShowFloatingPiece(true);
+      }
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if (isDragging && draggedPiece) {
+        // Temporarily hide the floating piece to detect what's underneath
+        const floatingPiece = document.querySelector(
+          ".floating-drag-piece",
+        ) as HTMLElement;
+        const originalDisplay = floatingPiece?.style.display;
+        if (floatingPiece) {
+          floatingPiece.style.display = "none";
+        }
+
+        // Check if we're over a valid drop zone
+        const elementUnderMouse = document.elementFromPoint(
+          e.clientX,
+          e.clientY,
+        );
+
+        // Restore the floating piece
+        if (floatingPiece) {
+          floatingPiece.style.display = originalDisplay || "";
+        }
+
+        const boardCell = elementUnderMouse?.closest("[data-position]");
+
+        if (boardCell) {
+          const positionData = boardCell.getAttribute("data-position");
+
+          if (positionData) {
+            const [row, col] = positionData.split(",").map(Number);
+            const position = new Position(row, col);
+            
+            // Valid drop - execute movement (let the handler validate the move)
+            handleMouseBallDrop(position);
+            return;
+          }
+        }
+        // Invalid drop - just end drag
+        handleBallDragEnd();
+      }
+
+      // Reset floating piece visibility
+      setShowFloatingPiece(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, draggedPiece]);
+
+  // Reset floating piece visibility when dragging stops
+  React.useEffect(() => {
+    if (!isDragging) {
+      setShowFloatingPiece(false);
+    }
+  }, [isDragging]);
+
+  // Listen for drag start with initial position
+  React.useEffect(() => {
+    const handleDragStartPosition = (e: CustomEvent) => {
+      const { x, y } = e.detail;
+      setMousePosition({ x, y });
+      setShowFloatingPiece(true);
+    };
+
+    window.addEventListener(
+      "dragstart-position",
+      handleDragStartPosition as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        "dragstart-position",
+        handleDragStartPosition as EventListener,
+      );
+    };
+  }, []);
 
   const colLabels = Array.from({ length: BOARD_COLS }, (_, i) =>
     // String.fromCharCode(65 + i),
@@ -122,7 +222,12 @@ const GameBoard: React.FC = () => {
 
               {colLabels.map((_, colIndex) => {
                 const position = new Position(rowIndex, colIndex);
-                const piece = boardLayout[rowIndex][colIndex];
+                let piece = boardLayout[rowIndex][colIndex];
+
+                // Hide the dragged piece from the board during drag
+                if (isDragging && draggedPiece && piece === draggedPiece) {
+                  piece = null;
+                }
 
                 const squareInfo = getSquareInfo(position);
 
@@ -136,6 +241,7 @@ const GameBoard: React.FC = () => {
                     selectedPiece={selectedPiece}
                     rowIndex={rowIndex}
                     colIndex={colIndex}
+                    isDragging={isDragging}
                   />
                 );
               })}
@@ -183,6 +289,30 @@ const GameBoard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Floating drag piece that follows cursor */}
+      {isDragging && draggedPiece && showFloatingPiece && (
+        <div
+          className="floating-drag-piece pointer-events-none fixed z-50"
+          style={{
+            left: mousePosition.x - 20,
+            top: mousePosition.y - 20,
+            transform: "scale(1.1)",
+            pointerEvents: "none", // Ensure this doesn't interfere with mouse detection
+          }}
+        >
+          <div style={{ pointerEvents: "none" }}>
+            <Piece
+              piece={draggedPiece}
+              isSelected={false}
+              isPassTarget={false}
+              isTackleTarget={false}
+              isOffside={false}
+              mode="game"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

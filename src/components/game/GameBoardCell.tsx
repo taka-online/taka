@@ -16,6 +16,7 @@ interface BoardCellProps {
   selectedPiece: PieceClass | null;
   rowIndex: number;
   colIndex: number;
+  isDragging?: boolean;
 }
 
 const GameBoardCell: React.FC<BoardCellProps> = ({
@@ -26,6 +27,7 @@ const GameBoardCell: React.FC<BoardCellProps> = ({
   selectedPiece,
   rowIndex,
   colIndex,
+  isDragging = false,
 }) => {
   const cellIndex = rowIndex * BOARD_COLS + colIndex;
   const isGoalCol = colIndex >= 3 && colIndex <= 6;
@@ -75,8 +77,9 @@ const GameBoardCell: React.FC<BoardCellProps> = ({
             }
             isPassTarget={squareInfo.visual === "pass_target"}
             isTackleTarget={squareInfo.visual === "tackle_target"}
-            isDragging={false}
+            isDragging={isDragging}
             isOffside={isOffside}
+            mode="game"
           />
         </div>
       )}

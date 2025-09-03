@@ -1222,7 +1222,7 @@ export const getSquareInfo = (
       // Find the ball
       const ballPos = findLooseBalls(state.boardLayout);
 
-      if (ballPos.length !== 0) return "nothing";
+      if (ballPos.length === 0) return "nothing";
 
       const adjPiecesToBall = getAdjacentPieces(
         ballPos[0],

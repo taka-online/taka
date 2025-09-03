@@ -65,6 +65,10 @@ interface GameState {
   awaitingConsecutivePass: boolean;
   /** If we are trying to receive a pass, we put the position that the ball was passed to here */
   receivingPassPosition: Position | null;
+  /** Drag state for ball movement */
+  isDragging: boolean;
+  draggedPiece: Piece | null;
+  dragStartPosition: Position | null;
 }
 
 const piece1 = new Piece({
@@ -121,6 +125,9 @@ const useGameStore = create<GameState>(() => ({
   isSelectionLocked: false,
   awaitingConsecutivePass: false,
   receivingPassPosition: null,
+  isDragging: false,
+  draggedPiece: null,
+  dragStartPosition: null,
 }));
 
 /**
@@ -354,6 +361,9 @@ const endTurn = (): void => {
       isSelectionLocked: false,
       awaitingConsecutivePass: false,
       receivingPassPosition: null,
+      isDragging: false,
+      draggedPiece: null,
+      dragStartPosition: null,
     };
   });
 };
@@ -597,7 +607,7 @@ const getUnactivatedGoalie = () => {
 };
 
 const handleMovementClick = (position: Position): void => {
-  const { selectedPiece } = useGameStore.getState();
+  const { selectedPiece, isDragging } = useGameStore.getState();
 
   if (!selectedPiece) {
     throw new Error(
@@ -605,9 +615,9 @@ const handleMovementClick = (position: Position): void => {
     );
   }
 
-  // Pieces with the ball are not allowed to move by click
-  if (selectedPiece.getHasBall()) {
-    throw new Error("Attempting to move a piece with the ball by clicking.");
+  // Pieces with the ball are not allowed to move by click unless during drag
+  if (selectedPiece.getHasBall() && !isDragging) {
+    return; // Silently ignore click-based movement for pieces with ball
   }
 
   // If the selected piece is an unactivated goalie, activate it
@@ -766,6 +776,85 @@ const deselectPiece = () => {
   useGameStore.setState({
     selectedPiece: null,
     showDirectionArrows: false,
+  });
+};
+
+/**
+ * Handle start of ball drag
+ */
+export const handleBallDragStart = (
+  piece: Piece,
+  initialX?: number,
+  initialY?: number,
+) => {
+  const { playerColor, playerTurn } = useGameStore.getState();
+
+  // Only allow dragging during player's turn
+  if (playerColor !== playerTurn) return;
+
+  if (piece.getColor() !== playerColor) return;
+
+  if (!piece.getHasBall()) return;
+
+  // Select the piece and initiate drag
+  useGameStore.setState({
+    selectedPiece: piece,
+    isDragging: true,
+    draggedPiece: piece,
+    dragStartPosition: piece.getPositionOrThrowIfUnactivated(),
+  });
+
+  // If initial position provided, dispatch a custom event to set initial mouse position
+  if (initialX !== undefined && initialY !== undefined) {
+    window.dispatchEvent(
+      new CustomEvent("dragstart-position", {
+        detail: { x: initialX, y: initialY },
+      }),
+    );
+  }
+};
+
+/**
+ * Handle mouse-based ball drop
+ */
+export const handleMouseBallDrop = (position: Position) => {
+  const { draggedPiece, dragStartPosition, boardLayout } =
+    useGameStore.getState();
+
+  if (!draggedPiece || !dragStartPosition) {
+    handleBallDragEnd();
+    return;
+  }
+
+  const isValidMovement = isPositionValidMovementTarget(
+    draggedPiece,
+    position,
+    boardLayout,
+  );
+
+  if (isValidMovement) {
+    // Valid drop - move the piece
+    movePiece(draggedPiece, position);
+
+    // End drag state
+    handleBallDragEnd();
+
+    endTurn();
+    return;
+  } else {
+    // Invalid drop - just end drag
+    handleBallDragEnd();
+  }
+};
+
+/**
+ * Handle end of ball drag
+ */
+export const handleBallDragEnd = () => {
+  useGameStore.setState({
+    isDragging: false,
+    draggedPiece: null,
+    dragStartPosition: null,
   });
 };
 
