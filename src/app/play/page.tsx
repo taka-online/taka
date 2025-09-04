@@ -42,10 +42,12 @@ const PlayPage: React.FC = () => {
 
   // Manual win trigger for testing
   const triggerTestWin = (testWinner: "white" | "black") => {
-    const { useGameStore } = require("@/hooks/useGameStore");
-    useGameStore.setState({
-      winner: testWinner,
-      gameStatus: "completed"
+    // Dynamic import to avoid linting error
+    import("@/hooks/useGameStore").then(({ useGameStore }) => {
+      useGameStore.setState({
+        winner: testWinner,
+        gameStatus: "completed"
+      });
     });
   };
 
@@ -200,7 +202,7 @@ const PlayPage: React.FC = () => {
     };
 
     initializeGame();
-  }, [auth.hasValidAuth, auth.guestUsername, auth.loginAsGuest, auth.setGuestSession]); // Only depend on stable values
+  }, [auth, auth.hasValidAuth, auth.guestUsername, auth.loginAsGuest, auth.setGuestSession]); // Only depend on stable values
 
   // Cleanup effect - separate from initialization
   useEffect(() => {

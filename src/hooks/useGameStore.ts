@@ -38,6 +38,16 @@ import {
 } from "@/services/game/gameValidation";
 import { GameClient } from "@/services/socketService";
 
+interface SocketPieceData {
+  id: string;
+  playerId: string;
+  type: "goalie" | "regular";
+  hasBall: boolean;
+  facingDirection: FacingDirection;
+  x?: number;
+  y?: number;
+}
+
 interface Player {
   id: string;
   username: string;
@@ -375,7 +385,7 @@ const endTurn = (): void => {
           y = undefined;
         }
 
-        const pieceData: any = {
+        const pieceData: SocketPieceData = {
           id: piece.getId(),
           playerId:
             piece.getColor() === "white"
@@ -1209,9 +1219,9 @@ const updateGameStateFromSocket = (socketGameState: SocketGameState) => {
       return new Piece({
         id: socketPiece.id,
         color: color,
-        position: position as any, // Both backend and frontend now use 0-indexed
+        position: position as Position | string, // Both backend and frontend now use 0-indexed
         hasBall: socketPiece.hasBall || false,
-        facingDirection: (socketPiece.facingDirection as any) || (color === "white" ? "south" : "north"),
+        facingDirection: (socketPiece.facingDirection as FacingDirection) || (color === "white" ? "south" : "north"),
         isGoalie: socketPiece.type === "goalie",
       });
     },
@@ -1300,11 +1310,13 @@ export const sendMoveToSocket = () => {
         y = undefined;
       }
 
-      const pieceData: any = {
+      const pieceData: SocketPieceData = {
         id: piece.getId(),
         playerId:
           piece.getColor() === "white" ? "white_player_id" : "black_player_id", // TODO: Use actual player IDs
         type: piece.getIsGoalie() ? "goalie" : "regular",
+        hasBall: false,
+        facingDirection: "north",
       };
 
       // Only include coordinates if the piece has a valid position

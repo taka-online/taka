@@ -58,10 +58,29 @@ interface GuestSession {
   username: string;
 }
 
+// Move data interface
+interface MoveData {
+  playerId: string;
+  username: string;
+  timestamp: string;
+  type: string;
+  details?: unknown;
+}
+
+// Auth config interface
+interface AuthConfig {
+  auth: {
+    guestSessionId?: string;
+    guestUsername?: string;
+    token?: string;
+    userId?: string;
+  };
+}
+
 // Event callback types
 type GameJoinedCallback = (data: { gameId: string; game: Game }) => void;
 type PlayerJoinedCallback = (data: { playerId: string; username: string; game: Game }) => void;
-type GameStateUpdatedCallback = (data: { game: Game; gameState: GameState; move: any }) => void;
+type GameStateUpdatedCallback = (data: { game: Game; gameState: GameState; move: MoveData }) => void;
 type MoveConfirmedCallback = (data: { game: Game; gameState: GameState }) => void;
 type GameOverCallback = (data: { winner: string; winnerUsername: string; game: Game }) => void;
 type ErrorCallback = (error: { message: string }) => void;
@@ -169,7 +188,7 @@ export class GameClient {
       this.isConnecting = true;
 
       // Setup auth configuration based on user type
-      let authConfig: any;
+      let authConfig: AuthConfig;
       if (this.isGuest) {
         if (this.guestSession) {
           authConfig = { 
@@ -352,7 +371,7 @@ export class GameClient {
     this.onPlayerJoined?.(data);
   }
 
-  private handleGameStateUpdated(data: { game: Game; gameState: GameState; move: any }): void {
+  private handleGameStateUpdated(data: { game: Game; gameState: GameState; move: MoveData }): void {
     this.currentGame = data.game;
     console.log("Game state updated by:", data.move.username);
     this.onGameStateUpdated?.(data);

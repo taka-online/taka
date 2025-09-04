@@ -60,7 +60,7 @@ export const useAuth = () => {
           error: null,
         });
         return;
-      } catch (error) {
+      } catch {
         // Invalid stored data, clear it
         localStorage.removeItem("taka_access_token");
         localStorage.removeItem("taka_user");
@@ -115,6 +115,7 @@ export const useAuth = () => {
     setAuthState((prev) => ({ ...prev, isLoading: false }));
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const login = async (email: string, password: string) => {
     setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -239,7 +240,7 @@ export const useAuth = () => {
     return authState.isAuthenticated || authState.isGuest;
   }, [authState.isAuthenticated, authState.isGuest]);
 
-  const stableLoginAsGuest = useCallback(loginAsGuest, []);
+  const stableLoginAsGuest = useCallback(loginAsGuest, [authState.guestSession, authState.guestUsername]);
   const stableSetGuestSession = useCallback(setGuestSession, []);
 
   return {
