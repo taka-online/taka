@@ -110,7 +110,7 @@ const GameBoard: React.FC = () => {
           if (positionData) {
             const [row, col] = positionData.split(",").map(Number);
             const position = new Position(row, col);
-            
+
             // Valid drop - execute movement (let the handler validate the move)
             handleMouseBallDrop(position);
             return;
@@ -163,12 +163,10 @@ const GameBoard: React.FC = () => {
   }, []);
 
   const colLabels = Array.from({ length: BOARD_COLS }, (_, i) =>
-    // String.fromCharCode(65 + i),
-    i.toString(),
+    String.fromCharCode(65 + i),
   ); // A-J
   const rowLabels = Array.from({ length: BOARD_ROWS }, (_, i) =>
-    // (i + 1).toString(),
-    i.toString(),
+    (i + 1).toString(),
   ); // 1-14
 
   const isTurnButtonEnabled = selectedPiece && selectedPiece.getHasBall();
