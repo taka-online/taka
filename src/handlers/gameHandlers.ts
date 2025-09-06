@@ -212,6 +212,7 @@ export async function handleMakeMove(
       socket.emit("error", { message: "Game ID and game state are required" });
       return;
     }
+    console.log("Received gameState from client:", JSON.stringify(gameState, null, 2));
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
@@ -249,6 +250,7 @@ export async function handleMakeMove(
     // Goal detection using proper board layout
     const goalScorer = isGoalScored(gameState.ballPositions, gameState.pieces);
     const isGoal = goalScorer !== null;
+    console.log("Goal detection result: goalScorer=", goalScorer, ", isGoal=", isGoal);
 
     const nextTurn = isWhitePlayer ? "black" : "white";
     const status = isGoal ? "completed" : "active";
@@ -273,6 +275,7 @@ export async function handleMakeMove(
         },
       },
     });
+    console.log("Updated game in DB:", JSON.stringify(updatedGame, null, 2));
 
     logger.socket("Move made", {
       ...connectionContext,
