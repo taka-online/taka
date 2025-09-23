@@ -280,8 +280,13 @@ export const getValidPassTargets = (
           ) {
             validMoves.push(newPosition);
           }
-          // Break as we can't pass behind a piece
-          break;
+
+          if (distance === 1) {
+            // Break as we can't pass behind an adjacent teammate piece
+            break;
+          }
+          // For teammate pieces at distance > 1, continue the loop to allow chip passes over them
+          continue;
         } else if (distance === 1) {
           // If this is an adjacent square AND the piece that is adjacent to the current piece is an opponent piece, we cannot chip pass, so break this path
           break;
@@ -332,8 +337,31 @@ export const getValidEmptySquarePassTargets = (
       const square = boardLayout[newRow][newCol];
 
       if (square instanceof Piece) {
-        // Break as we can't pass behind a piece
-        break;
+        if (distance === 1) {
+          // If this is an adjacent square with a piece, we cannot chip pass, so break this path
+          break;
+        }
+        // For pieces at distance > 1, continue the loop to allow chip passes over them
+        continue;
+      }
+
+      // Check if this is a goal area position and validate shooting zone requirement
+      if (newPosition.isPositionInGoal()) {
+        const [originRow] = origin
+          .getPositionOrThrowIfUnactivated()
+          .getPositionCoordinates();
+        const [targetRow] = newPosition.getPositionCoordinates();
+        const originColor = origin.getColor();
+
+        // Determine if the piece is in the correct shooting zone for the target goal
+        const isInCorrectShootingZone =
+          (targetRow === 0 && originColor === "black" && originRow <= 4) || // Black attacking white's goal (row 0) from black's shooting zone (rows 0-4)
+          (targetRow === 13 && originColor === "white" && originRow >= 9); // White attacking black's goal (row 13) from white's shooting zone (rows 9-13)
+
+        if (!isInCorrectShootingZone) {
+          // Cannot pass to goal area from outside shooting zone
+          continue;
+        }
       }
 
       validMoves.push(newPosition);
