@@ -237,20 +237,6 @@ export class GameClient {
 
       const serverUrl =
         process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-      console.log(
-        "Connecting to socket server:",
-        serverUrl,
-        "with auth:",
-        authConfig.auth,
-      );
-      console.log(
-        "Socket auth debug - isGuest:",
-        this.isGuest,
-        "guestSession:",
-        this.guestSession,
-        "guestUsername:",
-        this.guestUsername,
-      );
 
       this.socket = io(serverUrl, {
         ...authConfig,
@@ -260,10 +246,6 @@ export class GameClient {
 
       // Connection events
       this.socket.on("connect", () => {
-        console.log(
-          "Connected to game server as",
-          this.isGuest ? "guest" : "authenticated user",
-        );
         this.isConnected = true;
         this.isConnecting = false;
         this.onConnect?.();
@@ -271,13 +253,11 @@ export class GameClient {
       });
 
       this.socket.on("disconnect", () => {
-        console.log("Disconnected from game server");
         this.isConnected = false;
         this.onDisconnect?.();
       });
 
       this.socket.on("connect_error", (error) => {
-        console.error("Connection failed:", error.message);
         this.isConnecting = false;
         this.isConnected = false;
 
@@ -366,7 +346,6 @@ export class GameClient {
         return data.gameId;
       }
     } catch (error) {
-      console.error("Error creating game:", error);
       throw error;
     }
   }
@@ -384,7 +363,6 @@ export class GameClient {
       const data = await response.json();
       return data.game;
     } catch (error) {
-      console.error("Error getting game:", error);
       throw error;
     }
   }
@@ -415,7 +393,6 @@ export class GameClient {
   // Event handlers
   private handleGameJoined(data: { gameId: string; game: Game }): void {
     this.currentGame = data.game;
-    console.log("Joined game:", data.gameId);
     this.onGameJoined?.(data);
   }
 
@@ -425,7 +402,6 @@ export class GameClient {
     game: Game;
   }): void {
     this.currentGame = data.game;
-    console.log("Player joined:", data.username);
     this.onPlayerJoined?.(data);
   }
 
@@ -435,7 +411,6 @@ export class GameClient {
     move: MoveData;
   }): void {
     this.currentGame = data.game;
-    console.log("Game state updated by:", data.move.username);
     this.onGameStateUpdated?.(data);
   }
 
@@ -444,7 +419,6 @@ export class GameClient {
     gameState: GameState;
   }): void {
     this.currentGame = data.game;
-    console.log("Move confirmed");
     this.onMoveConfirmed?.(data);
   }
 
@@ -454,12 +428,10 @@ export class GameClient {
     game: Game;
   }): void {
     this.currentGame = data.game;
-    console.log("Game over! Winner:", data.winnerUsername);
     this.onGameOver?.(data);
   }
 
   private handleError(error: { message: string }): void {
-    console.error("Game error:", error.message);
 
     // Treat "Access denied" as a connection error
     if (error.message === "Access denied") {
@@ -473,7 +445,6 @@ export class GameClient {
   }
 
   private handleGuestSessionCreated(sessionData: GuestSession): void {
-    console.log("Guest session created by server:", sessionData);
     this.guestSession = sessionData;
     this.onGuestSessionCreated?.(sessionData);
   }

@@ -72,6 +72,8 @@ interface GameState {
   isSelectionLocked: boolean;
   /** Did we just make a pass and are awaiting a second? */
   awaitingConsecutivePass: boolean;
+  /** Number of passes made this turn (0, 1, or 2 max) */
+  passesThisTurn: number;
   /** If we are trying to receive a pass, we put the position that the ball was passed to here */
   receivingPassPosition: Position | null;
   /** Drag state for ball movement */
@@ -115,6 +117,7 @@ export const useGameStore = create<GameState>(() => ({
   showDirectionArrows: false,
   isSelectionLocked: false,
   awaitingConsecutivePass: false,
+  passesThisTurn: 0,
   receivingPassPosition: null,
   isDragging: false,
   draggedPiece: null,
@@ -191,6 +194,7 @@ export const handleUnactivatedGoalieClick = (color: PlayerColor) => {
 export const getSquareInfo = (position: Position): SquareInfoType => {
   const state = useGameStore.getState();
 
+
   // No action can be taken when it's not the players turn
   if (state.playerTurn !== state.playerColor) {
     return { visual: "nothing", clickable: false };
@@ -198,8 +202,35 @@ export const getSquareInfo = (position: Position): SquareInfoType => {
 
   const pieceAtPosition = getPieceAtPosition(position, state.boardLayout);
 
+  // If awaiting consecutive pass and haven't reached limit, allow both pass targets AND turn targets
+  if (state.awaitingConsecutivePass && state.selectedPiece && state.passesThisTurn < 2) {
+    // Check for turn targets first
+    const turnTargets = getTurnTargets(state.selectedPiece);
+    const isSquareTurnTarget = turnTargets.some((e) =>
+      e.position.equals(position),
+    );
+
+    if (isSquareTurnTarget) {
+      return { visual: "turn_target", clickable: true };
+    }
+
+    // Then check for pass targets if there's a piece at this position
+    if (pieceAtPosition && state.selectedPiece.getHasBall()) {
+      const passTargets = getValidPassTargets(
+        state.selectedPiece,
+        state.boardLayout,
+      );
+      const positionIsPassTarget = passTargets.find((p) => p.equals(position));
+
+      if (positionIsPassTarget) {
+        return { visual: "pass_target", clickable: true };
+      }
+    }
+  }
+
   // If we are waiting for a direction selection, the only actions are to turn the piece, transfer selection, or deselect the piece
-  if (state.showDirectionArrows) {
+  // BUT: If awaitingConsecutivePass is true, we should have already handled it above
+  if (state.showDirectionArrows && !state.awaitingConsecutivePass) {
     if (!state.selectedPiece) {
       throw new Error("Arrows are shown, but there isn't a selected piece");
     }
@@ -210,7 +241,9 @@ export const getSquareInfo = (position: Position): SquareInfoType => {
       e.position.equals(position),
     );
 
-    if (isSquareTurnTarget) return { visual: "turn_target", clickable: true };
+    if (isSquareTurnTarget) {
+      return { visual: "turn_target", clickable: true };
+    }
 
     return { visual: "nothing", clickable: false };
   }
@@ -401,10 +434,8 @@ const endTurn = (): void => {
     };
 
     try {
-      console.log("Sending move to socket:", socketGameState);
       socketClient.makeMove(socketGameState);
-    } catch (error) {
-      console.error("Failed to send move:", error);
+    } catch {
     }
   }
 
@@ -414,6 +445,7 @@ const endTurn = (): void => {
       selectedPiece: null,
       isSelectionLocked: false,
       awaitingConsecutivePass: false,
+      passesThisTurn: 0,
       receivingPassPosition: null,
       isDragging: false,
       draggedPiece: null,
@@ -436,8 +468,6 @@ export const handleSquareClick = (position: Position): void => {
   if (!isCurrentPlayersTurn()) return;
 
   const squareType = getSquareInfo(position);
-
-  console.log("Square click", squareType);
 
   // Treat not clickable squares as deselection targets
   if (!squareType.clickable) {
@@ -586,7 +616,7 @@ const passBall = (origin: Position, destination: Position) => {
 };
 
 const handlePassTargetClick = (position: Position): void => {
-  const { selectedPiece, boardLayout, awaitingConsecutivePass } =
+  const { selectedPiece, boardLayout, passesThisTurn } =
     useGameStore.getState();
   const pieceAtDestination = getPieceAtPosition(position, boardLayout);
 
@@ -600,31 +630,61 @@ const handlePassTargetClick = (position: Position): void => {
     );
   }
 
+  // Safety check: should never allow more than 2 passes
+  if (passesThisTurn >= 2) {
+    return;
+  }
+
   const fromPosition = selectedPiece.getPositionOrThrowIfUnactivated();
   passBall(fromPosition, position);
 
+  // Get the updated state after the pass to ensure we have the piece with the ball
+  const { boardLayout: updatedBoardLayout } = useGameStore.getState();
+  const updatedPieceAtDestination = getPieceAtPosition(position, updatedBoardLayout);
+
+  if (!updatedPieceAtDestination) {
+    throw new Error("Piece at destination disappeared after pass");
+  }
+
+
   // Select the piece that received the pass
   useGameStore.setState({
-    selectedPiece: pieceAtDestination,
+    selectedPiece: updatedPieceAtDestination,
   });
 
-  if (
-    isCrossZonePass(fromPosition, position) ||
-    isPassChipPass(selectedPiece, position) ||
-    awaitingConsecutivePass
-  ) {
-    /** If we made a cross-zone pass, second pass in consecutive pass, or a chip pass, we can now only choose direction,
-    no more passes */
+  // Increment pass counter
+  const newPassCount = passesThisTurn + 1;
+  // Check if we've reached the 2-pass limit
+  if (newPassCount >= 2) {
     useGameStore.setState({
       showDirectionArrows: true,
       isSelectionLocked: true,
+      passesThisTurn: newPassCount,
+      awaitingConsecutivePass: false,
     });
     return;
   }
 
+  // Check for special pass types that end the turn early
+  if (
+    isCrossZonePass(fromPosition, position) ||
+    isPassChipPass(selectedPiece, position)
+  ) {
+    useGameStore.setState({
+      showDirectionArrows: true,
+      isSelectionLocked: true,
+      passesThisTurn: newPassCount,
+      awaitingConsecutivePass: false,
+    });
+    return;
+  }
+
+  // This is the first pass, enable consecutive pass mode
   useGameStore.setState({
     awaitingConsecutivePass: true,
     isSelectionLocked: true,
+    showDirectionArrows: false,
+    passesThisTurn: newPassCount,
   });
 };
 
@@ -780,7 +840,7 @@ const activateGoalie = (goalie: Piece, position: Position): boolean => {
 };
 
 const handleTurnTargetClick = (position: Position): void => {
-  const { selectedPiece } = useGameStore.getState();
+  const { selectedPiece, awaitingConsecutivePass } = useGameStore.getState();
 
   if (!selectedPiece) {
     throw new Error(
@@ -796,6 +856,15 @@ const handleTurnTargetClick = (position: Position): void => {
     throw new Error(
       "Handle turn target click was called, but this position isn't a turn target.",
     );
+  }
+
+  // If we're in consecutive pass mode, transition to direction selection instead of ending turn
+  if (awaitingConsecutivePass) {
+    useGameStore.setState({
+      awaitingConsecutivePass: false,
+      showDirectionArrows: true,
+    });
+    return;
   }
 
   turnPiece(selectedPiece, turnTarget.direction);
@@ -948,17 +1017,6 @@ export const initializeSocketClient = (
   client.setOnGameJoined((data) => {
     const { game } = data;
 
-    // Debug logging for player assignment
-    console.log("Player joining game - Game data:", {
-      whitePlayerId: game.whitePlayerId,
-      blackPlayerId: game.blackPlayerId,
-      whitePlayerGuestId: game.whitePlayerGuestId,
-      blackPlayerGuestId: game.blackPlayerGuestId,
-      whitePlayerUsername: game.whitePlayerUsername,
-      blackPlayerUsername: game.blackPlayerUsername,
-      isGuestUser: client.isGuestUser(),
-      guestSession: client.getGuestSession(),
-    });
 
     // Determine player color based on authenticated or guest user
     let playerColor: PlayerColor = "white"; // Default fallback
@@ -1026,18 +1084,6 @@ export const initializeSocketClient = (
       }
     }
 
-    // Debug logging for final player color assignment
-    console.log("Final player color assignment:", {
-      playerColor,
-      isGuestUser: client.isGuestUser(),
-      guestSessionId: client.getGuestSession()?.sessionId,
-      currentUsername:
-        client.getGuestSession()?.username || client.getGuestUsername(),
-      gameWhiteGuestId: game.whitePlayerGuestId,
-      gameBlackGuestId: game.blackPlayerGuestId,
-      gameWhiteUsername: game.whitePlayerUsername,
-      gameBlackUsername: game.blackPlayerUsername,
-    });
 
     // Create player objects with proper data
     const whitePlayer: Player | null =
@@ -1185,7 +1231,6 @@ const updateGameStateFromSocket = (socketGameState: SocketGameState) => {
     !socketGameState.pieces ||
     !socketGameState.ballPositions
   ) {
-    console.log("Invalid game state received from socket:", socketGameState);
     return;
   }
 
@@ -1269,10 +1314,6 @@ const updateGameStateFromSocket = (socketGameState: SocketGameState) => {
     blackUnactivatedGoaliePiece,
   });
 
-  console.log("Updated game state from socket:", {
-    pieces: pieces.length,
-    balls: looseBalls.length,
-  });
 };
 
 /**
@@ -1282,7 +1323,6 @@ export const sendMoveToSocket = () => {
   const { socketClient, pieces, balls } = useGameStore.getState();
 
   if (!socketClient) {
-    console.error("Cannot send move: Socket client not initialized");
     return;
   }
 
@@ -1325,7 +1365,6 @@ export const sendMoveToSocket = () => {
   try {
     socketClient.makeMove(socketGameState);
   } catch (error) {
-    console.error("Failed to send move:", error);
     useGameStore.setState({
       connectionError:
         error instanceof Error ? error.message : "Failed to send move",
@@ -1376,7 +1415,6 @@ export const createMultiplayerGame = async (
       const guestSession = socketClient.getGuestSession();
       if (guestSession) {
         // The auth hook will handle storing this via setGuestSession
-        console.log("Guest session created:", guestSession);
       }
     }
 

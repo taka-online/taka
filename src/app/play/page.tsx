@@ -35,10 +35,6 @@ const PlayPage: React.FC = () => {
 
   const auth = useAuth();
 
-  // Debug logging for winner state
-  React.useEffect(() => {
-    console.log("Game state debug:", { winner, gameStatus, playerColor });
-  }, [winner, gameStatus, playerColor]);
 
   // Guest authentication and socket initialization
   useEffect(() => {
@@ -53,18 +49,12 @@ const PlayPage: React.FC = () => {
       try {
         // If there's no valid auth (neither user nor guest), create a guest user.
         if (!auth.isAuthenticated && !auth.isGuest) {
-          console.log("No valid auth, creating new guest user.");
           auth.loginAsGuest();
           // The effect will re-run once auth state is updated.
           initializedRef.current = false;
           return;
         }
 
-        console.log("Auth state is ready:", {
-          isGuest: auth.isGuest,
-          guestSession: auth.guestSession,
-          guestUsername: auth.guestUsername,
-        });
 
         // At this point, we have some form of auth. Initialize the socket.
         let client;
@@ -80,7 +70,6 @@ const PlayPage: React.FC = () => {
         }
 
         client.setOnGuestSessionCreated((session) => {
-          console.log("Received guest session from server:", session);
           if (
             !auth.guestSession ||
             auth.guestSession.sessionId !== session.sessionId
@@ -103,8 +92,7 @@ const PlayPage: React.FC = () => {
           window.history.replaceState({}, "", newUrl.toString());
           await connectToGame(newGameId);
         }
-      } catch (error) {
-        console.error("Failed to initialize game:", error);
+      } catch {
         initializedRef.current = false; // Allow re-initialization on error
       } finally {
         setIsLoading(false);

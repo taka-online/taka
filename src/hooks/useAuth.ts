@@ -69,9 +69,7 @@ export const useAuth = () => {
     // Check for guest session
     if (storedGuestSession && storedGuestUsername) {
       try {
-        console.log("Parsing stored guest session:", storedGuestSession);
         const guestSession = JSON.parse(storedGuestSession);
-        console.log("Parsed guest session successfully:", guestSession);
         setAuthState({
           user: null,
           accessToken: null,
@@ -82,10 +80,8 @@ export const useAuth = () => {
           isLoading: false,
           error: null,
         });
-        console.log("Guest session restored to auth state");
         return;
-      } catch (error) {
-        console.error("Failed to parse stored guest session:", error);
+      } catch {
         // Invalid stored data, clear it
         localStorage.removeItem("taka_guest_session");
         localStorage.removeItem("taka_guest_username");
@@ -95,7 +91,6 @@ export const useAuth = () => {
     // Check for guest username only (session will be created later)
     // Only do this if we don't have a stored session
     if (storedGuestUsername && !storedGuestSession) {
-      console.log("Restoring guest username only (no session found)");
       setAuthState({
         user: null,
         accessToken: null,
@@ -110,7 +105,6 @@ export const useAuth = () => {
     }
 
     // No valid auth data found - this is a completely new user
-    console.log("No stored auth data found - new user");
     setAuthState((prev) => ({ ...prev, isLoading: false }));
   }, []);
 

@@ -16,6 +16,7 @@ import {
   TUTORIAL_PLAYER_COLOR,
 } from "@/utils/constants";
 import {
+  getRelativeDirectionBetweenPositions,
   getTurnTargets,
   getValidEmptySquarePassTargets,
   getValidPassTargets,
@@ -585,6 +586,7 @@ const deselectPiece = () => {
 
   useTutorialStore.setState({
     awaitingDirectionSelection: false,
+    awaitingConsecutivePass: false,
     selectedPiece: null,
     isTurnButtonEnabled: false,
   });
@@ -630,6 +632,13 @@ const passBall = (origin: Position, destination: Position) => {
 
   if (destinationPiece) {
     destinationPiece.setHasBall(true);
+    
+    // Set the recipient's facing direction to where the ball came from
+    const directionToFace = getRelativeDirectionBetweenPositions(
+      origin,
+      destination,
+    );
+    destinationPiece.setFacingDirection(directionToFace);
   } else {
     placeBallAtPosition(destination);
   }
@@ -639,10 +648,11 @@ const passBall = (origin: Position, destination: Position) => {
 };
 
 /**
- * Handle turn target clicks during direction selection
+ * Handle turn target clicks during direction selection or consecutive pass mode
  */
 const handleTurnTarget = (position: Position): void => {
-  const { selectedPiece, currentStep } = useTutorialStore.getState();
+  const { selectedPiece, currentStep, awaitingConsecutivePass, awaitingDirectionSelection } = useTutorialStore.getState();
+  
 
   if (!selectedPiece) {
     throw new Error(
@@ -661,12 +671,23 @@ const handleTurnTarget = (position: Position): void => {
     return;
   }
 
+  // If we're in consecutive pass mode but not yet in direction selection mode,
+  // transition to direction selection mode instead of completing the turn
+  if (awaitingConsecutivePass && !awaitingDirectionSelection) {
+    useTutorialStore.setState({
+      awaitingDirectionSelection: true,
+      awaitingConsecutivePass: false,
+    });
+    return;
+  }
+
   // Valid target, so turn piece
   selectedPiece.setFacingDirection(turnTarget.direction);
 
   // Turn is over
   useTutorialStore.setState({
     awaitingDirectionSelection: false,
+    awaitingConsecutivePass: false,
     selectedPiece: null,
     isTurnButtonEnabled: false,
   });
@@ -785,6 +806,7 @@ const handlePieceSelection = (position: Position): void => {
  */
 const handleConsecutivePass = (position: Position): void => {
   const { selectedPiece } = useTutorialStore.getState();
+  
 
   if (!selectedPiece) {
     throw new Error(
@@ -827,9 +849,11 @@ const handleConsecutivePass = (position: Position): void => {
   // User is trying to pass
   passBall(selectedPiece.getPositionOrThrowIfUnactivated(), position);
 
-  // If we just made our consecutive pass, move to next step
+  // After making one consecutive pass, force direction selection
+  // (Only one consecutive pass is allowed per turn)
   useTutorialStore.setState({
     awaitingDirectionSelection: true,
+    awaitingConsecutivePass: false,
     selectedPiece: pieceAtPosition,
   });
 };
@@ -1175,6 +1199,7 @@ export const getSquareInfo = (
 ): TutorialSquareType => {
   const state = useTutorialStore.getState();
 
+
   if (state.showRetryButton) return "nothing";
 
   // Tutorial is complete, don't let anything happen
@@ -1253,6 +1278,35 @@ export const getSquareInfo = (
           .length > 0;
 
       return positionIsAdjToSelectedPiece ? "movement" : "nothing";
+    }
+  }
+
+  // If awaiting consecutive pass, allow both pass targets AND turn targets
+  if (state.awaitingConsecutivePass && state.selectedPiece) {
+
+    // Check for turn targets first
+    const turnTargets = getTurnTargets(state.selectedPiece);
+    const isSquareTurnTarget = turnTargets.some((e) =>
+      e.position.equals(position),
+    );
+
+    if (isSquareTurnTarget) {
+      return "turn_target";
+    }
+
+    // Then check for pass targets if there's a piece at this position
+    if (pieceAtPosition && state.selectedPiece.getHasBall()) {
+      const checkOffside = state.currentStep === "offside";
+      const passTargets = getValidPassTargets(
+        state.selectedPiece,
+        state.boardLayout,
+        checkOffside,
+      );
+      const positionIsPassTarget = passTargets.find((p) => p.equals(position));
+
+      if (positionIsPassTarget) {
+        return "pass_target";
+      }
     }
   }
 
@@ -1337,12 +1391,15 @@ export const handleSquareClick = (position: Position): void => {
   // Use getSquareInfo to determine what type of square was clicked
   const squareType = getSquareInfo(position, TUTORIAL_PLAYER_COLOR);
 
+
   // Route to appropriate handler based on square type
   switch (squareType) {
     case "turn_target":
       return handleTurnTarget(position);
     case "pass_target":
-      if (awaitingConsecutivePass) return handleConsecutivePass(position);
+      if (awaitingConsecutivePass) {
+        return handleConsecutivePass(position);
+      }
 
       return handlePieceSelection(position);
     case "piece":

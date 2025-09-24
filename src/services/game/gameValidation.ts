@@ -219,11 +219,11 @@ export const isPassChipPass = (
     }
   }
 
-  // Since we can't access the board layout in this function signature,
-  // we'll assume this is being called from a context where a chip pass
-  // is only considered when the distance is greater than 1, which implies
-  // there must be pieces in between that we're chipping over
-  return distance > 1;
+  // FIXME: This function incorrectly returns true for any pass with distance > 1
+  // A chip pass should only be when passing OVER pieces, not just long passes
+  // For now, return false to allow consecutive passes to work properly
+  // TODO: Implement proper chip pass detection with board layout parameter
+  return false;
 };
 
 /**
@@ -429,10 +429,10 @@ export const getRelativeDirectionBetweenPositions = (
   const [destRow, destCol] = destination.getPositionCoordinates();
 
   if (origCol === destCol) {
-    return origRow - destRow > 0 ? "north" : "south";
+    return origRow - destRow > 0 ? "south" : "north";
   }
 
-  return origCol - destCol > 0 ? "west" : "east";
+  return origCol - destCol > 0 ? "east" : "west";
 };
 
 /**

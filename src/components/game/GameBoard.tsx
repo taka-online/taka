@@ -198,20 +198,9 @@ const GameBoard: React.FC = () => {
           className="relative grid h-full"
           style={{
             gridTemplateColumns: `2rem repeat(${BOARD_COLS}, 1fr)`,
-            gridTemplateRows: `2rem repeat(${BOARD_ROWS}, 1fr)`,
+            gridTemplateRows: `repeat(${BOARD_ROWS}, 1fr) 2rem`,
           }}
         >
-          <div className="mb-1 flex items-center justify-center" />
-
-          {colLabels.map((label) => (
-            <div
-              key={`col-${label}`}
-              className="mb-1 flex items-center justify-center text-sm font-semibold text-gray-700"
-            >
-              {label}
-            </div>
-          ))}
-
           {rowLabels.map((rowLabel, rowIndex) => (
             <React.Fragment key={`row-${rowLabel}`}>
               <div className="mr-1 flex items-center justify-center text-sm font-semibold text-gray-700">
@@ -246,13 +235,24 @@ const GameBoard: React.FC = () => {
             </React.Fragment>
           ))}
 
+          <div className="mt-1 flex items-center justify-center" />
+
+          {colLabels.map((label) => (
+            <div
+              key={`col-${label}`}
+              className="mt-1 flex items-center justify-center text-sm font-semibold text-gray-700"
+            >
+              {label}
+            </div>
+          ))}
+
           {/* Render unactivated goalie at intersection */}
           {whiteUnactivatedGoaliePiece && (
             <div
               className={`absolute z-30 flex items-center justify-center ${selectedPiece === whiteUnactivatedGoaliePiece ? "pointer-events-none" : ""}`}
               style={{
                 left: `calc(2rem + ${4.25 * (100 / BOARD_COLS) - 0.25}%)`,
-                top: `calc(2rem + ${0.4 * (100 / BOARD_ROWS)}%)`,
+                top: `calc(${0.4 * (100 / BOARD_ROWS)}%)`,
                 width: `${100 / BOARD_COLS}%`,
                 height: `${100 / BOARD_ROWS}%`,
               }}
@@ -272,7 +272,7 @@ const GameBoard: React.FC = () => {
               className={`absolute z-30 flex items-center justify-center ${selectedPiece === blackUnactivatedGoaliePiece ? "pointer-events-none" : ""}`}
               style={{
                 left: `calc(2rem + ${4.25 * (100 / BOARD_COLS) - 0.25}%)`,
-                top: `calc(2rem + ${0.4 * ((100 / BOARD_ROWS) * 30)}%)`,
+                top: `calc(${0.4 * ((100 / BOARD_ROWS) * 30)}%)`,
                 width: `${100 / BOARD_COLS}%`,
                 height: `${100 / BOARD_ROWS}%`,
               }}
