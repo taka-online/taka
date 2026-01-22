@@ -1,262 +1,335 @@
-# Soccer AI Tracking System - Pitch for Marshall
+# Marshall Men's Soccer - AI Tracking Platform
 
 ## Executive Summary
 
-We have built the **architecture** for a comprehensive soccer tracking and analysis system. This document provides an honest assessment of what works today, what requires additional development, and what it will take to reach production readiness.
+We have built the **architecture** for a soccer tracking and analysis system designed around **Marshall's Game Model 2.0**. This document provides an honest assessment of what works today, what requires additional development, and what it will take to measure performance against the Game Model principles.
 
-**Bottom line:** We have a functional proof-of-concept pipeline that works with manual calibration. The advanced features (automatic pitch detection, sophisticated tracking, 3D ball analysis) are architecturally complete but require training data and compute time to become operational.
+**Bottom line:** We have a functional proof-of-concept tracking pipeline. The tactical analysis features that would measure Game Model compliance are architecturally designed but require reliable tracking data and validation before they produce meaningful insights.
 
 ---
 
+# Part 1: Marshall's Game Model 2.0
+
+The AI platform is designed to eventually analyze, measure, and optimize performance against Marshall's comprehensive tactical framework. This is what we're building toward.
+
+## The Goal
+**"To make this the best TEAM you'll ever play for."**
+
+## Championship Behaviors
+
+| Required | Championship | Aspirations |
+|----------|--------------|-------------|
+| Respect / Diversity | Humility | Joy |
+| Passion | Intensity | Excellence |
+| Game Spirit | Team Trust | Bravery |
+| | Grit | |
+
+---
+
+## Philosophy Overview
+
+### The Ideal Game Distribution
+- **Positional Possession** (Primary focus)
+- **Counter-Press**
+- **Counter-Attacks**
+- **Organized Defense**
+- **Attacking Set Pieces**
+
+Goal: Top tier of NCAA D1 for field tilt and possession percentage.
+
+### Attacking Philosophy
+*Goal: Create Chances with Counter-Prevention*
+
+| Principle | Description |
+|-----------|-------------|
+| **+1 Football** | Find the free man |
+| **Keep the Ball** | To move the opponent |
+| **Master the Rhythm** | Control tempo |
+| **No Possession without Penetration** | Always look to progress |
+| **Maximize your Position** | Optimal positioning |
+
+### Defending Philosophy
+*Goal: Win the Ball Back*
+
+| Position Relative to Ball | Actions |
+|---------------------------|---------|
+| **On Ball** | Prevent Forward Play, Don't Get Eliminated |
+| **Ball Near** | Close to your man, Defend Central Passing Lines |
+| **Ball Far** | Defend Depth, Protect Middle & Keep Access |
+| **1v2 / Eliminated** | Cut off pass line, Press ball carrier ASAP |
+
+### Transition Philosophy
+
+**Attacking Transition:** See it, Play it → Connect 2 passes with minimal touches → Identify Rhythm → Exploit imbalances
+
+**Defending Transition:** Prevent Forward Play → Make Returns → Mark and Squeeze → Cut the pitch in half
+
+---
+
+## Game Moments & Zones
+
+| Zone Type | Zones |
+|-----------|-------|
+| **Attacking** | Starting (SGZ) → Building (BGZ) → Finishing (FGZ) |
+| **Defending** | Low → Mid → High |
+| **Transitions** | Low/Mid/High Loss, Low/Mid/High Regain |
+
+---
+
+## Structural Organization
+
+### Primary Formation: 4-5-1 / 4-3-3 Hybrid
+
+### 5 Channels
+Wing Space → Half Space → Central → Half Space → Wing Space
+
+### Attacking Structures
+Square | W | M | Overload Right | Overload Left
+
+### Pressing Structures
+- **0 Press:** Deep block, organized shape
+- **1x Press:** Trigger-based pressing
+
+---
+
+## Named Runs (Actions to Get in Behind)
+
+### Behind Fullback
+| Run | Description |
+|-----|-------------|
+| **De Bruyne Run** | Diagonal run behind fullback from half-space |
+| **Channel Run** | Into channel behind FB during push-pull |
+| **Meshi Run** | Winger receives behind opposition winger |
+| **Alaba Run** | Winger accelerates behind FB on first touch |
+| **Underlap/Overlap** | FB runs inside/outside the winger |
+
+### Behind Centerback
+| Run | Description |
+|-----|-------------|
+| **Bell Run** | Behind 1st CB when gap opens |
+| **Holmes Run** | Behind ball-far CB when winger dribbles horizontally |
+| **Silva Run** | Between CB and FB |
+
+---
+
+## Position-Specific Sub-Principles
+
+Each position has detailed responsibilities for both attacking and defending phases. The full Game Model includes sub-principles for:
+- Center Backs
+- Fullbacks
+- Pivot(s)
+- #10's (Attacking Midfielders)
+- Wingers
+- Strikers
+
+---
+
+# Part 2: Current Technology - Honest Assessment
+
 ## What Works Today (Available Immediately)
 
-These capabilities are tested and can be demonstrated now:
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Player Detection | Working | YOLOv8-based, works on 4K footage |
+| Feature | Status | What It Does |
+|---------|--------|--------------|
+| Player Detection | Working | YOLOv8-based, identifies players in 4K footage |
 | Ball Detection | Working | YOLO with temporal consistency |
 | Team Classification | Working | K-means clustering on jersey colors |
-| Basic Tracking | Working | ByteTrack - assigns IDs to players frame-to-frame |
-| Manual Pitch Calibration | Working | Interactive tool for point selection |
-| Coordinate Transformation | Working | Converts pixels to real-world meters |
-| Physical Metrics | Working | Speed, distance, acceleration, sprint detection |
-| Data Export | Working | JSON/CSV with timestamped coordinates |
-| Visualization | Working | Pitch plots with player positions |
+| Basic Tracking | Working | ByteTrack - assigns IDs frame-to-frame |
+| Manual Pitch Calibration | Working | Click points to calibrate camera |
+| Coordinate Transformation | Working | Converts pixels to meters |
+| Physical Metrics | Working | Speed, distance, acceleration, sprints |
+| Data Export | Working | JSON/CSV with positions |
 
 **What you can do today:**
-- Process a match video with a relatively static camera angle
+- Process match video with relatively static camera
 - Get frame-by-frame player positions in meters
-- Calculate basic physical metrics (total distance, max speed, sprint count)
-- Visualize player movements on a pitch diagram
-- Export data for further analysis
+- Calculate physical metrics (total distance, max speed, sprint count)
+- Visualize player movements on pitch diagram
+- Export data for manual analysis
 
-**Limitations of current working system:**
-- Requires manual calibration (clicking pitch points) for each new camera angle
-- Tracking can lose players during occlusions or fast movements
-- No player re-identification (if a player leaves frame, they get a new ID when returning)
-- Static camera assumption (significant panning breaks calibration)
+**Current limitations:**
+- Manual calibration required for each camera angle
+- Tracking loses players during occlusions
+- No re-identification when players leave/re-enter frame
+- Camera panning breaks calibration
 
 ---
 
 ## What Is Built But Not Finished
 
-These systems have complete code but need training or integration work:
+### 1. Automatic Pitch Calibration
+- **Code exists:** 2,200+ lines (HRNet keypoint detector, RANSAC, Bayesian filtering)
+- **What's missing:** Neural network needs training on pitch keypoints
+- **Status:** Manual calibration works; automatic is a shell waiting for training
 
-### 1. Automatic Pitch Calibration (Homography)
-- **What exists:** 2,200+ lines of production code including HRNet keypoint detector, RANSAC homography, Bayesian temporal filtering, camera rotation support
-- **What's missing:** The neural network needs to be trained to recognize the 57 pitch keypoints (lines, corners, penalty spots, etc.)
-- **Training requirement:** ~1,000+ annotated frames of pitch images
-- **Current workaround:** Manual calibration works but doesn't handle camera movement
-
-### 2. Advanced Tracking System
-- **What exists:** Basic ByteTrack integration (~75 lines)
-- **What's missing:**
-  - Player re-identification when they leave/re-enter frame
-  - Team-aware tracking
-  - Occlusion handling
-  - Off-screen position extrapolation (code exists but not integrated)
-- **Current state:** Works for controlled environments, but loses track during complex scenarios
+### 2. Advanced Tracking
+- **Code exists:** Basic ByteTrack (~75 lines)
+- **What's missing:** Re-identification, occlusion handling, off-screen extrapolation
+- **Status:** Works in simple scenarios, loses track in complex ones
 
 ### 3. Decision Engine (Tactical Analysis)
-- **What exists:** ~2,800 lines of sophisticated physics-based tactical modeling
+- **Code exists:** ~2,800 lines of physics-based modeling
+  - Elimination tracking
   - Defensive force modeling
-  - Player elimination analysis
-  - Game state evaluation
-  - Block configuration detection (low/mid/high press)
+  - Block configuration detection
 - **What's missing:** Validated tracking data to feed into it
-- **Current state:** The analysis code is complete and theoretically sound, but "garbage in, garbage out" - it needs reliable tracking data to produce meaningful insights
-- **Honest assessment:** This is academic/research quality, not yet proven in production
+- **Honest assessment:** The math is sound, but "garbage in, garbage out" - unreliable tracking = unreliable analysis
 
 ### 4. 3D Ball Tracking
-- **What exists:** LSTM architecture for height estimation
-- **What's missing:** Trained model weights
-- **Training requirement:** Annotated ball trajectory data with ground truth heights
-
-### 5. Real-time Processing
-- **What exists:** Async architecture designed for 10+ FPS
-- **What's missing:** TensorRT optimization, actual performance benchmarking
-- **Current state:** Architectural design complete, optimization work needed
+- **Code exists:** LSTM architecture
+- **What's missing:** Trained weights
+- **Status:** Architecture ready, needs training data
 
 ---
 
-## Training Infrastructure
+## Mapping Game Model to AI Capabilities
 
-We have built comprehensive training infrastructure:
+Here's an honest view of what the AI could eventually measure vs what works now:
 
-- 6 model configuration files (YAML)
-- Dataset loaders for SoccerNet, SkillCorner, and synthetic data
-- 8 custom loss functions
-- 8 evaluation metrics
-- Integration with Weights & Biases for experiment tracking
-- Distributed training support
+| Game Model Principle | AI Measurement Approach | Status |
+|---------------------|------------------------|--------|
+| **Possession %** | Time with ball by team | Possible with current tracking |
+| **Field Tilt** | Territory occupation | Possible with current tracking |
+| **+1 Football / Free Man** | Unmarked player detection | Needs decision engine + reliable tracking |
+| **Elimination Detection** | Track when defenders beaten | Code exists, needs validation |
+| **Ball Near/Far Positioning** | Distance-based role classification | Needs reliable tracking |
+| **Counter-Press Success** | Ball recovery after loss | Needs event detection + tracking |
+| **Named Run Detection** | Classify runs (De Bruyne, Bell, etc.) | Future development |
+| **Formation Shape** | Real-time structure analysis | Possible with current tracking |
+| **Pressing Triggers** | Detect 0/1x press activation | Needs decision engine |
+| **Position Sub-Principles** | Individual compliance scoring | Requires extensive development |
 
-**Current state:** The infrastructure is ready, but no training has been run because:
-1. No training data has been downloaded/licensed
-2. No GPU compute has been allocated for training runs
-
----
-
-## The Game Model: How Training Works
-
-Our approach to building a production system:
-
-### Data Sources Available
-1. **SoccerNet** - Large academic dataset (requires credentials/agreement)
-2. **SkillCorner Open Data** - Public dataset with tracking data
-3. **Synthetic Data Generator** - Can create training data programmatically
-4. **Custom Labeling Tool** - We built a web app for annotating footage (with cloud sync)
-
-### Training Pipeline
-1. **Automatic Homography Training**
-   - Need: ~1,000 annotated pitch frames (keypoint locations)
-   - Our labeling tool can generate this data
-   - Estimated time: 2-3 weeks of labeling + 24-48 hours of training
-
-2. **Re-ID / Tracking Improvement**
-   - Need: Player identity annotations across video sequences
-   - Can leverage SoccerNet annotations
-   - Estimated training time: 24-48 hours per model
-
-3. **Decision Engine Validation**
-   - Need: Ground truth tactical annotations (expert-labeled scenarios)
-   - Must be created by domain experts (coaches, analysts)
-   - Estimated time: Dependent on annotation effort
-
-### Building on What Exists
-The codebase is designed to be modular. Each component can be improved independently:
-- Better detection model? Plug it in.
-- Better tracking algorithm? Swap it out.
-- More training data? Retrain the models.
-
-The architecture supports incremental improvement without rewriting the system.
+**Honest summary:** Basic spatial metrics (possession, field tilt, formation shape) are achievable with current tracking. Tactical principle compliance requires much more development.
 
 ---
 
-## Honest Capability Assessment
+## Training and Building the System
 
-| Capability | Ready Now | With 1 Month Work | With 3+ Months Work |
-|------------|-----------|-------------------|---------------------|
-| Basic player tracking | Yes | - | - |
-| Physical metrics (speed, distance) | Yes | - | - |
-| Manual pitch calibration | Yes | - | - |
-| Automatic pitch calibration | No | Possible* | Yes |
-| Player re-identification | No | Partial | Yes |
-| Handle camera panning | No | Partial | Yes |
-| Real-time processing (10 FPS) | No | No | Possible |
-| Tactical analysis (validated) | No | No | Possible |
-| 3D ball tracking | No | No | Possible |
+### How We Train Models
 
-*Requires dedicated annotation effort and GPU compute
+The system is modular - each component improves independently:
 
----
+1. **Automatic Calibration Training**
+   - Label ~1,000 pitch frames with keypoint locations
+   - Train HRNet to detect pitch lines/markings
+   - Estimated: 2-3 weeks labeling + 24-48 hours GPU training
 
-## Roadmap and Investment Required
+2. **Tracking Improvement**
+   - Use SoccerNet or SkillCorner datasets for re-ID training
+   - Integrate off-screen extrapolation module
+   - Estimated: 24-48 hours training per model
 
-### Phase 1: Minimum Viable Product (1-2 months)
-**Goal:** Reliable tracking for static/semi-static camera with automatic calibration
+3. **Tactical Analysis Validation**
+   - Coaching staff labels "correct" tactical scenarios
+   - System learns to match coach assessments
+   - Estimated: Ongoing collaboration required
 
-**Work Required:**
-- Label ~1,000 pitch frames for homography training
-- Train and validate automatic calibration model
-- Integration testing with real match footage
+### Building on the Game Model
 
-**Resources Needed:**
-- 1 ML engineer (full-time)
-- 1 annotation contractor or intern (2-3 weeks)
-- GPU compute: ~$500-1,000 (cloud) or dedicated hardware
-- Test footage licensing (varies)
+The Game Model becomes the **training target**:
+- Label video clips with Game Model principles (e.g., "this is a De Bruyne run")
+- Train classifiers to recognize these patterns
+- Validate outputs with coaching staff
+- Iterate until system matches coach evaluations
 
-**Estimated Cost:** $15,000 - $25,000
+This requires **Marshall-specific training data** - generic soccer AI won't understand your terminology.
 
 ---
 
-### Phase 2: Production-Ready Tracking (2-4 months after Phase 1)
-**Goal:** Robust tracking that handles occlusions, re-identification, camera movement
+## Honest Capability Timeline
 
-**Work Required:**
-- Train player re-identification model
-- Integrate off-screen extrapolation
-- Implement and train camera motion compensation
-- Extensive testing on diverse footage
-
-**Resources Needed:**
-- 1-2 ML engineers (full-time)
-- Access to diverse match footage for testing
-- Additional annotation work
-- GPU compute: ~$2,000-5,000
-
-**Estimated Cost:** $40,000 - $80,000
+| Capability | Now | 1-2 Months | 3-6 Months | 6-12 Months |
+|------------|-----|------------|------------|-------------|
+| Basic tracking (static camera) | Yes | - | - | - |
+| Physical metrics | Yes | - | - | - |
+| Possession / Field Tilt | Yes | - | - | - |
+| Automatic calibration | No | Possible | Yes | - |
+| Handle camera panning | No | Partial | Yes | - |
+| Player re-identification | No | No | Partial | Yes |
+| Elimination detection | No | No | Testable | Validated |
+| Named run classification | No | No | No | Prototype |
+| Full Game Model compliance scoring | No | No | No | Early stages |
 
 ---
 
-### Phase 3: Real-Time & Tactical Analysis (3-6 months after Phase 2)
-**Goal:** Live processing and validated tactical insights
+## Investment Required
 
-**Work Required:**
-- TensorRT optimization for inference speed
-- Validate decision engine outputs with coaching staff
-- Build user-facing dashboards/interfaces
-- Performance optimization and scaling
+### Phase 1: Reliable Tracking (1-2 months, $15-25K)
+- Automatic pitch calibration
+- Basic integration testing
+- **Deliverable:** Process Marshall footage without manual calibration
 
-**Resources Needed:**
-- 1-2 ML engineers
-- Frontend/product development
-- Domain experts for validation
-- Production infrastructure
+### Phase 2: Production Tracking (2-4 months, $40-80K)
+- Player re-identification
+- Camera motion handling
+- Event detection (possession changes, set pieces)
+- **Deliverable:** Reliable tracking data for analysis
 
-**Estimated Cost:** $60,000 - $150,000
+### Phase 3: Game Model Integration (3-6 months, $60-150K)
+- Decision engine validation with coaching staff
+- Named run detection prototypes
+- Position-specific principle scoring
+- **Deliverable:** Early tactical analysis aligned to Game Model
+
+### Phase 4: Full Platform (6-12 months, $100-250K+)
+- Real-time processing
+- Comprehensive Game Model compliance scoring
+- User-facing dashboards
+- **Deliverable:** Production system for staff use
+
+**Total estimated investment to full capability: $215K - $500K+ over 12+ months**
 
 ---
 
 ## What We're NOT
 
-To set honest expectations:
+1. **Not SkillCorner or Second Spectrum** - They have years of development, massive datasets, and NFL/Premier League deployments. We're a promising prototype.
 
-1. **We are not SkillCorner or Second Spectrum** - These are companies with years of development, massive datasets, and production deployments. We have a promising prototype.
+2. **Not ready for Game Model analysis today** - We can track players. We cannot reliably score tactical principle compliance yet.
 
-2. **We are not real-time ready** - The architecture supports it, but optimization work is needed.
+3. **Not validated at scale** - Works on test clips, not hundreds of full matches.
 
-3. **We are not validated at scale** - The system works on test clips. We haven't processed hundreds of full matches.
-
-4. **We are not plug-and-play** - Using this system requires technical expertise. There's no polished UI for end users (yet).
+4. **Not plug-and-play** - Requires technical expertise and Marshall-specific training.
 
 ---
 
 ## What We ARE
 
-1. **A solid technical foundation** - Well-architected, modular, documented code (~15,000+ lines)
+1. **A foundation designed for Marshall's Game Model** - Not generic soccer AI
 
-2. **A clear path forward** - We know exactly what needs to be built and how to build it
+2. **Honest about the gap** - Between "detects players" and "scores De Bruyne run execution"
 
-3. **Training-ready infrastructure** - The ML pipeline is built, just needs data and compute
+3. **A clear development path** - We know what to build and how
 
-4. **Domain-informed design** - Built based on research papers and commercial system analysis (SkillCorner architecture)
+4. **Training-ready infrastructure** - ML pipeline exists, needs data and compute
 
-5. **Extensible** - New capabilities can be added without rebuilding from scratch
+5. **Collaborative potential** - Your coaching knowledge + our technical capability
 
 ---
 
-## Next Steps / Ask
+## The Ask
 
-If you're interested in taking this forward:
+1. **Demo:** Show current tracking on sample Marshall footage
 
-1. **Demo:** We can show you the current working pipeline on sample footage
+2. **Phase 1 Funding:** $15-25K to reach automatic calibration
 
-2. **Phase 1 Funding:** $15-25K to reach automatic calibration MVP
+3. **Partnership:** Access to match footage + coaching time for validation
 
-3. **Technical Partnership:** Access to match footage for training and testing
-
-4. **Timeline:** 1-2 months to meaningful improvement, 6-12 months to production quality
+4. **Realistic expectations:** 6-12 months to meaningful Game Model analysis
 
 ---
 
 ## Summary
 
-We have built approximately 60-70% of a complete soccer tracking system. The core pipeline works today with limitations. The advanced features are architecturally complete but need training data and compute to become operational.
+We've built ~60-70% of a tracking system. The Game Model 2.0 is comprehensive and well-defined. Connecting the two - actually measuring "+1 Football" or "De Bruyne runs" - requires significant additional development.
 
-This is honest, early-stage technology with a clear development path - not a finished product. The question is whether there's interest in funding the remaining development to reach production quality.
+**What's real today:** Basic tracking, physical metrics, spatial analysis
+**What's possible with investment:** Tactical analysis aligned to Game Model principles
+**What takes time:** Validated, coach-trusted Game Model compliance scoring
 
-**Contact:** [Your contact information]
+The technology path is clear. The question is whether Marshall wants to invest in building a system specifically trained on your tactical philosophy.
 
-**Repository:** [Link if applicable]
+---
+
+**"The goal is to make this the best TEAM you'll ever play for."**
+
+The AI can help measure that - with time, data, and collaboration.
