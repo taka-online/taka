@@ -85,16 +85,186 @@ Not a fine-tuned model. A system that:
 └─────────────────────────────────────────────────────┘
 ```
 
-### Example Queries (What It Can Do)
+## Why This Is Valuable (Not Just Another Tool)
+
+**The point is NOT to replace Wyscout.** You can already query Wyscout.
+
+**The point is connecting data that's currently siloed.** Things no single tool can do.
+
+### Cross-Source Pattern Recognition
+
+| Question | Why Single Tools Can't Answer |
+|----------|------------------------------|
+| "When we play high-press teams, do our players fatigue more?" | Needs Wyscout opponent style + GPS load + results |
+| "What training week structure preceded our best performances?" | Needs GPS + schedule + match results |
+| "Which of OUR players performs best against pressing teams?" | Needs Wyscout opponent data + our performance data |
+| "What load patterns preceded injuries?" | Needs GPS + medical history |
+| "Which recruits are similar to players who succeeded here?" | Needs recruitment profiles + historical roster outcomes |
+
+### Institutional Memory (Stuff That Gets Lost)
+
+- "What did we learn recruiting Player X that applies to similar prospects?"
+- "Why did we change the pressing trigger against Team Y last year?"
+- "What concerns did we have about this player before signing? Were they valid?"
+- "What's our historical record against 4-4-2 teams and what worked?"
+
+This knowledge lives in people's heads. When staff turn over, it's gone.
+
+### Preparation That Writes Itself
+
+**Before a match, auto-generate:**
+- Opponent scouting brief (Wyscout data)
+- What we said about them last time (meeting transcripts)
+- Physical state of our squad (GPS + medical)
+- Historical results and what worked (past game plans + outcomes)
+- Compliance check (training hours vs NCAA limit)
+
+One document. Currently this is manual assembly from 5 sources.
+
+### Proactive Alerts (System Tells You)
+
+- "Player X's load pattern matches profile before his last injury"
+- "Opponent Y changed their corner routine since last scouting"
+- "Training hours at 85% of NCAA weekly limit with 2 days left"
+- "Budget tracking 20% over projection for travel"
+- "Recruit Z just entered transfer portal - matches your fullback criteria"
+
+You don't have to ask. It watches and flags.
+
+### Meeting Intelligence
+
+**Searchable decisions:**
+- "What did Coach say about Player X's positioning in September?"
+- "When did we decide to change the set piece routine?"
+- "What were the concerns about Recruit Y?"
+
+**Decision → Outcome tracking:**
+- "We decided X. Did it work?"
+- Pattern recognition: which types of decisions led to good outcomes?
+
+**Staff alignment:**
+- New staff can search past context
+- "What's our philosophy on X?" returns actual discussions, not just documents
+
+### Recruitment Intelligence
+
+- "Find prospects whose profile matches [player who succeeded here]"
+- "What's our conversion rate from ID camps to signed players?"
+- "Which recruiting channels produced our best players?"
+- "What did we say about Recruit Z six months ago vs now?"
+
+### Game Model Accountability
+
+- "How often did we actually achieve field tilt this season?"
+- "What's our counter-press success rate?"
+- "Do we play the way we say we want to play?"
+
+Initially from Wyscout event data. Later from tracking when Part 1 is ready.
+
+---
+
+## Meeting Recording & Video Capture Setup
+
+### The Problem
+Meetings often show content on TV (Wyscout clips, presentations, tactical boards). Audio transcription alone misses visual context.
+
+### Recommended Setup
+
+**Minimum (Free):**
+```
+Laptop → Screen record with OBS/Loom (free)
+      → Present to TV
+Phone  → Record audio for transcription
+```
+
+**Better ($30):**
+```
+Laptop → HDMI Capture Dongle ($30) → Records everything shown
+      → TV (passthrough, displays normally)
+Phone  → Backup audio + room context
+```
+
+**Best ($100-150):**
+```
+Laptop → Elgato Cam Link 4K ($100) → High quality capture
+      → TV (passthrough)
+Camera → Room view (whiteboard, gestures)
+```
+
+### Equipment Options
+
+| Device | Cost | Use Case |
+|--------|------|----------|
+| **OBS Studio** | Free | Screen recording from laptop |
+| **Loom** | Free | Easy screen recording, auto-uploads |
+| **Generic HDMI capture** | $20-40 | Captures TV feed, good enough quality |
+| **Elgato Cam Link 4K** | ~$100 | Higher quality capture |
+| **Phone on tripod** | ~$20 tripod | Room audio + whiteboard capture |
+
+### Transcription Options
+
+| Option | Cost | Notes |
+|--------|------|-------|
+| **Whisper (OpenAI)** | Free | Open source, excellent accuracy, self-hosted |
+| **Otter.ai** | Free: 300 min/month | Auto-transcription, searchable |
+| **Otter.ai Pro** | ~$17/user/month | More minutes, better features |
+| **Fireflies.ai** | Free tier / ~$19/month | Auto-joins meetings |
+
+**Recommendation:** Start with Whisper (free) for transcription. Upgrade to Otter if you want live transcription and auto-join features.
+
+### What Gets Captured
+
+| Content Type | Capture Method |
+|--------------|----------------|
+| Wyscout video clips | Screen record / HDMI capture |
+| Tactical presentations | Screen record / HDMI capture |
+| Whiteboard drawings | Camera on tripod |
+| Discussion audio | Phone + Whisper transcription |
+| Drawing on tablet | Screen record |
+
+### Processing Pipeline
+
+```
+Meeting Recording
+       ↓
+┌──────┴──────┐
+│             │
+Video      Audio
+│             │
+Index      Whisper
+frames    transcribe
+│             │
+└──────┬──────┘
+       ↓
+  Linked & Searchable
+       ↓
+"Show me when we discussed Team X's press"
+       ↓
+Returns: video clip + transcript + timestamp
+```
+
+### Storage Requirements
+
+| Content | Size | Notes |
+|---------|------|-------|
+| Meeting audio (1 hr) | ~60 MB | Compressed |
+| Meeting video (1 hr) | ~500 MB - 1 GB | Screen capture |
+| Transcript | ~10 KB | Text |
+| **Per week estimate** | ~1-2 GB | If recording 1-2 meetings |
+| **Per year** | ~50-100 GB | Manageable |
+
+---
+
+## Example Queries (What It Can Do)
 
 **Opponent Prep:**
 - "What are Team X's corner kick tendencies?"
 - "How does Team X play against a high press?"
-- "Show me Team X's goals conceded this season"
+- "Show me when we discussed Team X in meetings this season"
 
 **Performance:**
 - "Which players have highest training load this week?"
-- "Who's at elevated injury risk based on load history?"
+- "Who's at elevated injury risk based on load + history?"
 - "Compare Player A's sprint numbers to last month"
 
 **Compliance:**
@@ -104,13 +274,14 @@ Not a fine-tuned model. A system that:
 
 **Recruitment:**
 - "List prospects we've scouted at left back"
-- "What's the status on Recruit X?"
+- "What did we say about Recruit X in the last meeting?"
 - "Show me transfer portal players that fit our system"
 
 **Institutional Knowledge:**
 - "What did we decide about formation against 4-3-3 teams?"
 - "What was the scouting report on Player X before we signed them?"
 - "What budget do we have remaining for spring travel?"
+- "Play the clip where we discussed the pressing adjustment"
 
 ## Build Sequence
 
@@ -242,6 +413,42 @@ Week 20: Tracking data flows into Part 2, richer analysis possible
 - LLM costs scale with usage
 - Maintenance and improvements
 - New data source integration
+
+---
+
+# Detailed Cost Breakdown
+
+## One-Time Setup Costs
+
+| Item | Cost | Notes |
+|------|------|-------|
+| HDMI capture dongle | $30-100 | For meeting recording |
+| Phone tripod | $20 | Room capture |
+| **Total setup** | **$50-120** | |
+
+## Monthly Operating Costs
+
+| Component | Low Usage | Moderate Usage | Heavy Usage |
+|-----------|-----------|----------------|-------------|
+| Data storage | $0-5 | $5-10 | $10-20 |
+| Meeting transcription | $0 (Whisper) | $17 (Otter Pro) | $17-40 |
+| Vector database | $0 (free tier) | $25 | $70 |
+| LLM API (Claude/GPT) | $50 | $100-150 | $200-300 |
+| **Monthly total** | **$50-75** | **$150-200** | **$300-430** |
+
+## What Drives Cost
+
+- **LLM API is the main cost** - scales with query volume
+- **Storage is cheap** - text and transcripts are small
+- **Free tiers cover a lot** - Pinecone, Otter, university storage
+
+## Cost-Saving Options
+
+1. Use university Google Drive / OneDrive (often unlimited for .edu)
+2. Use Whisper locally instead of paid transcription
+3. Use free vector DB tier (covers ~100K documents)
+4. Batch queries to reduce LLM calls
+5. Cache common queries
 
 ---
 
