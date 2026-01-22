@@ -1,198 +1,274 @@
-# Marshall Men's Soccer - AI Tracking Platform
+# Marshall Men's Soccer - Program Intelligence Platform
 
-## Executive Summary
+## What This Is
 
-We have built the foundation for a soccer tracking system designed to support Marshall's Game Model 2.0. This document provides an honest assessment of what works today, what we can develop during spring, and what could be ready for fall season.
+A **layered intelligence system** for the men's soccer program - not a chatbot, not a single AI that "knows everything."
 
-**Bottom line:** We have a working proof-of-concept tracking pipeline. The tactical analysis features that would measure Game Model compliance require additional development and validation.
+It's a system that:
+- Ingests data across the program (training, matches, players, opponents, recruitment, compliance, finances)
+- Applies rules (NCAA compliance, institutional constraints)
+- Surfaces recommendations with confidence levels
+- Learns slowly, under human supervision
 
----
-
-## What Works Today
-
-These capabilities are tested and can be demonstrated now:
-
-| Feature | Status | What It Does |
-|---------|--------|--------------|
-| Player Detection | Working | YOLOv8-based, identifies players in 4K footage |
-| Ball Detection | Working | YOLO with temporal consistency |
-| Team Classification | Working | K-means clustering on jersey colors |
-| Basic Tracking | Working | ByteTrack - assigns IDs frame-to-frame |
-| Manual Pitch Calibration | Working | Click points to calibrate camera |
-| Coordinate Transformation | Working | Converts pixels to meters |
-| Physical Metrics | Working | Speed, distance, acceleration, sprints |
-| Data Export | Working | JSON/CSV with positions |
-
-**What you can do today:**
-- Process match video with relatively static camera
-- Get frame-by-frame player positions in meters
-- Calculate physical metrics (total distance, max speed, sprint count)
-- Visualize player movements on pitch diagram
-- Export data for analysis
-
-**Current limitations:**
-- Manual calibration required for each camera angle
-- Tracking loses players during occlusions
-- No re-identification when players leave/re-enter frame
-- Camera panning breaks calibration
+Think: **Chief of Staff + Head Analyst + Compliance Officer + Recruitment Director**, augmented by data.
 
 ---
 
-## What Is Built But Not Finished
+## Core Architecture
 
-### Automatic Pitch Calibration
-- **Code exists:** HRNet keypoint detector, RANSAC, Bayesian filtering
-- **What's missing:** Neural network needs training on pitch keypoints
-- **Current workaround:** Manual calibration works but is time-consuming
+### Layer 1: Data Ingestion (Single Source of Truth)
 
-### Advanced Tracking
-- **Code exists:** Basic ByteTrack integration
-- **What's missing:** Re-identification, occlusion handling
-- **Current state:** Works in simple scenarios, loses track in complex ones
+All program data flows into one governed system.
 
-### Decision Engine (Tactical Analysis)
-- **Code exists:** Physics-based modeling for elimination tracking, defensive analysis
-- **What's missing:** Validated tracking data to feed into it
-- **Honest assessment:** The code exists but needs reliable tracking data first - "garbage in, garbage out"
+| Data Type | Examples |
+|-----------|----------|
+| Training | GPS, load, wellness, RPE |
+| Match | Event data, video tags, (future: tracking) |
+| Players | Physical, technical, psychological profiles |
+| Opponents | Tactical tendencies, set pieces, scouting |
+| Recruitment | Video, metrics, scouting notes |
+| Compliance | NCAA rules, institutional constraints |
+| Financial | Budget, scholarships, travel, staff time |
 
----
-
-## Spring Development Plan
-
-What we can realistically build and test during spring:
-
-### Weeks 1-4: Automatic Calibration
-- Label pitch frames from Marshall footage for training data
-- Train keypoint detection model
-- **Deliverable:** Process footage without manual point clicking
-- **Confidence:** High - this is well-understood ML problem
-
-### Weeks 5-8: Tracking Improvements
-- Integrate off-screen extrapolation module
-- Improve occlusion handling
-- Test on spring practice/scrimmage footage
-- **Deliverable:** More reliable player tracking through complex scenarios
-- **Confidence:** Medium - improvements likely but degree uncertain
-
-### Weeks 9-12: Basic Metrics Validation
-- Validate physical metrics (distance, speed) against GPS if available
-- Test formation shape detection
-- Begin possession/field tilt calculations
-- **Deliverable:** Trusted basic metrics
-- **Confidence:** High for physical metrics, Medium for spatial metrics
-
-### What Spring Will NOT Achieve
-- Named run detection (De Bruyne, Bell, etc.)
-- Position-specific principle compliance scoring
-- Real-time processing
-- Full Game Model analysis
-
-**Spring reality check:** By end of spring, we should have reliable automatic calibration and improved tracking. We will not have tactical analysis capabilities validated.
+**Key requirement:** Everything time-stamped, normalized, and permissioned.
 
 ---
 
-## Fall Season Readiness
+### Layer 2: Knowledge & Rules Engine
 
-What could realistically be ready for fall competition:
+This prevents the system from making illegal or naive suggestions.
 
-### Likely Ready
-| Capability | Confidence | Notes |
-|------------|------------|-------|
-| Automatic pitch calibration | High | If spring training successful |
-| Physical metrics (distance, speed, sprints) | High | Already working, needs validation |
-| Possession percentage | Medium | Depends on ball tracking reliability |
-| Field tilt / territory | Medium | Basic spatial analysis |
-| Formation shape snapshots | Medium | Static analysis of team structure |
+**Hard constraints:**
+- NCAA compliance rules
+- Scholarship limits
+- Contact periods
+- Training hour limits
+- Medical return-to-play rules
+- University policies
 
-### Possibly Ready (depends on spring progress)
-| Capability | Confidence | Notes |
-|------------|------------|-------|
-| Improved tracking through occlusions | Medium | Requires testing and iteration |
-| Basic event detection (possession changes) | Low-Medium | Needs development time |
+This layer answers: **"Is this recommendation even allowed?"**
 
-### Not Ready for Fall
-| Capability | Why |
-|------------|-----|
-| Named run classification | Requires labeled data + training + validation |
-| Elimination detection | Decision engine needs validated tracking first |
-| Counter-press analysis | Complex event detection not developed |
-| Position sub-principle scoring | Requires extensive coaching validation |
-| Real-time processing | Optimization work not in spring scope |
-| Full Game Model compliance | Months of development beyond spring |
+Without this, the system is unusable.
 
 ---
 
-## Mapping to Game Model (Honest Assessment)
+### Layer 3: Domain Models
 
-How current and near-term capabilities relate to Game Model principles:
+Instead of one model, several specialized ones:
 
-| Game Model Concept | Can We Measure It? | When |
-|-------------------|-------------------|------|
-| Possession % | Likely | Fall (if ball tracking reliable) |
-| Field Tilt | Likely | Fall |
-| Formation Shape | Likely | Fall |
-| Player distances/speeds | Yes | Now |
-| Sprint counts | Yes | Now |
-| +1 Football / Free Man | No | Future development |
-| Elimination Detection | No | Future development |
-| Ball Near/Far Positioning | No | Future development |
-| Named Runs | No | Future development |
-| Press Triggers | No | Future development |
-| Position Compliance | No | Future development |
+#### A. Performance & Training Model
+- Load vs injury risk
+- Positional physical benchmarks
+- Readiness forecasting
+- Microcycle optimization
 
-**Honest summary:** For fall, expect physical metrics and basic spatial analysis. Tactical principle measurement requires development beyond spring.
+*Example output:*
+> "Player X should not exceed 78% max sprint exposure this week given hamstring risk and match congestion."
+
+#### B. Tactical & Game Model
+- Formation effectiveness vs opponent profiles
+- Set-piece expected value
+- Pressing vs block tradeoffs
+- Substitution timing
+
+*This is where Game Model 2.0 concepts integrate - elimination analysis, defensive physics, etc.*
+
+#### C. Recruitment & Roster Model
+- Positional scarcity forecasting
+- Development curve projections
+- Fit vs system evaluation
+- Scholarship cost-benefit
+
+*Example:*
+> "A 19-year-old fullback with elite acceleration produces more marginal gain than a senior CB given current roster age curve."
+
+#### D. Financial & Resource Model
+- ROI of travel vs recruiting exposure
+- Cost per marginal win
+- Staff time allocation efficiency
 
 ---
 
-## What We Need
+### Layer 4: Decision Engine
 
-### Access
-- Spring practice/scrimmage footage for training and testing
-- Any existing GPS data for validation (optional but helpful)
+Combines outputs, applies priorities, surfaces **tradeoffs** - not answers.
 
-### Feedback Loop
-- Periodic check-ins to validate outputs make sense
-- Input on which metrics matter most for prioritization
+It does NOT say: "Do this."
+
+It says:
+- Option A: performance gain +0.12 xG, injury risk +8%
+- Option B: neutral performance, preserves availability
+- Option C: aggressive upside, NCAA risk = high
+
+**Humans choose. AI frames decisions.**
+
+---
+
+### Layer 5: Interfaces
+
+Different stakeholders see different views.
+
+| Role | Interface |
+|------|-----------|
+| Head Coach | Tactical options, lineup considerations |
+| Performance Staff | Load dashboards, alerts |
+| Recruiting Director | Target lists, fit scores |
+| Compliance Officer | Rule flags |
+| AD / Admin | Budget + performance summaries |
+
+One backend. Multiple lenses.
+
+---
+
+## What We Have Today
+
+### Existing Code & Capabilities
+
+| Component | Status | Maps To |
+|-----------|--------|---------|
+| Player/ball detection | Working | Data ingestion (match) |
+| Basic tracking | Working (limitations) | Data ingestion (match) |
+| Physical metrics | Working | Performance model inputs |
+| Decision engine code | Built, needs validation | Tactical model |
+| Training infrastructure | Built, needs data | All models |
+
+### What's Missing
+
+| Gap | Impact |
+|-----|--------|
+| Central data lake | No single source of truth yet |
+| NCAA rules engine | Can't validate compliance automatically |
+| Reliable tracking | Tactical model inputs are limited |
+| Opponent data pipeline | No systematic scouting ingestion |
+| Recruitment data structure | No standardized prospect evaluation |
+| Interfaces | No user-facing dashboards |
+
+---
+
+## Phased Build
+
+### Phase 1: Foundation (Spring)
+**Goal:** Central data structure + first useful outputs
+
+- Define data schema for all program data
+- Build NCAA rules engine (scholarship limits, contact periods, training hours)
+- Connect existing GPS/training data if available
+- Basic dashboards (descriptive, not predictive)
+
+**Deliverable:** Staff can see program data in one place with compliance flags.
+
+### Phase 2: Advisory (Spring → Summer)
+**Goal:** First recommendations
+
+- Training load recommendations (if GPS data available)
+- Opponent tendency summaries (from video tags/scouting)
+- Recruitment shortlists with fit scores
+
+**Deliverable:** System suggests, humans decide.
+
+### Phase 3: Tracking Integration (Summer → Fall)
+**Goal:** Add match tracking as data source
+
+- Automatic pitch calibration (developed in spring)
+- Improved player tracking
+- Physical metrics from video (distance, speed, sprints)
+- Feed into performance and tactical models
+
+**Deliverable:** Match data flows into the platform automatically.
+
+### Phase 4: Simulation & Strategy (Fall → Year 2)
+**Goal:** Predictive capabilities
+
+- Tactical simulations
+- Set-piece optimization
+- Roster planning scenarios
+- Game Model principle measurement (longer term)
+
+**Deliverable:** "What if" analysis for decisions.
+
+---
+
+## What Makes This Work
+
+### 1. Start With What You Have
+Don't wait for perfect tracking. Use:
+- Existing GPS data
+- Scouting notes
+- Recruitment spreadsheets
+- Budget data
+
+The platform grows as data sources improve.
+
+### 2. Rules Before Intelligence
+NCAA compliance engine is non-negotiable. Every recommendation must pass compliance check first.
+
+### 3. Humans Override
+If coaches don't trust they can override, adoption fails. The system frames decisions, doesn't make them.
+
+### 4. No "Magic AI" Initially
+Use:
+- Rules and heuristics
+- Simple models
+- Structured queries
+
+Sophisticated ML comes later, with more data and validated foundations.
+
+---
+
+## Realistic Timeline
+
+| Phase | Timeframe | Output |
+|-------|-----------|--------|
+| Foundation | Spring | Data lake + compliance engine + dashboards |
+| Advisory | Late Spring | Training/recruitment recommendations |
+| Tracking Integration | Summer-Fall | Video-based match data flowing in |
+| Simulation | Year 2 | Predictive and strategic analysis |
+
+**Game Model tactical analysis** (elimination detection, named runs, position compliance) requires:
+- Reliable tracking (Phase 3)
+- Validated decision engine
+- Coach collaboration for training data
+
+This is Year 2+ work, built on the foundation.
+
+---
+
+## What We Need From Marshall
+
+### Data Access
+- GPS/training data (if available)
+- Scouting notes/opponent reports
+- Recruitment tracking (even spreadsheets)
+- Budget/resource information
+
+### Time
+- Periodic check-ins to validate outputs
+- Input on which decisions matter most
+- Feedback on what's useful vs noise
 
 ### Realistic Expectations
-- Spring is for building reliable tracking fundamentals
-- Fall will have basic metrics, not tactical analysis
-- Game Model compliance scoring is a longer-term goal
-
----
-
-## What We're NOT
-
-1. **Not SkillCorner or Second Spectrum** - They have years of development and massive datasets. We're building a foundation.
-
-2. **Not ready for Game Model analysis** - We can track players. We cannot score tactical principle compliance.
-
-3. **Not real-time** - Processing happens after the fact.
-
-4. **Not plug-and-play** - Requires technical work and iteration.
-
----
-
-## What We ARE
-
-1. **A foundation built for your Game Model** - Not generic soccer AI
-
-2. **Honest about current state** - Working tracking with known limitations
-
-3. **A clear spring plan** - Automatic calibration → better tracking → validated metrics
-
-4. **Collaborative** - Your footage and feedback make it better
+- Phase 1 is infrastructure, not magic
+- Value compounds over time
+- Tactical Game Model analysis is a longer horizon
 
 ---
 
 ## Summary
 
-**Today:** Basic tracking works with manual calibration. Physical metrics available.
+**The approach:**
+1. Build a program-wide intelligence platform, not just tracking
+2. Start with data Marshall already has
+3. Add tracking as it matures
+4. Layer in tactical analysis over time
 
-**End of Spring:** Automatic calibration, improved tracking, validated basic metrics.
+**Spring delivers:** Data foundation + compliance engine + basic dashboards
 
-**Fall Season:** Reliable physical metrics, possession %, field tilt, formation analysis. Not tactical principle scoring.
+**Fall delivers:** Training recommendations + tracking data flowing in
 
-**Future:** With continued development, Game Model analysis becomes possible - but not this year.
+**Year 2+:** Tactical simulations, Game Model measurement, predictive analysis
 
-The system improves with Marshall footage and feedback. Spring development sets the foundation for increasingly useful analysis over time.
+The tracking and decision engine we've built become **components that plug in** - not the whole system.
+
+---
+
+This is an operating system for the program, not a chatbot. It grows with better data and feedback.
