@@ -4,39 +4,38 @@
 
 A **layered intelligence system** for the men's soccer program - not a chatbot, not a single AI that "knows everything."
 
-It's a system that:
-- Ingests data across the program (training, matches, players, opponents, recruitment, compliance, finances)
-- Applies rules (NCAA compliance, institutional constraints)
-- Surfaces recommendations with confidence levels
-- Learns slowly, under human supervision
-
 Think: **Chief of Staff + Head Analyst + Compliance Officer + Recruitment Director**, augmented by data.
 
 ---
 
-## Core Architecture
+# Platform Sections
 
-### Layer 1: Data Ingestion (Single Source of Truth)
+The platform has **5 core sections**. Each can be built independently and improves the others.
 
-All program data flows into one governed system.
+---
+
+## Section 1: Data Layer
+
+**Purpose:** Single source of truth for all program data.
 
 | Data Type | Examples |
 |-----------|----------|
 | Training | GPS, load, wellness, RPE |
-| Match | Event data, video tags, (future: tracking) |
+| Match | Event data, video tags, tracking |
 | Players | Physical, technical, psychological profiles |
 | Opponents | Tactical tendencies, set pieces, scouting |
 | Recruitment | Video, metrics, scouting notes |
 | Compliance | NCAA rules, institutional constraints |
 | Financial | Budget, scholarships, travel, staff time |
 
-**Key requirement:** Everything time-stamped, normalized, and permissioned.
+**Status:** Not built yet
+**Spring Goal:** Define schema, connect existing data sources
 
 ---
 
-### Layer 2: Knowledge & Rules Engine
+## Section 2: Compliance Engine
 
-This prevents the system from making illegal or naive suggestions.
+**Purpose:** Ensure every recommendation is legal and allowed.
 
 **Hard constraints:**
 - NCAA compliance rules
@@ -46,229 +45,218 @@ This prevents the system from making illegal or naive suggestions.
 - Medical return-to-play rules
 - University policies
 
-This layer answers: **"Is this recommendation even allowed?"**
+**What it does:** Flags violations before they happen. Every recommendation passes through compliance check.
 
-Without this, the system is unusable.
+**Status:** Not built yet
+**Spring Goal:** Core NCAA rules encoded
 
 ---
 
-### Layer 3: Domain Models
+## Section 3: Domain Models
 
-Instead of one model, several specialized ones:
+**Purpose:** Specialized intelligence for each area of the program.
 
-#### A. Performance & Training Model
+### 3A. Performance & Training Model
 - Load vs injury risk
-- Positional physical benchmarks
 - Readiness forecasting
 - Microcycle optimization
 
-*Example output:*
-> "Player X should not exceed 78% max sprint exposure this week given hamstring risk and match congestion."
+*Example: "Player X should reduce sprint load this week given hamstring history and upcoming match."*
 
-#### B. Tactical & Game Model
-- Formation effectiveness vs opponent profiles
-- Set-piece expected value
-- Pressing vs block tradeoffs
-- Substitution timing
+**Status:** Not built yet
+**Depends on:** GPS/training data from Section 1
 
-*This is where Game Model 2.0 concepts integrate - elimination analysis, defensive physics, etc.*
+### 3B. Tactical & Game Model
+- Formation effectiveness vs opponents
+- Set-piece analysis
+- Game Model 2.0 principle measurement
 
-#### C. Recruitment & Roster Model
-- Positional scarcity forecasting
-- Development curve projections
-- Fit vs system evaluation
-- Scholarship cost-benefit
+*Example: Pressing trigger detection, elimination analysis, named run classification*
 
-*Example:*
-> "A 19-year-old fullback with elite acceleration produces more marginal gain than a senior CB given current roster age curve."
+**Status:** Code exists (decision engine), needs validated tracking data
+**Depends on:** Reliable tracking from Section 5
 
-#### D. Financial & Resource Model
-- ROI of travel vs recruiting exposure
-- Cost per marginal win
-- Staff time allocation efficiency
+### 3C. Recruitment & Roster Model
+- Positional need forecasting
+- Prospect fit evaluation
+- Development projections
+
+*Example: "This recruit's profile matches your fullback needs and system requirements."*
+
+**Status:** Not built yet
+**Depends on:** Recruitment data structure from Section 1
+
+### 3D. Financial & Resource Model
+- Budget tracking
+- ROI analysis
+- Resource allocation
+
+**Status:** Not built yet
+**Depends on:** Financial data from Section 1
 
 ---
 
-### Layer 4: Decision Engine
+## Section 4: Decision Engine
 
-Combines outputs, applies priorities, surfaces **tradeoffs** - not answers.
+**Purpose:** Synthesize outputs from all models, present tradeoffs.
+
+**Key principle:** Humans choose. AI frames decisions.
 
 It does NOT say: "Do this."
 
 It says:
-- Option A: performance gain +0.12 xG, injury risk +8%
-- Option B: neutral performance, preserves availability
-- Option C: aggressive upside, NCAA risk = high
+- Option A: performance gain, higher injury risk
+- Option B: conservative, preserves availability
+- Option C: aggressive, compliance risk
 
-**Humans choose. AI frames decisions.**
-
----
-
-### Layer 5: Interfaces
-
-Different stakeholders see different views.
-
-| Role | Interface |
-|------|-----------|
-| Head Coach | Tactical options, lineup considerations |
-| Performance Staff | Load dashboards, alerts |
-| Recruiting Director | Target lists, fit scores |
-| Compliance Officer | Rule flags |
-| AD / Admin | Budget + performance summaries |
-
-One backend. Multiple lenses.
+**Status:** Tactical decision engine code exists, needs integration with other sections
+**Depends on:** All domain models feeding in
 
 ---
 
-## What We Have Today
+## Section 5: Match Tracking
 
-### Existing Code & Capabilities
+**Purpose:** Extract player positions and physical data from video.
 
-| Component | Status | Maps To |
-|-----------|--------|---------|
-| Player/ball detection | Working | Data ingestion (match) |
-| Basic tracking | Working (limitations) | Data ingestion (match) |
-| Physical metrics | Working | Performance model inputs |
-| Decision engine code | Built, needs validation | Tactical model |
-| Training infrastructure | Built, needs data | All models |
+**Components:**
+- Player/ball detection
+- Pitch calibration (manual → automatic)
+- Player tracking
+- Physical metrics (distance, speed, sprints)
 
-### What's Missing
+**Status:**
+| Component | Current State |
+|-----------|---------------|
+| Detection | Working |
+| Manual calibration | Working |
+| Automatic calibration | Code exists, needs training |
+| Basic tracking | Working (loses players in complex scenarios) |
+| Physical metrics | Working |
 
-| Gap | Impact |
-|-----|--------|
-| Central data lake | No single source of truth yet |
-| NCAA rules engine | Can't validate compliance automatically |
-| Reliable tracking | Tactical model inputs are limited |
-| Opponent data pipeline | No systematic scouting ingestion |
-| Recruitment data structure | No standardized prospect evaluation |
-| Interfaces | No user-facing dashboards |
+**Depends on:** Training data for automatic calibration
 
 ---
 
-## Phased Build
+## Section 6: Interfaces
 
-### Phase 1: Foundation (Spring)
-**Goal:** Central data structure + first useful outputs
+**Purpose:** Different views for different roles.
 
-- Define data schema for all program data
-- Build NCAA rules engine (scholarship limits, contact periods, training hours)
-- Connect existing GPS/training data if available
-- Basic dashboards (descriptive, not predictive)
+| Role | What They See |
+|------|---------------|
+| Head Coach | Tactical options, lineup considerations, opponent tendencies |
+| Performance Staff | Load dashboards, injury risk alerts |
+| Recruiting Director | Target lists, fit scores, roster projections |
+| Compliance Officer | Rule flags, violation alerts |
+| AD / Admin | Budget summaries, program health metrics |
 
-**Deliverable:** Staff can see program data in one place with compliance flags.
+**Status:** Not built yet
+**Depends on:** Sections 1-5 producing data to display
 
-### Phase 2: Advisory (Spring → Summer)
-**Goal:** First recommendations
+---
 
-- Training load recommendations (if GPS data available)
-- Opponent tendency summaries (from video tags/scouting)
-- Recruitment shortlists with fit scores
+# What We're Building Now
 
-**Deliverable:** System suggests, humans decide.
+## Currently Working
+- Section 5: Match Tracking (core detection and tracking functional)
 
-### Phase 3: Tracking Integration (Summer → Fall)
-**Goal:** Add match tracking as data source
+## Spring Focus
+| Section | Goal |
+|---------|------|
+| Section 1: Data Layer | Define schema, connect GPS/training data |
+| Section 2: Compliance | Core NCAA rules encoded |
+| Section 5: Tracking | Automatic pitch calibration |
 
-- Automatic pitch calibration (developed in spring)
-- Improved player tracking
-- Physical metrics from video (distance, speed, sprints)
-- Feed into performance and tactical models
+## Summer Focus
+| Section | Goal |
+|---------|------|
+| Section 3A: Performance Model | Training load recommendations |
+| Section 5: Tracking | Improved reliability, integration with platform |
+| Section 6: Interfaces | Basic dashboards |
 
-**Deliverable:** Match data flows into the platform automatically.
+---
 
-### Phase 4: Simulation & Strategy (Fall → Year 2)
-**Goal:** Predictive capabilities
+# Future Vision
 
-- Tactical simulations
-- Set-piece optimization
+## What Becomes Possible (Year 2+)
+
+Once the foundation is solid, advanced capabilities unlock:
+
+### Tactical Analysis (Section 3B)
+- Measure Game Model 2.0 principles from video
+- Detect pressing triggers (0 vs 1x press)
+- Classify named runs (De Bruyne, Bell, Holmes)
+- Track elimination events
+- Score position-specific principle compliance
+
+**Requires:** Reliable tracking + coach validation + labeled training data
+
+### Predictive Capabilities (Section 4)
+- Injury risk forecasting
+- Match outcome simulations
 - Roster planning scenarios
-- Game Model principle measurement (longer term)
+- Opponent adaptation recommendations
 
-**Deliverable:** "What if" analysis for decisions.
+**Requires:** Historical data + validated models
 
----
+### Real-Time Processing (Section 5)
+- Live tracking during matches
+- In-game tactical alerts
+- Halftime analysis
 
-## What Makes This Work
+**Requires:** Significant optimization work
 
-### 1. Start With What You Have
-Don't wait for perfect tracking. Use:
-- Existing GPS data
-- Scouting notes
-- Recruitment spreadsheets
-- Budget data
+### Full Program Intelligence (All Sections)
+- Cross-domain insights (e.g., recruitment decisions informed by tactical needs + budget + compliance)
+- Automated scouting summaries
+- Season planning optimization
 
-The platform grows as data sources improve.
-
-### 2. Rules Before Intelligence
-NCAA compliance engine is non-negotiable. Every recommendation must pass compliance check first.
-
-### 3. Humans Override
-If coaches don't trust they can override, adoption fails. The system frames decisions, doesn't make them.
-
-### 4. No "Magic AI" Initially
-Use:
-- Rules and heuristics
-- Simple models
-- Structured queries
-
-Sophisticated ML comes later, with more data and validated foundations.
+**Requires:** All sections mature and integrated
 
 ---
 
-## Realistic Timeline
+# Realistic Timeline
 
-| Phase | Timeframe | Output |
-|-------|-----------|--------|
-| Foundation | Spring | Data lake + compliance engine + dashboards |
-| Advisory | Late Spring | Training/recruitment recommendations |
-| Tracking Integration | Summer-Fall | Video-based match data flowing in |
-| Simulation | Year 2 | Predictive and strategic analysis |
-
-**Game Model tactical analysis** (elimination detection, named runs, position compliance) requires:
-- Reliable tracking (Phase 3)
-- Validated decision engine
-- Coach collaboration for training data
-
-This is Year 2+ work, built on the foundation.
+| Timeframe | Focus | Deliverable |
+|-----------|-------|-------------|
+| **Spring** | Sections 1, 2, 5 | Data foundation + compliance engine + automatic calibration |
+| **Summer** | Sections 3A, 5, 6 | Training recommendations + reliable tracking + basic dashboards |
+| **Fall** | Integration | All sections connected, data flowing |
+| **Year 2** | Sections 3B, 4 | Tactical analysis + predictive capabilities |
 
 ---
 
-## What We Need From Marshall
+# What We Need
 
 ### Data Access
-- GPS/training data (if available)
+- GPS/training data
 - Scouting notes/opponent reports
-- Recruitment tracking (even spreadsheets)
-- Budget/resource information
+- Recruitment tracking
+- Budget information
 
-### Time
-- Periodic check-ins to validate outputs
-- Input on which decisions matter most
-- Feedback on what's useful vs noise
+### Feedback
+- Which decisions matter most?
+- What outputs are useful vs noise?
+- Validation that recommendations make sense
 
-### Realistic Expectations
-- Phase 1 is infrastructure, not magic
-- Value compounds over time
-- Tactical Game Model analysis is a longer horizon
-
----
-
-## Summary
-
-**The approach:**
-1. Build a program-wide intelligence platform, not just tracking
-2. Start with data Marshall already has
-3. Add tracking as it matures
-4. Layer in tactical analysis over time
-
-**Spring delivers:** Data foundation + compliance engine + basic dashboards
-
-**Fall delivers:** Training recommendations + tracking data flowing in
-
-**Year 2+:** Tactical simulations, Game Model measurement, predictive analysis
-
-The tracking and decision engine we've built become **components that plug in** - not the whole system.
+### Expectations
+- Spring builds infrastructure
+- Fall has basic utility
+- Full Game Model analysis is Year 2+
 
 ---
 
-This is an operating system for the program, not a chatbot. It grows with better data and feedback.
+# Summary
+
+**6 Sections:**
+1. Data Layer - single source of truth
+2. Compliance Engine - NCAA rules
+3. Domain Models - Performance, Tactical, Recruitment, Financial
+4. Decision Engine - synthesize and present tradeoffs
+5. Match Tracking - video to data
+6. Interfaces - role-specific views
+
+**Building Now:** Sections 1, 2, 5 (foundation)
+
+**Future:** Tactical Game Model analysis, predictive capabilities, real-time processing
+
+The platform grows section by section. Each piece makes the others more valuable.
