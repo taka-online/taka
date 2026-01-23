@@ -184,8 +184,8 @@ Part 1 delivers value in 2-3 weeks. Part 2 makes it more powerful over months.
 
 # Summary
 
-**Part 1:** Connect your data, capture meetings, build searchable institutional memory. Working in 2-3 weeks.
+**Part 1:** Connect your scattered data (Wyscout, GPS, meetings, recruitment) into one queryable system. Surface patterns across sources, preserve institutional knowledge, track recruitment outcomes, get proactive alerts, and auto-generate match prep. Working in 2-3 weeks.
 
-**Part 2:** Tracking and tactical analysis from video. Develops in background over months.
+**Part 2:** Computer vision tracking from match video. Develops in background, eventually feeds richer data into Part 1.
 
-**The key insight:** The most valuable data you have is in your discussions — and right now it disappears. This system keeps it.
+**The key insight:** You already have valuable data — it's just scattered and disconnected. This system links it together and makes it work for you.
