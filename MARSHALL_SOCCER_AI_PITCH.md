@@ -97,11 +97,11 @@ Currently this is manual assembly from multiple sources. The system does it auto
 
 | Phase | Timeframe | What You Get |
 |-------|-----------|--------------|
-| Data Ingestion | Weeks 1-2 | All data connected and indexed |
-| Core System | Weeks 3-4 | Can query across all data sources |
-| Refinement | Weeks 5-6 | Improved accuracy, feedback loop |
+| Data Ingestion | Week 1 | All data connected and indexed |
+| Core System | Week 2 | Can query across all data sources |
+| Alerts & Prep | Week 3 | Proactive alerts, auto-generated prep docs |
 
-**Week 4: Staff can start asking questions and getting useful answers.**
+**Week 2: Staff can start querying. Week 3: Full system working.**
 
 ---
 
@@ -155,9 +155,9 @@ Once tracking is reliable:
 ```
 Part 1 (Marshall AI) - Immediate Value
 ───────────────────────────────────────
-Week 1-2:   Data ingestion
-Week 3-4:   System working              ← Value starts here
-Week 5-6:   Refinement
+Week 1:     Data ingestion
+Week 2:     Core system working         ← Value starts here
+Week 3:     Alerts + auto-prep
 
 
 Part 2 (Tracking) - Background Development
@@ -167,7 +167,7 @@ Month 3-4:  Tracking improvements
 Month 5-6:  Validation + integration    ← Feeds into Part 1
 ```
 
-Part 1 delivers value in weeks. Part 2 makes it more powerful over months.
+Part 1 delivers value in 2-3 weeks. Part 2 makes it more powerful over months.
 
 ---
 
@@ -184,7 +184,7 @@ Part 1 delivers value in weeks. Part 2 makes it more powerful over months.
 
 # Summary
 
-**Part 1:** Capture meetings, connect them to your data, build searchable institutional memory. Value in weeks.
+**Part 1:** Connect your data, capture meetings, build searchable institutional memory. Working in 2-3 weeks.
 
 **Part 2:** Tracking and tactical analysis from video. Develops in background over months.
 
