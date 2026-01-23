@@ -16,11 +16,9 @@ We're proposing a two-part system that grows with the program:
 
 ## The Core Idea
 
-Meetings are where the real knowledge lives — the reasoning behind decisions, the context around players, the adjustments discussed but never written down.
+A system that connects all your program data and makes it searchable and queryable.
 
-Right now that knowledge disappears. It lives in memory, scattered notes, or nowhere.
-
-**The system captures meetings (video + audio + transcripts) and connects them to your structured data (Wyscout, GPS, recruitment).** This creates something none of your current tools can provide: searchable institutional memory with context.
+Not a chatbot. Not a replacement for Wyscout. **It's the connective tissue between everything** — letting you ask questions across systems that don't talk to each other today.
 
 ---
 
@@ -28,12 +26,14 @@ Right now that knowledge disappears. It lives in memory, scattered notes, or now
 
 | Source | What It Contains |
 |--------|------------------|
-| Meeting Recordings | Discussions, decisions, reasoning, clips shown, context |
 | Wyscout | Match events, opponent tendencies, player stats |
 | GPS | Training load, distances, sprints |
 | Game Plans | Tactical documents, scouting reports |
+| Meeting Recordings | Discussions, decisions, context |
 | Recruitment | Prospect notes, evaluations |
 | Medical | Injury history |
+
+**You already have this data.** It's just scattered across different systems.
 
 ---
 
@@ -89,29 +89,15 @@ The system connects what you said about prospects to how they actually performed
 
 ---
 
-## Meeting Capture Setup
-
-**Basic Setup (~$50):**
-- HDMI capture dongle between laptop and TV
-- Phone for audio backup
-- Free transcription (Whisper AI)
-
-**What gets captured:**
-- Everything shown on screen (Wyscout clips, tactical diagrams)
-- Full audio → transcribed and searchable
-- Linked together: "Show me when we discussed Team X" → returns video + transcript
-
----
-
 ## Timeline
 
 | Phase | Timeframe | What You Get |
 |-------|-----------|--------------|
-| Data Ingestion | Weeks 1-3 | All data connected and indexed |
-| Core System | Weeks 4-6 | Can search across meetings + data |
-| Refinement | Weeks 7-12 | Improved accuracy, feedback loop |
+| Data Ingestion | Weeks 1-2 | All data connected and indexed |
+| Core System | Weeks 3-4 | Can query across all data sources |
+| Refinement | Weeks 5-6 | Improved accuracy, feedback loop |
 
-**Week 6: Staff can start searching meetings and connecting them to data.**
+**Week 4: Staff can start asking questions and getting useful answers.**
 
 ---
 
@@ -165,9 +151,9 @@ Once tracking is reliable:
 ```
 Part 1 (Marshall AI) - Immediate Value
 ───────────────────────────────────────
-Week 1-3:   Data ingestion
-Week 4-6:   System working              ← Value starts here
-Week 7-12:  Refinement
+Week 1-2:   Data ingestion
+Week 3-4:   System working              ← Value starts here
+Week 5-6:   Refinement
 
 
 Part 2 (Tracking) - Background Development
@@ -177,34 +163,18 @@ Month 3-4:  Tracking improvements
 Month 5-6:  Validation + integration    ← Feeds into Part 1
 ```
 
-Part 1 delivers value immediately. Part 2 makes it more powerful over time.
+Part 1 delivers value in weeks. Part 2 makes it more powerful over months.
 
 ---
 
 # What We Need
 
 ### Data Access
-- Permission to record and transcribe meetings
 - Wyscout export or API access
 - GPS data exports
-- Recruitment tracking
 - Game plans and scouting documents
-
-### Equipment (~$50)
-- HDMI capture dongle
-- Phone tripod
-
----
-
-# Cost Estimate
-
-| Usage Level | Monthly Cost |
-|-------------|--------------|
-| Light | $50-75 |
-| Moderate | $150-200 |
-| Heavy | $300-400 |
-
-Main cost is LLM API usage. Storage is minimal.
+- Recruitment tracking
+- Permission to record and transcribe meetings
 
 ---
 
