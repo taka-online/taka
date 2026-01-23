@@ -46,39 +46,68 @@ Not a chatbot. Not a replacement for Wyscout.
 
 ### Questions No Single Tool Can Answer
 
-| Question | Why You Can't Answer It Today |
-|----------|------------------------------|
-| "When we play high-press teams, do our players fatigue more in the second half?" | Needs Wyscout opponent style + GPS load + match results |
-| "What training week structure preceded our best performances?" | Needs GPS + schedule + results |
-| "Which of our players performs best against pressing teams?" | Needs opponent data + our performance data |
-| "What load patterns came before injuries?" | Needs GPS + medical history |
-| "Which recruits are similar to players who succeeded here?" | Needs recruitment profiles + historical outcomes |
+**Game Model & Tactical:**
+- "When we play against a 4-3-3 high press, how often do we successfully build out of the SGZ?"
+- "Which opponents forced us out of positional possession and into counter-attack situations?"
+- "What's our success rate executing the counter-press after losses in the BGZ vs FGZ?"
+- "Against teams that sit in a low block, how many times did we find +1 situations in the half-spaces?"
+
+**Performance & Load:**
+- "When we play high-press teams, do our midfielders fatigue more in the second half? Does our pressing intensity drop?"
+- "What training week structure preceded our best performances in terms of field tilt and possession?"
+- "Which players sustain high-speed running output across 90 minutes vs which ones drop off after 60?"
+- "What load patterns came before soft tissue injuries?"
+
+**Patterns Across Games:**
+- "Against teams that press our CBs, how often do our pivots successfully drop to create the +1 to break the first line?"
+- "When opponents switch to man-marking in transition, which of our players get eliminated most often?"
+- "What adjustments did we make at halftime in games we were losing? Which ones worked?"
+
+**Recruitment:**
+- "Which recruits have profiles similar to players who succeeded in our system?"
+- "What physical benchmarks do our successful fullbacks share?"
 
 ---
 
 ### Institutional Memory
 
-Knowledge that lives in people's heads and disappears when staff turn over:
+Knowledge that lives in discussions and disappears when context is lost:
 
-- "What did we learn recruiting Player X that applies to similar prospects?"
-- "Why did we change the pressing trigger against Team Y last year?"
-- "What concerns did we have about this player before signing? Were they valid?"
-- "What worked against 4-4-2 teams historically?"
+**Game Model Evolution:**
+- "Why did we switch from 0-press to 1x-press triggers against Team Y last year? What was the reasoning?"
+- "When did we decide to change how the wingers defend in transition — tracking FBs vs staying high?"
+- "What were the specific concerns about our set piece defending in September and what did we adjust?"
 
-The system remembers what the program has learned.
+**Player Development:**
+- "What did we identify as Player X's development priorities at the start of the season? How has he progressed?"
+- "When did we first discuss moving Player Y into the pivot role? What made us think he could do it?"
+- "What were the concerns about Recruit Z's positioning before signing? Were they valid after a season?"
+
+**Opponent Patterns:**
+- "What worked against Team X's 4-4-2 mid-block last time we played them?"
+- "How did we plan to exploit Team Y's high line? Did it work?"
+- "What set piece adjustments did we make for Team Z's zonal marking?"
+
+**System & Philosophy:**
+- "What's the reasoning behind our exchange policy in defensive transition?"
+- "When a new player asks about De Bruyne runs vs Channel runs, what's the explanation we've given?"
+- "What have we said about when to play vertical vs when to keep possession?"
+
+The system remembers what the program has learned — and why.
 
 ---
 
 ### Preparation That Writes Itself
 
 Before a match, auto-generate one document that pulls:
-- Opponent scouting brief (Wyscout)
-- What we said about them last time (meeting transcripts)
+- Opponent scouting brief (Wyscout) — formation tendencies, set pieces, key players
+- What we discussed about them last time (meeting transcripts)
+- How they play against our style — do they press? Sit deep? Man-mark in transition?
 - Physical state of our squad (GPS + medical)
-- Historical results and what worked (past game plans)
-- Compliance check (training hours vs NCAA limit)
+- Historical results and what tactical adjustments worked
+- Suggested rhythm level based on opponent's defensive structure
 
-Currently this is manual assembly from 5 different places.
+Currently this is manual assembly from multiple places.
 
 ---
 
@@ -86,11 +115,11 @@ Currently this is manual assembly from 5 different places.
 
 The system watches and tells you — you don't have to ask:
 
-- "Player X's load pattern matches profile before his last injury"
-- "Opponent Y changed their corner routine since you last scouted them"
-- "Training hours at 85% of NCAA weekly limit with 2 days left"
-- "Budget tracking 20% over projection for travel"
-- "Recruit Z just entered transfer portal — matches your fullback criteria"
+- "Player X's load pattern matches the profile before his last hamstring issue"
+- "Player Y's high-speed running has dropped 15% over the last 3 weeks"
+- "Opponent Z changed their corner routine since you last scouted them — they're now attacking near post"
+- "Recruit A just entered transfer portal — profile matches the fullback characteristics you've been looking for"
+- "Team B (upcoming opponent) lost their starting CB to injury last match"
 
 ---
 
@@ -142,27 +171,32 @@ Meetings often show content on TV (Wyscout clips, presentations, tactical boards
 ## Example Queries
 
 **Opponent Prep:**
-- "What are Team X's corner kick tendencies?"
+- "How does Team X build out of the back? Do they play through or go long under pressure?"
+- "What are Team X's corner tendencies — near post, far post, or short?"
 - "Show me when we discussed Team X in meetings this season"
-- "What worked last time we played a team that pressed like this?"
+- "What rhythm level should we play against Team X's 4-4-2 mid-block?"
+- "What worked last time we played a team that man-marked our pivots?"
+
+**Tactical Review:**
+- "In games where we struggled to break the first line, what adjustments did we make?"
+- "When have we used overload right vs overload left structures this season?"
+- "Show me the clip where we discussed the change to our counter-press triggers"
 
 **Performance:**
 - "Which players have highest training load this week?"
-- "Who's at elevated injury risk based on load + history?"
+- "Who's showing signs of fatigue based on load trends?"
 - "How has Player Y's sprint output changed since September?"
-
-**Compliance:**
-- "How many training hours have we logged this week?"
-- "Are we compliant on scholarship limits?"
+- "Which players maintain pressing intensity in the final 20 minutes?"
 
 **Recruitment:**
-- "List left back prospects we've scouted"
-- "What did we say about Recruit X in the last meeting?"
+- "List fullback prospects who fit our attacking FB profile — need to join the attack, comfortable 1v1"
+- "What did we say about Recruit X's tactical awareness in the last meeting?"
+- "Find wingers in the portal who can play inverted and make De Bruyne-type runs"
 
 **Institutional Knowledge:**
-- "What did we decide about formation against 4-3-3 teams?"
-- "What budget do we have remaining for spring travel?"
-- "Play the clip where we discussed the pressing adjustment"
+- "What's our philosophy on when FBs should overlap vs underlap?"
+- "Play the clip where we explained the Bell run to the team"
+- "What did we decide about defensive shape against 4-3-3 teams?"
 
 ---
 
@@ -172,7 +206,7 @@ Meetings often show content on TV (Wyscout clips, presentations, tactical boards
 |-------|-----------|--------------|
 | Data Ingestion | Weeks 1-3 | All data connected and indexed |
 | Core System | Weeks 4-6 | Can ask questions, get sourced answers |
-| Specialized Tools | Weeks 7-10 | Scouting assistant, load dashboard, compliance alerts |
+| Specialized Tools | Weeks 7-10 | Opponent scouting assistant, load dashboard, meeting search |
 | Refinement | Weeks 11-12 | Feedback loop, improved accuracy |
 
 **Week 6: Staff can start asking questions and getting useful answers.**
