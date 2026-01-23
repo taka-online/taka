@@ -27,13 +27,15 @@ Not a chatbot. Not a replacement for Wyscout. **It's the connective tissue betwe
 | Source | What It Contains |
 |--------|------------------|
 | Wyscout | Match events, opponent tendencies, player stats |
-| GPS | Training load, distances, sprints |
+| GPS | Training load, distances, sprints, fatigue patterns |
 | Game Plans | Tactical documents, scouting reports |
-| Meeting Recordings | Discussions, decisions, context |
-| Recruitment | Prospect notes, evaluations |
-| Medical | Injury history |
+| Meeting Recordings | Discussions, decisions, context (transcribed + video) |
+| Recruitment | Prospect notes, evaluations, portal tracking |
+| Financials | Budget, scholarships, travel costs |
+| Medical | Injury history, return-to-play |
+| Schedule | Matches, travel, recovery windows |
 
-**You already have this data.** It's just scattered across different systems.
+**You already have this data.** It's just scattered across systems.
 
 ---
 
