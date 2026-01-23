@@ -152,58 +152,103 @@ Wyscout gives us events (passes, shots, fouls). Tracking gives us the full pictu
 
 ## The Game Decision Engine
 
-This is the ambitious part — and what makes the whole system unique.
+This is the ambitious part — and what makes the whole system unique. The code framework already exists. Over 36,000 lines written, with the core modules built.
 
-### What It Does
+### The Core Concept: Elimination
 
-The decision engine takes our tracking data and measures whether we're executing our Game Model principles. Not subjective film review — objective, frame-by-frame measurement.
+The engine is built around a fundamental idea — **elimination** as the primary tactical currency.
 
-**Examples of what it can measure:**
-- **Transition speed:** How many seconds from winning possession to penetrating their half? How does that compare to our target?
-- **Defensive compactness:** Distance between our lines when defending. Are we staying connected or getting stretched?
-- **Pressing triggers:** When we lose the ball, how quickly do we engage? Who's pressing and who's covering?
-- **Second ball wins:** After long balls or aerial duels, are we positioned to collect?
-- **Width in possession:** Are our wingers providing proper width? How does spacing change by phase?
-- **Recovery runs:** When we lose possession, are players tracking back at the right intensity?
+A defender is "eliminated" when:
+1. The ball is past them (positionally, toward goal)
+2. They can't reach an intervention point before the attacker achieves a more dangerous outcome
 
-### How It Works
+This isn't about who's ball-side or goal-side on paper. It's about who can actually affect the play. A defender who's technically goal-side but can't intervene in time is eliminated.
 
-The engine builds on two layers:
+**Every attacking action can be evaluated by how many defenders it eliminates.** A pass that takes out three defenders is more valuable than one that takes out one. The engine quantifies this frame-by-frame.
 
-1. **Wyscout events** — passes, shots, duels, set pieces. This is the "what happened."
-2. **Our tracking data** — continuous player positions between events. This is the "how it happened."
+### Football as Physics
 
-By combining them, we can answer questions Wyscout alone can't: We completed 85% of our passes, but were we playing through the lines or going sideways? We won 60% of aerial duels, but were we positioned to win the second balls?
+The engine models football as a dynamic spatial system governed by forces:
 
-### Development Process
+**Defensive positioning** is modeled through attraction forces:
+| Force | Effect |
+|-------|--------|
+| Ball attraction | Creates pressing behavior |
+| Goal attraction | Creates protective depth |
+| Opponent attraction | Creates marking |
+| Teammate repulsion | Maintains spacing |
+| Line attraction | Maintains compactness |
 
-This isn't plug-and-play. Building it right requires:
+The equilibrium of these forces determines where defenders should be. When they're not there, we can measure the gap between actual and optimal.
 
-1. **Define each principle precisely** — "Compact defensive shape" needs to be translated into measurable terms. What's the maximum distance between lines? What triggers an alert?
+**Game state scoring** evaluates every moment:
+| Component | What It Measures |
+|-----------|------------------|
+| Elimination | Defenders taken out of the play |
+| Proximity | Distance to goal |
+| Angle | Shooting angle available |
+| Density | Space around the ball |
+| Compactness | Defensive structure integrity |
+| Action availability | Forward passing options |
 
-2. **Calibrate against film** — Run the engine on matches we've already analyzed manually. Does it flag the same moments coaches identified? If not, refine.
+### Defensive Block Analysis
 
-3. **Iterate with feedback** — The first version won't be perfect. We run it, coaches review outputs, we adjust thresholds and definitions.
+The engine models three primary block configurations:
 
-This is collaborative work between the technical side and coaching staff. The goal is a system that reflects how we actually think about the game.
+| Block | Line Height | Characteristics |
+|-------|-------------|-----------------|
+| **Low** | ~12m from goal | Compact, protective, minimal pressing |
+| **Mid** | ~22m from goal | Balanced, controls midfield space |
+| **High** | Near halfway | Aggressive, traps opponents in their half |
+
+We can measure: Are we maintaining the block we want? When do we break shape? What triggers the breakdowns?
+
+### The Philosophy: Structure Before Talent
+
+The base model treats all players as physically equal — same speed, same reaction time. This is intentional.
+
+**We understand structure before we layer in talent.** If our positioning fails when everyone's equal, it will fail when talent is added. Talent becomes a modifier on top of sound structure, not a replacement for it.
+
+This is how we identify whether breakdowns are positional (fixable through coaching) or physical (need different personnel).
+
+### The Pipeline
+
+```
+Video → Detection → Tracking → Coordinates → Decision Engine → Analysis
+        (YOLO)    (ByteTrack) (Calibration)   (Elimination,    (Insights)
+                                               Forces, Scoring)
+```
+
+The decision engine sits at the end of the tracking pipeline. It takes coordinate data and produces tactical analysis.
 
 ### What It Enables
 
-**Post-match:** Instead of watching full film to find breakdowns, the engine flags specific moments where principles weren't executed. Review becomes targeted.
+**Post-match:** Instead of watching full film to find breakdowns, the engine flags specific moments where structure failed — which defenders got eliminated, where the block broke, what triggered it.
 
-**Over time:** We build a dataset of principle execution across the season. We can see trends — are we getting more compact? Is transition speed improving? Are there fatigue patterns where execution drops?
+**Trends over time:** We build a dataset across the season. Is our compactness improving? Are we eliminating more defenders per attack? Are there fatigue patterns where execution drops?
 
-**Opponent analysis:** Apply the same engine to opponent film. Identify their principles, find where they break down, prepare to exploit it.
+**Opponent scouting:** Apply the same engine to opponent film. Model their defensive block, find where they're vulnerable, identify what triggers their breakdowns.
 
-**Recruitment:** Evaluate prospects not just on Wyscout stats but on whether their playing style fits our principles.
+**Training design:** Simulate scenarios to test. Design exercises around elimination concepts. Show players exactly what "compact" means in measurable terms.
+
+### Current State
+
+The core modules are built:
+- `elimination.py` — Core elimination logic
+- `defense_physics.py` — Attraction-based positioning model
+- `state_scoring.py` — Game state evaluation
+- `block_models.py` — Defensive block configurations
+- `visualizer.py` — Tactical board output
+
+What remains is **calibration against real match data** — running it on our film, refining thresholds, confirming it flags the moments coaches identify.
 
 ### Why This Takes Time
 
-The tracking must be accurate first. If player positions are wrong, every principle measurement is garbage. That's why tracking validation comes before decision engine development.
+The tracking must be accurate first. If player positions are wrong, every elimination calculation is garbage. That's why tracking validation comes before decision engine deployment.
 
-Then the definitions need refinement. "Compactness" is intuitive when watching film but requires precise parameters for automated measurement. Getting those parameters right takes iteration with coaching staff.
+Then the parameters need tuning. How much should ball attraction outweigh goal attraction? What's the threshold for "eliminated"? These require iteration with coaching staff watching outputs and refining.
 
-**Realistic expectation:** Tracking delivers value by spring. Decision engine v1 by fall — and it keeps improving as we refine definitions and add more principles.
+**Realistic expectation:** Tracking delivers value by spring. Decision engine v1 by fall — starting with elimination metrics and block analysis, then expanding as we validate.
 
 ---
 
