@@ -75,6 +75,24 @@ This turns recruitment from isolated decisions into a learning system.
 
 ---
 
+### 4. Proactive Alerts
+
+The system watches your data and flags things without you asking.
+
+Instead of manually checking load reports, scouting updates, or portal activity, the system monitors patterns and surfaces what matters: a player's load trending toward injury risk, an opponent changing their set piece routines since you last scouted them, a recruit entering the portal who matches what you're looking for.
+
+You don't have to remember to check. It tells you.
+
+---
+
+### 5. Auto-Generated Prep
+
+Before a match, the system pulls together everything relevant into one place: opponent tendencies from Wyscout, what your staff discussed about them last time you played, how your squad is physically, what adjustments worked historically against similar teams.
+
+Currently this is manual assembly from multiple sources. The system does it automatically, so prep starts from context instead of from scratch.
+
+---
+
 ## Timeline
 
 | Phase | Timeframe | What You Get |
