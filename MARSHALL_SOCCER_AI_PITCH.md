@@ -156,14 +156,23 @@ This is the ambitious part — and what makes the whole system unique. The code 
 
 ### What It Is
 
-The decision engine is software that takes player positions and evaluates the tactical state of the game. Given where everyone is on the pitch and where the ball is, it calculates:
+The decision engine is software that takes player coordinates and produces tactical analysis. It's built around three core modules:
 
-- How dangerous is this situation for the attacking/defending team?
-- Which defenders can actually affect the play and which are eliminated?
-- Are we in the shape we want to be in?
-- What are the best options from this position?
+**1. Elimination Calculator** — For each defender, calculates whether they can actually intervene in time. Uses time-to-position math accounting for player speed, reaction time, and current momentum. A defender who's technically goal-side but can't reach the intervention point before the attacker progresses is marked as eliminated.
 
-It turns tactical analysis from subjective ("we looked stretched") into objective measurement ("our lines were 28m apart when our target is 20m").
+**2. Defensive Force Model** — Models where defenders *should* be based on attraction physics. Each defender experiences pulls toward the ball (pressing), toward goal (protection), toward assigned zones (structure), toward opponents (marking), and repulsion from teammates (spacing). The equilibrium of these forces shows optimal positioning — when actual positions differ, we can measure exactly how far out of shape we are.
+
+**3. Game State Evaluator** — Scores any moment in the match using six weighted components:
+- Elimination (defenders taken out of play)
+- Proximity (distance to goal)
+- Angle (shooting angle available)
+- Density (space around the ball)
+- Compactness (defensive structure integrity)
+- Action availability (forward passing options)
+
+This produces an objective score for any position. We can compare moments, rank ball locations, and identify why certain attacks succeeded while others stalled.
+
+It turns tactical analysis from subjective ("we looked stretched") into objective measurement ("our lines were 28m apart, 3 defenders eliminated, game state score 0.72").
 
 ### The Core Concept: Elimination & High xG Zones
 
