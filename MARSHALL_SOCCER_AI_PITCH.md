@@ -129,65 +129,46 @@ Tracking is only useful if it's accurate under real match conditions. That's why
 
 Tracking produces coordinates. The engine turns those coordinates into objective tactical information.
 
-It's built around three measurable primitives:
+**What's built:**
 
-**1. Elimination**
-Not "goal-side" in theory — who can actually affect the play in time. A defender who looks close enough but can't intervene before the attacker progresses is eliminated. This quantifies what coaches see intuitively.
+The core modules exist (~3,000 lines across 6 files):
 
-**2. Structure Integrity**
-Compactness, line spacing, block stability, xG path coverage, and the precise moments structure breaks. Includes a defensive model with adjustable parameters — we can tune it to match how opponents actually defend, or measure ourselves against our own targets.
+- **`elimination.py`** — Calculates whether defenders can intervene in time. Not "goal-side" in theory — who can *actually* affect the play. A defender who looks close enough but can't reach the intervention point before the attacker progresses is eliminated. Includes time-to-position math accounting for momentum, reaction time, and sprint speed.
 
-**3. Game-State Scoring**
-A consistent score for any moment based on elimination, proximity, angle, density, compactness, and action availability. This lets us compare situations analytically and objectively.
+- **`defense_physics.py`** — Models defensive positioning using attraction forces: pull toward ball (pressing), pull toward goal (protection), pull toward assigned zone (structure), pull toward opponents (marking), repulsion from teammates (spacing). Six tunable force weights let us model different defensive styles. Also calculates cover shadows (passing lanes blocked by defenders).
 
-This is how we turn "I think we should've switched it" into "switching to the weak side here was +0.12 xG; the pass to the winger was +0.04 xG; holding possession was +0.02 xG." We can see which decisions actually created value and which just felt right.
+- **`state_scoring.py`** — Scores any game state across six components: elimination ratio, proximity to goal, shooting angle, space density, defensive compactness, and available actions. Evaluates pass/shot/dribble options with expected value calculations. Can compare "what if we played here instead?"
 
-The core modules are built: `elimination.py`, `defense_physics.py`, `state_scoring.py`, `block_models.py`, `visualizer.py`. What remains is calibration against real match data.
+- **`block_models.py`** — Defines defensive block configurations (LOW, MID, HIGH) with specific parameters: line heights, compactness targets, press trigger distances. Can position a full back line + midfield according to block type and ball position.
+
+- **`visualizer.py`** — Renders everything on a tactical board. Plots game states, elimination status, defensive blocks, value heatmaps, action options. Essential for coach adoption — if it can't be read like a tactics board, it fails.
+
+**What it can do now (with manual input):**
+- Take player positions and calculate who's eliminated
+- Score a game state and rank available actions
+- Model what a defensive block should look like at a given ball position
+- Visualize all of this on a pitch diagram
+
+**What's not there yet:**
+- Connection to real tracking data (the tracking layer needs to feed it)
+- Validation against real outcomes (are the scores actually predictive?)
+- Game moment classification (identifying "this is a BGZ buildup")
+- Learning from Marshall games (the weights are defaults, not trained)
+
+The engine is a working framework. It needs tracking data to feed it and real matches to calibrate it.
 
 ---
 
 ## Game Model Integration
 
-The engine is a configurable framework — it can encode *any* team's tactical philosophy as measurable parameters. This is what makes it powerful: the same system that measures our execution can also model how opponents play, compare different tactical approaches, and adapt as philosophies evolve.
+The engine evaluates objectively — it calculates who's eliminated, scores game states, measures what actions create value. The game model provides context — it tells us what we were *trying* to do. The gap between intent and outcome is where learning happens.
 
-### How It Works
+**How it works:**
+- Engine evaluates: "In this moment, the optimal pass was to #7 — it would have eliminated 3 defenders and created +0.18 xG."
+- Game model provides intent: "This was a BGZ buildup. We were trying to execute +1 Football."
+- Analysis shows the gap: "We played to #10 instead, which only eliminated 1 defender. #8 was positioned to provide the +1 option but was 3m too narrow."
 
-**Any game model → measurable targets.** The engine translates tactical principles into specific, trackable metrics:
-
-| Principle Type | What Gets Measured |
-|---------------|-------------------|
-| Possession style | Field tilt %, possession %, forward progression rate |
-| Pressing triggers | Regain time by zone, press success rate, trigger discipline |
-| Defensive shape | Line compactness, block height, ball-side overload % |
-| Transition behavior | Players in attack zone within X seconds, recovery positions |
-| Attacking patterns | Space exploitation by type (central/wide/direct), structure effectiveness |
-
-The engine doesn't assume one style is correct — it measures execution against whatever targets you define.
-
-**Team profiles for anyone.** The same framework builds profiles for us, opponents, or recruits:
-- *Defensive:* Block type, pressing intensity, where they get stretched
-- *Attacking:* Progression patterns, transition speed, where they create chances
-- *Formation dynamics:* Shape changes in/out of possession, spacing tendencies
-
-**Simulation and comparison.** Test how one team's style matches up against another's profile before kickoff. See where advantages emerge.
-
----
-
-### Our Configuration: Marshall Game Model
-
-Here's how we'd configure the engine for our specific philosophy:
-
-| Game Model Principle | Measurable Target |
-|---------------------|-------------------|
-| **Positional Possession / Field Tilt** | 60%+ possession, 65%+ field tilt |
-| **+1 Football (Find the free man)** | Passes that eliminate 2+ defenders per buildup |
-| **No Possession without Penetration** | Forward progressions per possession vs lateral/backward |
-| **Counter-Press (High Loss)** | Ball regained within 6 seconds in attacking third |
-| **Don't Get Eliminated** | Goal-side position maintained during transitions |
-| **Exploit Space THRU/AROUND/OVER** | Success rate by principle vs opponent rhythm level |
-| **Travel Together** | 4+ players in ball zone within 5 seconds of regain |
-| **Cut the Pitch in Half** | Ball-side overload achieved in defensive phases |
-| **0 Press / 1X Press** | Pressing trigger discipline and shape maintenance |
+The engine doesn't assume Marshall's style is "correct" — it measures what creates value objectively. But by knowing what we were trying to do, it can show us specifically where and why execution fell short.
 
 **Analyzing specific game moments:**
 
