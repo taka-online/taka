@@ -173,7 +173,7 @@ The engine doesn't assume one style is correct — it measures execution against
 
 ---
 
-### Our Configuration: Marshall Game Model 
+### Our Configuration: Marshall Game Model
 
 Here's how we'd configure the engine for our specific philosophy:
 
@@ -189,25 +189,26 @@ Here's how we'd configure the engine for our specific philosophy:
 | **Cut the Pitch in Half** | Ball-side overload achieved in defensive phases |
 | **0 Press / 1X Press** | Pressing trigger discipline and shape maintenance |
 
-After a match, the engine reports against these targets:
-- "Field tilt was 58% — below our 65% target"
-- "Counter-press success: 72% in High Loss situations, avg 4.8 second regain"
-- "Exploit Space AROUND was most effective (0.18 xG/attempt) vs their Rhythm Level 2"
-- "Travel Together: 3.2 players in zone on transitions — below 4+ target"
+**Analyzing specific game moments:**
 
-We know exactly where we're executing our model and where we're not.
+Wyscout gives us aggregate stats — possession %, field tilt, pass completion. What tracking adds is the ability to go into a specific moment and see whether each player was executing correctly.
 
-**Opponent analysis using our framework:**
+Example: BGZ buildup at 34:22. The engine identifies this as a Building Game Zone sequence and overlays what each player *should* be doing according to our game model:
+- "#8 needed to be 3m wider to provide the +1 option in the half-space"
+- "#6 was in the right position but his body shape closed off the switch — he should have been open to the weak side"
+- "#10 made the right run but 0.5s too early — he was offside when the pass was available"
 
-"Kentucky plays a Rhythm Level 2 defense (4-4-2). Where do our principles create advantages?"
+This is player-level, moment-specific feedback tied directly to our principles. Not "we had 58% field tilt" — but "here's exactly what went wrong on this buildup and who needed to do what differently."
 
-The engine shows: Against their horizontal block, Exploit Space THRU has low success — they're compact centrally. But Exploit Space AROUND creates opportunities because their fullbacks don't recover on switches. Their RB takes extra touches — ideal 1X Press trigger.
+**Opponent analysis:**
+
+Same framework applied to opponents. Identify their game moments, see how they execute, find where they break down. "Kentucky's BGZ buildups collapse when you press their #6 — he takes an extra touch 70% of the time and their wide players don't provide outlets."
 
 **Continuous learning:**
 
-The engine connects outcomes to principles over time: "Against Rhythm Level 2 teams this season, our W structure creates 0.22 xG more than Square. Counter-press is 15% less effective in High Loss situations during minutes 70-90."
+Over time, the engine learns what works. "Against teams that play a low block, our W structure creates better chances than Square." "When #8 positions 2m wider in BGZ buildups, we progress to FGZ 40% more often." It connects specific positioning and movement patterns to outcomes.
 
-This is how it becomes Marshall-specific: it knows our Game Model, measures whether we're executing it, and learns which principles create advantages against specific opponent profiles. But the underlying engine works for any tactical philosophy — ours just happens to be the first configuration.
+This is how it becomes Marshall-specific: it knows our game model, identifies moments where we should be executing specific principles, and shows — player by player — what's working and what needs adjustment. But the underlying engine works for any tactical philosophy.
 
 ---
 
