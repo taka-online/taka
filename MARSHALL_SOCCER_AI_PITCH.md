@@ -138,7 +138,7 @@ Not "goal-side" in theory — who can actually affect the play in time. A defend
 Compactness, line spacing, block stability, xG path coverage, and the precise moments structure breaks. Includes a defensive model with adjustable parameters — we can tune it to match how opponents actually defend, or measure ourselves against our own targets.
 
 **3. Game-State Scoring**
-A consistent score for any moment based on elimination, proximity, angle, density, compactness, and action availability. This lets us compare situations objectively, not by vibe.
+A consistent score for any moment based on elimination, proximity, angle, density, compactness, and action availability. This lets us compare situations analytically and objectively.
 
 This is how we turn "I think we should've switched it" into "switching to the weak side here was +0.12 xG; the pass to the winger was +0.04 xG; holding possession was +0.02 xG." We can see which decisions actually created value and which just felt right.
 
@@ -150,13 +150,13 @@ The core modules are built: `elimination.py`, `defense_physics.py`, `state_scori
 
 **Decision clarity:** For any moment in a match, see what the highest-value action was and compare it to what we actually did. Not "we should've done better" — specific alternatives with specific xG values attached.
 
-**Simulating alternatives:** After a goal conceded, test what positioning would have prevented it. Before a match, simulate responses to opponent shapes. "If we overload the left against their 4-4-2, where do they become vulnerable?"
+**Simulating alternatives:** After a chance is conceded, test what positioning would have prevented it. Before a match, simulate responses to opponent shapes. "If we overload the left against their 4-4-2, where do they become vulnerable?"
 
-**Opponent scouting:** Model their defensive tendencies mathematically, find where they break down. Know their weaknesses before kickoff, not after watching them exploit ours.
+**Opponent scouting:** Use tracking data to model their defensive tendencies mathematically and find where they break down. Understand their exact weaknesses and know the best ways to exploit them.
 
-**Trends over time:** Track whether we're getting more compact, eliminating more defenders, where fatigue affects execution. See if what we're training is actually showing up in matches.
+**Trends over time:** Track whether we're getting more compact, which players are eliminating more defenders, where fatigue affects execution. See if what we're training is actually showing up in matches.
 
-**Recruitment evaluation:** Run a prospect's film through the engine. Extract physical metrics from video — sprint patterns, recovery runs, work rate — without needing their GPS data. More importantly, analyze their decision-making: Did they choose the highest-xG option? Did their passes eliminate defenders or just move the ball sideways? How do their numbers compare to our current players at that position? This turns recruitment film sessions into objective evaluation, not just "he looks good."
+**Recruitment evaluation:** Run a prospect's film through the engine. Extract physical metrics from video — sprint patterns, recovery runs, work rate — without needing their GPS data. More importantly, analyze their decision-making: Did they choose the highest-xG option? Did their passes eliminate defenders or just move the ball sideways? How do their numbers compare to our current players at that position? This turns recruitment into objective evaluation, not just "he looks good."
 
 **Player profiles:** Over time, the engine builds comprehensive profiles for each player — our guys, recruits, and opponents. Not just tendencies, but measurable attributes:
 
