@@ -173,7 +173,7 @@ The engine doesn't assume one style is correct — it measures execution against
 
 ---
 
-### Our Configuration: Marshall Game Model 2.0
+### Our Configuration: Marshall Game Model 
 
 Here's how we'd configure the engine for our specific philosophy:
 
@@ -207,7 +207,7 @@ The engine shows: Against their horizontal block, Exploit Space THRU has low suc
 
 The engine connects outcomes to principles over time: "Against Rhythm Level 2 teams this season, our W structure creates 0.22 xG more than Square. Counter-press is 15% less effective in High Loss situations during minutes 70-90."
 
-This is how it becomes Marshall-specific: it knows our Game Model 2.0, measures whether we're executing it, and learns which principles create advantages against specific opponent profiles. But the underlying engine works for any tactical philosophy — ours just happens to be the first configuration.
+This is how it becomes Marshall-specific: it knows our Game Model, measures whether we're executing it, and learns which principles create advantages against specific opponent profiles. But the underlying engine works for any tactical philosophy — ours just happens to be the first configuration.
 
 ---
 
