@@ -152,53 +152,62 @@ The engine becomes truly powerful when we encode Marshall's game model into it �
 
 **Step 1: Define principles as parameters**
 
-Marshall's philosophy gets translated into specific, measurable targets:
+Marshall's philosophy — positional possession, counter-press, field tilt — gets translated into specific, measurable targets:
 
-| Principle | Measurable Target |
-|-----------|-------------------|
-| "Press high when ball is in their third" | Defensive line > 35m when opponent in back third |
-| "Compact shape" | <18m between defensive and midfield lines |
-| "Switch quickly against compact defenses" | Switch within 3 passes when facing 8+ defenders in ball-side half |
-| "Win second balls" | 60%+ of our players within 10m of aerial duel landing zone |
-| "Quick transitions" | Ball in opponent half within 6 seconds of winning possession |
+| Game Model Principle | Measurable Target |
+|---------------------|-------------------|
+| **Positional Possession / Field Tilt** | 60%+ possession, 65%+ field tilt (per NCAA D1 benchmarks) |
+| **+1 Football (Find the free man)** | Passes that eliminate 2+ defenders per buildup sequence |
+| **No Possession without Penetration** | Forward progressions per possession (vs lateral/backward) |
+| **Counter-Press (High Loss)** | Ball regained within 6 seconds of losing in attacking third |
+| **Don't Get Eliminated** | Defenders maintaining goal-side position during transitions |
+| **Exploit Space THRU/AROUND/OVER** | Attacking principle success rate vs opponent rhythm level |
+| **Master the Rhythm** | Correct tempo identification (organized vs disorganized defense) |
+| **Travel Together (Attacking Transition)** | 4+ players in or ahead of ball zone within 5 seconds of regain |
+| **Cut the Pitch in Half** | Ball-side overload achieved during defensive phases |
+| **0 Press / 1X Press execution** | Pressing trigger discipline and shape maintenance |
 
-These aren't aspirational — they're the benchmarks the engine measures against every frame.
+These aren't aspirational — they're the benchmarks the engine measures against every frame, directly from our Game Model 2.0.
 
 **Step 2: Measure execution**
 
-After each match, the engine reports:
-- "We achieved our pressing height target 71% of the time"
-- "Our lines were compact 84% of defensive phases"
-- "We switched within target 45% of opportunities — below our 60% goal"
-- "Transition speed averaged 7.2 seconds — 1.2s slower than target"
+After each match, the engine reports against our actual game model:
+- "Field tilt was 58% — below our 65% target. We dropped into Mid Zone too often in the second half"
+- "Counter-press success rate: 72% in High Loss situations. Ball regained in avg 4.8 seconds"
+- "+1 Football: We found the free man on 67% of buildups against their 4-4-2"
+- "Exploit Space AROUND was our most effective principle (0.18 xG/attempt) vs their Rhythm Level 2 defense"
+- "Travel Together: Only 3.2 players in attacking zone on transitions — below our 4+ target"
+- "Don't Get Eliminated: 2 goals conceded when CB stepped to ball-carrier in vertical 1v2"
 
-Now we know exactly where we're executing the game model and where we're not.
+Now we know exactly where we're executing our game model and where we're not.
 
 **Step 3: Build team play profiles**
 
-From tracking + Wyscout data, the engine builds a "play style profile" for any team — us or opponents:
+From tracking + Wyscout data, the engine builds a "play style profile" for any team — us or opponents — using our framework:
 
-*Defensive profile:* Force model weights (how much they press vs protect), block type tendencies, pressing triggers, recovery patterns, where they get stretched.
+*Defensive profile:* Rhythm level (1-5 scale from Low Block to M2M), pressing triggers, block type (Low/Mid/High Zone), where they get stretched, how they handle our structures (Square, W, M, Overload).
 
-*Attacking profile:* Progression patterns (through middle vs wide), switch frequency, transition speed, where they create high-xG chances, decision tendencies under pressure.
+*Attacking profile:* Which principle they favor (THRU/AROUND/OVER), transition speed, where they create high-xG chances, how they exploit space against different defensive setups.
 
-*Formation dynamics:* How their shape changes in/out of possession, where players drift, spacing tendencies.
+*Formation dynamics:* How their shape changes in/out of possession, responses to our 0 Press vs 1X Press, weaknesses in their Starting/Building/Finishing Game Zones.
 
 **Step 4: Simulate matchups**
 
-This is where it gets powerful. Before a match, we can run simulations:
+This is where it gets powerful. Before a match, we can run simulations using our game model language:
 
-"If Marshall plays our game model against Kentucky's defensive profile, where do we create advantages?"
+"Kentucky plays a Rhythm Level 2 defense (4-4-2). Where do our principles create advantages?"
 
-The engine shows: Kentucky's left side collapses when pressed — their LB and LCM leave a gap. Our quick switches exploit this. Their CBs are slow to recover when we play direct. Our pressing triggers should focus on their right-sided buildup because their RB takes extra touches.
+The engine shows: Against their horizontal block, **Exploit Space THRU** has low success (0.04 xG/attempt) — they're compact centrally. But **Exploit Space AROUND** creates opportunities (0.14 xG/attempt) because their fullbacks don't recover when we switch. Their left CB gets eliminated 40% more often when facing our W structure vs Square. Their RB takes extra touches — ideal 1X Press trigger on their right-sided buildup.
 
-We can visualize this — see our intended movements against their likely responses. Test different approaches before kickoff.
+We can visualize our Overload Right structure against their shape. See where +1 Football finds the free man. Test whether 0 Press or 1X Press forces more errors.
 
 **Step 5: Continuous learning**
 
-After we play Kentucky, their profile updates. Did they adjust from what we expected? Where did our game model succeed and fail against their actual play? The engine learns, and next time we face a similar profile, we're smarter.
+After we play Kentucky, their profile updates. Did they shift from Rhythm Level 2 to 3 when we dominated possession? Where did Exploit Space AROUND break down in the second half? Did our counter-press success drop when they started playing longer?
 
-This is how the engine becomes Marshall-specific: it knows what we want to do, measures whether we're doing it, and helps us find where our style creates advantages against specific opponents.
+The engine connects outcomes to our principles: "Against Rhythm Level 2 teams this season, our W structure creates 0.22 xG more than Square. Our counter-press is 15% less effective in High Loss situations during minutes 70-90."
+
+This is how the engine becomes Marshall-specific: it knows our Game Model 2.0 principles, measures whether we're executing them, and learns which principles create advantages against specific opponent profiles.
 
 ---
 
@@ -206,11 +215,11 @@ This is how the engine becomes Marshall-specific: it knows what we want to do, m
 
 **Decision clarity:** For any moment in a match, see what the highest-value action was and compare it to what we actually did. Not "we should've done better" — specific alternatives with specific xG values attached.
 
-**Simulating alternatives:** After a chance is conceded, test what positioning would have prevented it. Before a match, simulate responses to opponent shapes. "If we overload the left against their 4-4-2, where do they become vulnerable?"
+**Simulating alternatives:** After a chance is conceded, test what positioning would have prevented it — did we violate "Don't Get Eliminated"? Before a match, simulate our structures against their shape. "If we use Overload Left against their 4-4-2, where does Exploit Space AROUND create the best chances?"
 
-**Opponent scouting:** Use tracking data to model their defensive tendencies mathematically and find where they break down. Understand their exact weaknesses and know the best ways to exploit them.
+**Opponent scouting:** Classify opponents by Rhythm Level, identify which of our three principles (THRU/AROUND/OVER) they're weakest against, find their pressing triggers and recovery patterns. Know exactly which structure to use and where to attack.
 
-**Trends over time:** Track whether we're getting more compact, which players are eliminating more defenders, where fatigue affects execution. See if what we're training is actually showing up in matches.
+**Trends over time:** Track field tilt and possession trends across the season. Monitor counter-press success rates, +1 Football execution, Travel Together discipline. See if what we're training is actually showing up in matches — are we living our Game Model 2.0?
 
 **Recruitment evaluation:** Run a prospect's film through the engine. Extract physical metrics from video — sprint patterns, recovery runs, work rate — without needing their GPS data. More importantly, analyze their decision-making: Did they choose the highest-xG option? Did their passes eliminate defenders or just move the ball sideways? How do their numbers compare to our current players at that position? This turns recruitment into objective evaluation, not just "he looks good."
 
