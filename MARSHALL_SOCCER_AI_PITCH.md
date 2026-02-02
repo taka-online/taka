@@ -127,48 +127,32 @@ Tracking is only useful if it's accurate under real match conditions. That's why
 
 ## Layer 2: Decision Engine
 
-Tracking produces coordinates. The engine turns those coordinates into objective tactical information.
+Tracking produces coordinates. The engine turns those coordinates into tactical analysis.
 
-**What's built:**
+**The goal:** An engine that can look at any moment in a match and understand what's happening tactically — who's in good positions, what options are available, what the best decision would be.
 
-The core modules exist (~3,000 lines across 6 files):
+**The problem:** Right now, it can do math (calculate distances, angles, who can reach where in time) but it doesn't actually know what works in football. It can't reliably identify the best option because it hasn't learned what "best" means from real game outcomes.
 
-- **`elimination.py`** — Calculates whether defenders can intervene in time. Not "goal-side" in theory — who can *actually* affect the play. A defender who looks close enough but can't reach the intervention point before the attacker progresses is eliminated. Includes time-to-position math accounting for momentum, reaction time, and sprint speed.
+**How we get there:** Train it on Marshall games. Feed it tracking data from our matches, label the moments according to our game model (this is a BGZ buildup, this is a High Loss counter-press), and connect those moments to outcomes. Over time, it learns what positioning and decisions actually lead to good results — not from theory, but from watching us play.
 
-- **`defense_physics.py`** — Models defensive positioning using attraction forces: pull toward ball (pressing), pull toward goal (protection), pull toward assigned zone (structure), pull toward opponents (marking), repulsion from teammates (spacing). Six tunable force weights let us model different defensive styles. Also calculates cover shadows (passing lanes blocked by defenders).
-
-- **`state_scoring.py`** — Scores any game state across six components: elimination ratio, proximity to goal, shooting angle, space density, defensive compactness, and available actions. Evaluates pass/shot/dribble options with expected value calculations. Can compare "what if we played here instead?"
-
-- **`block_models.py`** — Defines defensive block configurations (LOW, MID, HIGH) with specific parameters: line heights, compactness targets, press trigger distances. Can position a full back line + midfield according to block type and ball position.
-
-- **`visualizer.py`** — Renders everything on a tactical board. Plots game states, elimination status, defensive blocks, value heatmaps, action options. Essential for coach adoption — if it can't be read like a tactics board, it fails.
-
-**What it can do now (with manual input):**
-- Take player positions and calculate who's eliminated
-- Score a game state and rank available actions
-- Model what a defensive block should look like at a given ball position
-- Visualize all of this on a pitch diagram
-
-**What's not there yet:**
-- Connection to real tracking data (the tracking layer needs to feed it)
-- Validation against real outcomes (are the scores actually predictive?)
-- Game moment classification (identifying "this is a BGZ buildup")
-- Learning from Marshall games (the weights are defaults, not trained)
-
-The engine is a working framework. It needs tracking data to feed it and real matches to calibrate it.
+The code foundation exists (~3,000 lines). What's missing is the training — the engine seeing enough real football to understand what's effective.
 
 ---
 
 ## Game Model Integration
 
-The engine evaluates objectively — it calculates who's eliminated, scores game states, measures what actions create value. The game model provides context — it tells us what we were *trying* to do. The gap between intent and outcome is where learning happens.
+The engine needs to learn what works. The game model tells it what to pay attention to.
 
 **How it works:**
-- Engine evaluates: "In this moment, the optimal pass was to #7 — it would have eliminated 3 defenders and created +0.18 xG."
-- Game model provides intent: "This was a BGZ buildup. We were trying to execute +1 Football."
-- Analysis shows the gap: "We played to #10 instead, which only eliminated 1 defender. #8 was positioned to provide the +1 option but was 3m too narrow."
 
-The engine doesn't assume Marshall's style is "correct" — it measures what creates value objectively. But by knowing what we were trying to do, it can show us specifically where and why execution fell short.
+We feed the engine tracking data from Marshall games. We label moments according to our game model — "this is a BGZ buildup," "this is a counter-press from High Loss," "this is Exploit Space AROUND." The engine watches what happens: did we progress? create a chance? lose the ball?
+
+Over time, it learns patterns:
+- "When #8 positions wide in BGZ buildups, we progress 40% more often"
+- "Counter-press works when we have 4+ players within 10m of the ball, fails when we're spread"
+- "Against low blocks, switching the ball creates better chances than playing through the middle"
+
+The game model provides the vocabulary — the categories of moments worth analyzing. The engine learns what actually works within those categories by watching real games.
 
 **Analyzing specific game moments:**
 
