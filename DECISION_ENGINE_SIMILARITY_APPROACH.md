@@ -2,21 +2,38 @@
 
 ## Vision
 
-Build a system that answers: **"Given this situation, what has historically worked best?"**
+**End Goal: A simulation engine grounded in real football data.**
 
-Using tracking data and event data, analyze what attacking actions succeeded against specific defensive setups. When presented with a game situation, find the most similar historical situations and identify which actions led to success.
+Not a simulation with designed rules that might be wrong. A simulation where the "rules" are learned from thousands of real matches — where we know exactly how fast passes travel, how defenders actually react, what dribbles actually succeed, because we measured it.
+
+The path to get there:
+
+```
+Phase 1-4: Learn how football actually works
+           ↓
+           Collect situations → Extract patterns → Validate accuracy
+           ↓
+Phase 5:   Build simulation using learned patterns as rules
+           ↓
+           Agents can explore freely within realistic constraints
+           ↓
+           Find optimal sequences, novel tactics, better decisions
+```
+
+**Why this order:** You can't simulate what you don't understand. First we learn the patterns. Then we simulate with confidence that the simulation matches reality.
 
 ---
 
-## Core Approach
+## The Path: Similarity-Based Learning
 
-### What We're Building
+### What We're Building First
 
-A **similarity-based retrieval system** that:
+A **similarity-based learning system** that:
 1. Encodes game situations as continuous feature vectors (not discrete categories)
 2. Uses similarity algorithms to find matching historical situations
 3. Analyzes what actions worked in those similar situations
-4. Returns actionable insights to coaches
+4. **Learns the actual distributions** — pass success rates, dribble outcomes, defensive responses
+5. Builds the knowledge base that will power the simulation
 
 ### Key Design Decisions
 
@@ -306,52 +323,110 @@ similarity = 1 / (1 + distance)
 
 ---
 
-### Phase 5: Simulation Engine (Future)
+### Phase 5: Simulation Engine (The Goal)
 
-**Goal:** Use learned patterns as simulation rules for multi-step search
+**This is what we're building toward.** Phases 1-4 are the foundation that makes this possible.
 
-**Prerequisites:** Phases 1-4 complete and validated. Large database (5000+ possessions). Confirmed that similarity matching reliably predicts outcomes.
+**Goal:** A simulation where agents can move freely, but the "physics" are learned from real football data.
 
-**Concept:**
+**Prerequisites:** Phases 1-4 complete. Large database (5000+ possessions). Validated that our learned patterns accurately reflect reality.
 
-Instead of designing simulation rules, use the similarity database AS the simulation:
+---
+
+**What We'll Have Learned (from Phases 1-4):**
+
+| Learned Knowledge | How We Got It |
+|-------------------|---------------|
+| Pass success rates by situation | Similarity matching on historical passes |
+| Actual pass speeds and trajectories | Measured from tracking data |
+| Dribble success rates by pressure level | Outcome analysis of similar dribble situations |
+| How defenders actually react | Tracked defensive movement after each action type |
+| Transition probabilities | "After action X in situation Y, what happened next?" |
+| Realistic state distributions | What situations actually occur vs. what's impossible |
+
+---
+
+**How The Simulation Works:**
+
+Instead of: `designed rules → simulation → hope it matches reality`
+
+We have: `real data → learned patterns → simulation that IS reality (compressed)`
 
 ```
-Current State → Find Similar Historical States →
-  → What actions were taken? (action distribution)
-  → What happened? (outcome distribution)
-  → What did the next state look like? (transition distribution)
+┌─────────────────────────────────────────────────────────────┐
+│                    SIMULATION STATE                         │
+│         (22 players + ball, continuous positions)           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   AGENT DECISION                            │
+│     Agent considers action (pass, dribble, shot, move)      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              LEARNED TRANSITION MODEL                       │
+│   "In similar situations, this action succeeded X% of time" │
+│   "Pass speed was typically Y m/s"                          │
+│   "Defenders reacted by moving Z direction"                 │
+│                                                             │
+│   All from real data, not designed rules                    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    NEXT STATE                               │
+│   Sampled from learned distributions                        │
+│   Constrained to realistic states                           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**How It Enables Search:**
+---
 
-```
-Given current state:
-  1. Find similar situations
-  2. Get action distribution (what players typically do)
-  3. For each action, get outcome distribution (what typically happens)
-  4. For successful outcomes, get next-state distribution
-  5. Recursively search 2-3 steps ahead
-  6. Find highest expected value sequences
-```
+**Why Agents Can Move "Freely":**
+
+Because we've learned the constraints from data:
+- We know realistic player speeds (from tracking)
+- We know realistic pass distances (from events)
+- We know what defensive reactions look like (from tracking)
+- We know what situations are possible vs. impossible
+
+Agents explore within these learned bounds. They can try novel combinations, but they can't do things that never happen in real football.
+
+---
 
 **What This Enables:**
-- **Counterfactual analysis:** "If you'd passed left, historical success rate was 15% higher"
-- **Multi-step reasoning:** "Through ball → cross → header has 0.18 xG based on similar sequences"
-- **Sequence discovery:** Find high-value action sequences that are rare but successful
-- **Opponent-specific search:** Filter to opponent's matches for targeted game plans
 
-**Why Wait:**
-- Need validated similarity matching first (Phases 1-2)
-- Need large enough database for coverage
-- Need confidence that retrieved situations are truly similar
-- Simulation compounds any errors in the foundation
+| Capability | How |
+|------------|-----|
+| **Multi-step search** | Simulate 3-5 actions ahead using learned transitions |
+| **Counterfactual analysis** | "What if you'd passed left?" — simulate the alternative |
+| **Novel tactic discovery** | Agents find high-value sequences humans haven't tried |
+| **Opponent-specific planning** | Load opponent's defensive patterns, simulate attacks against them |
+| **Training scenarios** | Generate realistic situations for players to practice decisions |
 
-**Future Deliverables:**
-- [ ] Learned transition model from similarity database
-- [ ] Monte Carlo search using historical distributions
-- [ ] Sequence recommendation engine
-- [ ] "What if" scenario analysis tool
+---
+
+**Why This Is Different From Google's Approach:**
+
+| Google Research Football | Our Approach |
+|-------------------------|--------------|
+| Designed physics engine | Learned physics from real data |
+| Agents learn from scratch | Agents use learned human patterns as reference |
+| Sim-to-real gap | No gap — simulation IS compressed reality |
+| Sparse reward (goals only) | Dense signal from learned state values |
+| No validation against reality | Validated against real outcomes in Phases 1-4 |
+
+---
+
+**Deliverables:**
+- [ ] Learned transition model (pass outcomes, dribble outcomes, defensive reactions)
+- [ ] Realistic state constraints (what's possible, what's not)
+- [ ] Monte Carlo search using learned distributions
+- [ ] Agent exploration within realistic bounds
+- [ ] Sequence optimization (find best action chains)
+- [ ] "What if" scenario tool for coaches
 
 ---
 
@@ -392,6 +467,26 @@ Given current state:
 
 ---
 
+## How Each Phase Builds To Simulation
+
+| Phase | What We Learn | How It Powers Simulation |
+|-------|---------------|-------------------------|
+| **Phase 1** | Core features work; situations can be matched | Defines the state representation for simulation |
+| **Phase 2** | Extended features; learned weights; what matters | Refines state representation; identifies key variables |
+| **Phase 3** | Skill-adjusted patterns; separates player from tactic | Allows simulation to model different skill levels |
+| **Phase 4** | Production validation; coach trust | Confirms patterns are real, not noise |
+| **Phase 5** | — | **Use all learned knowledge to simulate** |
+
+Each phase isn't just "nice to have" — it's building specific knowledge the simulation needs:
+
+- **Pass success model:** Learned from Phase 1-2 outcome analysis
+- **Dribble success model:** Learned from Phase 1-2 outcome analysis
+- **Defensive reaction model:** Learned from tracking how defenders move after actions
+- **State transition model:** Learned from "what state comes next" analysis
+- **Realistic bounds:** Learned from what states actually occur in data
+
+---
+
 ## Next Steps
 
 1. **Secure tracking data access** - Required before anything else
@@ -400,8 +495,9 @@ Given current state:
 4. **Create situation database** - Store feature vectors for historical possessions
 5. **Build similarity search** - Nearest neighbor on normalized features
 6. **Validate with coach** - Are retrieved situations tactically relevant?
+7. **Track everything we learn** - Each insight becomes simulation fuel
 
 ---
 
-*Document version: 2.0*
+*Document version: 3.0*
 *Last updated: February 2026*
