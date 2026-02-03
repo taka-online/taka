@@ -127,66 +127,126 @@ Tracking is only useful if it's accurate under real match conditions. That's why
 
 ## Layer 2: Decision Engine
 
-Tracking produces coordinates. The engine turns those coordinates into tactical analysis.
+Tracking produces coordinates. The engine turns those coordinates into tactical intelligence.
+
+**The End Goal: A Football "Stockfish"**
+
+The vision is an engine that can analyze any game situation and find the optimal path to a scoring opportunity — not through designed rules, but by learning from thousands of real match situations what actually works.
+
+Like Stockfish in chess: given a position, explore possible action sequences, prune bad options, go deep on promising ones, and return the best path forward.
+
+**The Approach: Learn From Reality, Then Simulate**
+
+We're not designing simulation rules that might be wrong. We're learning how football actually works from tracking data:
+
+```
+Phase 1-4: Learn from real matches
+           ↓
+           "In situations like this, passes to the wing succeed 65% of time"
+           "Defenders typically react by shifting this direction"
+           "This type of dribble works against high pressure"
+           ↓
+Phase 5:   Use learned patterns as simulation rules
+           ↓
+           Search for optimal sequences (like Stockfish)
+```
+
+**What we're building first:**
+
+A similarity-based system that:
+1. Encodes each game situation as features (defensive shape, ball position, pressure level)
+2. Finds similar situations from our database of real matches
+3. Analyzes what actions succeeded in those situations
+4. Learns the actual success rates — not physics guesses, real outcomes
 
 **What it can do now:**
 
-There's a working interactive tactical board. You can drag players, move the ball, and the engine analyzes the situation in real time:
+There's a working interactive tactical board with physics-based analysis:
+- Calculates xG from any position
+- Evaluates pass, dribble, and shot options
+- Finds gaps in defensive lines
+- Detects through ball opportunities
+- Ranks options by expected value
 
-- **Calculates xG from any position** — Based on distance, angle, and whether defenders block the shot path
-- **Evaluates every option** — For the player on the ball: pass to each teammate, dribble forward, or shoot. Each option gets an expected value.
-- **Finds gaps in defensive lines** — Identifies spaces between defenders and whether they're exploitable (can we get there before they close it?)
-- **Detects through ball opportunities** — Where can attackers run? Can the ball reach the space before defenders intercept?
-- **Ranks options** — HIGH_VALUE, SAFE, MODERATE, AVOID. Shows the best action and why.
-- **Simulates actions** — Click "play" on an option, watch positions update, see the new situation.
+The physics are calibrated to real data: sprint acceleration, top speed, reaction time, ball deceleration. This gives us a foundation.
 
-The physics are calibrated to real player data: sprint acceleration (0-10m in 1.8s), top speed (8.33 m/s), reaction time (0.3s), ball deceleration on grass. When it calculates whether a defender can intercept a pass, it's using actual time-to-position math, not guesses.
+**What comes next:**
 
-**What it can't do yet:**
+Connect to real game footage. Feed it tracking data from actual matches. Build a database of situations and outcomes. The engine learns: "Physics says this pass is available, but in similar situations it actually worked 40% of the time."
 
-The engine evaluates based on physics and geometry — who can reach where in time, what creates xG. But it doesn't know what *actually works* in real football. The math says a through ball is available, but in reality that pass might get cut out 80% of the time because of how defenders read it.
+**The simulation goal (Phase 5):**
 
-**Where we are now:** The engine can analyze any position you set up manually. What's missing is the connection to real game footage — feeding it tracking data from actual matches, labeling moments according to our game model, and letting it learn which options actually lead to good outcomes vs which just look good on paper.
+Once we've learned enough patterns, we can search like Stockfish:
 
-**How we get there:** Train it on Marshall games. The tracking layer produces coordinates from video. We label moments (BGZ buildup, High Loss counter-press, etc.). The engine watches what we chose and what happened. Over time, it learns the difference between what physics says is possible and what actually works for Marshall.
+```
+Ball reception moment
+    ├── Pass to Player A
+    │      ├── A shoots → evaluate xG
+    │      ├── A passes to B → keep exploring
+    │      └── A loses ball → stop
+    ├── Pass to Player B (promising) → go DEEP
+    ├── Dribble into pressure → PRUNE early
+    └── Shot → evaluate xG
+```
+
+Variable depth. Prune bad branches. Go deep on promising ones. Find the path with highest expected value of reaching a scoring position.
+
+Start by "solving" at ball reception moments. As the system improves, solve more frequently — eventually analyzing the game near-continuously.
 
 ---
 
 ## Game Model Integration
 
-The engine needs to learn what works. The game model tells it what to pay attention to.
+The engine learns what works. The game model tells it what to look for.
 
 **How it works:**
 
-We feed the engine tracking data from Marshall games. We label moments according to our game model — "this is a BGZ buildup," "this is a counter-press from High Loss," "this is Exploit Space AROUND." The engine watches what happens: did we progress? create a chance? lose the ball?
+We feed the engine tracking data from Marshall games. We label moments according to our game model — "this is a BGZ buildup," "this is a counter-press from High Loss," "this is Exploit Space AROUND."
 
-Over time, it learns patterns:
-- "When #8 positions wide in BGZ buildups, we progress 40% more often"
-- "Counter-press works when we have 4+ players within 10m of the ball, fails when we're spread"
-- "Against low blocks, switching the ball creates better chances than playing through the middle"
+For each moment, the engine:
+1. Encodes the situation (defensive shape, player positions, pressure)
+2. Finds similar situations from our database
+3. Analyzes what actions succeeded vs. failed
+4. Builds knowledge: "In BGZ buildups with this defensive shape, switching to the weak side works 65% of the time"
 
-The game model provides the vocabulary — the categories of moments worth analyzing. The engine learns what actually works within those categories by watching real games.
+**What the engine learns:**
+
+| Pattern Type | Example |
+|--------------|---------|
+| Success rates | "Through balls against high lines work 45% in our data" |
+| Defensive reactions | "When we switch play, defenders take 2.1s to shift" |
+| Player tendencies | "#8 chooses the optimal option 70% of the time in transition" |
+| Opponent weaknesses | "Their RCB is slow to recover — target that channel" |
 
 **Analyzing specific game moments:**
 
-Wyscout gives us aggregate stats — possession %, field tilt, pass completion. What tracking adds is the ability to go into a specific moment and see whether each player was executing correctly.
+Wyscout gives us aggregate stats. Tracking + the engine lets us analyze specific moments:
 
-Example: BGZ buildup at 34:22. The engine identifies this as a Building Game Zone sequence and overlays what each player *should* be doing according to our game model:
-- "#8 needed to be 3m wider to provide the +1 option in the half-space"
-- "#6 was in the right position but his body shape closed off the switch — he should have been open to the weak side"
-- "#10 made the right run but 0.5s too early — he was offside when the pass was available"
+Example: BGZ buildup at 34:22.
+- Engine finds 50 similar situations from our database
+- In those situations, switching to weak side led to progression 60% of time
+- We played central — which works only 35% in similar situations
+- Recommendation: "#6 had the switch available — expected value was 0.15 higher"
 
-This is player-level, moment-specific feedback tied directly to our principles. Not "we had 58% field tilt" — but "here's exactly what went wrong on this buildup and who needed to do what differently."
+This is player-level, moment-specific, grounded in what actually works — not what physics says should work.
 
 **Opponent analysis:**
 
-Same framework applied to opponents. Identify their game moments, see how they execute, find where they break down. "Kentucky's BGZ buildups collapse when you press their #6 — he takes an extra touch 70% of the time and their wide players don't provide outlets."
+Same approach applied to opponents:
+1. Build database of their matches
+2. Learn their patterns (how they defend, where they're vulnerable)
+3. Search for sequences that exploit their specific weaknesses
 
-**Continuous learning:**
+"Kentucky's left side is vulnerable when ball switches quickly — their LB takes 2.8s to recover vs. league average 2.1s."
 
-Over time, the engine learns what works. "Against teams that play a low block, our W structure creates better chances than Square." "When #8 positions 2m wider in BGZ buildups, we progress to FGZ 40% more often." It connects specific positioning and movement patterns to outcomes.
+**The learning compounds:**
 
-This is how it becomes Marshall-specific: it knows our game model, identifies moments where we should be executing specific principles, and shows — player by player — what's working and what needs adjustment. But the underlying engine works for any tactical philosophy.
+Every match we analyze adds to the database. The engine gets smarter over time:
+- More situations = better pattern matching
+- More outcomes = more accurate success predictions
+- Eventually = search for optimal sequences like Stockfish
+
+This is how it becomes Marshall-specific: it learns from our games, our players, our opponents. But the underlying engine works for any tactical philosophy.
 
 ---
 
@@ -280,9 +340,9 @@ The Hub isn't just "organized information." It becomes a system that can learn a
 
 **Part 1:** Connect our scattered data into one queryable system. Staff alignment becomes structural. Pattern recognition across sources we can't mentally integrate. Institutional knowledge compounds instead of resetting. Working in 2-3 weeks.
 
-**Part 2:** Proprietary tracking + decision engine that measures our game model objectively. 36,000+ lines already written. Tracking by spring, decision engine by fall.
+**Part 2:** Proprietary tracking + decision engine. The end goal: a football "Stockfish" that finds optimal paths to scoring positions by learning from real match data — not designed rules that might be wrong. We learn what actually works from tracking data, then use that knowledge to search for the best decisions. 36,000+ lines already written. Tracking by spring, decision engine learning by fall, simulation search as it matures.
 
-**The key insight:** Everyone has Wyscout. This system connects our scattered data, then builds proprietary analytics on top. That's how we become more analytical than everyone else in the country.
+**The key insight:** Everyone has Wyscout. This system connects our scattered data, learns what actually works from our games, then builds a simulation grounded in reality. That's how we become more analytical than everyone else in the country — we're not guessing what should work, we know what does work.
 
 ---
 
