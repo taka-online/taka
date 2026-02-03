@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  email        String         @unique
+  username     String         @unique
+  verified     Boolean        @default(false)
+  elo          Int            @default(200)
+  onboardingComplete Boolean @default(false)
+  RefreshToken RefreshToken[]
+  whitePlayerGames Game[]     @relation("WhitePlayerGames")
+  blackPlayerGames Game[]     @relation("BlackPlayerGames")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  userAgent String
+  createdAt DateTime @default(now())
+}
+
+model VerificationToken {
+  code      String   @id @default(cuid())
+  email     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Game {
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Registered user players (optional)
+  whitePlayer           User?    @relation("WhitePlayerGames", fields: [whitePlayerId], references: [id])
+  whitePlayerId         String?
+  blackPlayer           User?    @relation("BlackPlayerGames", fields: [blackPlayerId], references: [id])
+  blackPlayerId         String?
+  
+  // Guest player identifiers (alternative to registered users)
+  whitePlayerGuestId    String?  // Guest session ID
+  whitePlayerUsername   String?  // Display username for white player
+  blackPlayerGuestId    String?  // Guest session ID  
+  blackPlayerUsername   String?  // Display username for black player
+  
+  status                String   @default("waiting") // 'waiting', 'active', 'completed'
+  currentTurn           String?  // 'white' or 'black'
+  gameState             Json?    // Array of pieces with positions
+  ballPositions         Json?    // Array of ball positions
+  winner                String?  // 'white', 'black', or null
+}
