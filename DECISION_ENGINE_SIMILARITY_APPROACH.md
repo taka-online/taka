@@ -396,15 +396,64 @@ Agents explore within these learned bounds. They can try novel combinations, but
 
 ---
 
+**How Search Works (Stockfish-Style Tree Exploration):**
+
+Not fixed depth lookahead. Variable depth tree exploration:
+
+```
+Ball reception moment
+         │
+         ├── Pass to Player A
+         │        ├── A shoots (terminal: evaluate xG) ← STOP, evaluate
+         │        ├── A passes to B
+         │        │       ├── B shoots (terminal) ← STOP, evaluate
+         │        │       └── B dribbles → ... ← keep exploring
+         │        └── A loses ball (terminal) ← STOP, evaluate
+         │
+         ├── Pass to Player B (promising)
+         │        └── ... ← go DEEP on this branch
+         │
+         ├── Dribble into pressure
+         │        └── ... ← PRUNE early (low value)
+         │
+         └── Shot (terminal: evaluate xG) ← STOP, evaluate
+```
+
+**Search rules:**
+- **Terminal states:** Shot attempt, loss of possession, goal → stop and evaluate
+- **Promising branches:** Go deeper where expected value is high
+- **Bad branches:** Prune early (don't waste compute on clearly bad options)
+- **Uncertainty limit:** Stop if we're too far from known patterns in our database
+- **Return:** The path with highest expected value of reaching scoring position
+
+This mirrors how Stockfish explores chess — not uniform depth, but intelligent allocation of compute to promising lines.
+
+---
+
 **What This Enables:**
 
 | Capability | How |
 |------------|-----|
-| **Multi-step search** | Simulate 3-5 actions ahead using learned transitions |
-| **Counterfactual analysis** | "What if you'd passed left?" — simulate the alternative |
-| **Novel tactic discovery** | Agents find high-value sequences humans haven't tried |
-| **Opponent-specific planning** | Load opponent's defensive patterns, simulate attacks against them |
-| **Training scenarios** | Generate realistic situations for players to practice decisions |
+| **Tree search to scoring positions** | Explore action sequences, prune bad branches, find best path |
+| **Counterfactual analysis** | "What if you'd passed left?" — explore that branch |
+| **Novel tactic discovery** | Search finds high-value sequences humans haven't tried |
+| **Opponent-specific planning** | Load opponent's defensive patterns, search for exploits |
+| **Decision quality scoring** | Compare chosen action vs. best action from search |
+
+---
+
+**When To "Solve" (Frequency Progression):**
+
+We don't simulate continuously. We solve at decision points:
+
+| Stage | Trigger Points | Why |
+|-------|----------------|-----|
+| **Start** | Ball receptions only | Clear decision moment; player receives, must act |
+| **Better** | Every significant ball movement | More coverage, still manageable |
+| **Even better** | Whenever game state changes meaningfully | Defensive shifts, player movements |
+| **Eventually** | Every 0.5 seconds (or faster) | Near-continuous analysis |
+
+Start simple. As the system learns more and gets faster, increase frequency.
 
 ---
 
