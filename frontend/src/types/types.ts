@@ -1,0 +1,68 @@
+// Types
+import { Piece } from "@/classes/Piece";
+import { Position } from "@/classes/Position";
+
+export type PlayerColor = "white" | "black";
+
+export type TutorialStep =
+  | "welcome"
+  | "basic_movement"
+  | "movement_with_ball"
+  | "turning"
+  | "passing"
+  | "consecutive_pass"
+  | "consecutive_pass_to_score"
+  | "ball_empty_square"
+  | "ball_pickup"
+  | "receiving_passes"
+  | "chip_pass"
+  | "shooting"
+  | "tackling"
+  | "tackling_positioning"
+  | "activating_goalies"
+  | "blocking_shots"
+  | "offside"
+  | "shooting_zone_pass"
+  | "completed";
+
+export type FacingDirection = "north" | "south" | "west" | "east";
+
+/**
+ * nothing - no pointer actions
+ * piece - piece on square, clickable
+ * movement - blue dot, clickable
+ * turn target - turn, clickable
+ * pass_target - pass to piece, clickable
+ * empty_pass_target - pass to empty square, clickable
+ */
+export type TutorialSquareType =
+  | "nothing"
+  | "piece"
+  | "movement"
+  | "turn_target"
+  | "pass_target"
+  | "empty_pass_target"
+  | "tackle_target";
+
+export type SquareVisualType =
+  | "nothing"
+  | "movement"
+  | "piece"
+  | "turn_target"
+  | "pass_target"
+  | "empty_pass_target"
+  | "tackle_target";
+
+export interface SquareInfoType {
+  visual: SquareVisualType;
+  clickable: boolean;
+}
+
+export type BoardSquareType = Piece | "ball" | null;
+
+export type BoardType = BoardSquareType[][];
+
+export type PiecePositionType =
+  | Position
+  | "white_unactivated"
+  | "black_unactivated";

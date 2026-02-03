@@ -1,0 +1,170 @@
+import type {
+  FacingDirection,
+  PiecePositionType,
+  PlayerColor,
+} from "@/types/types";
+import { Position } from "@/classes/Position";
+import {
+  BLACK_GOALIE_ACTIVATION_TARGETS,
+  DIRECTION_VECTORS,
+  FORWARD_MOVE_DISTANCE,
+  OTHER_MOVE_DISTANCE,
+  WHITE_GOALIE_ACTIVATION_TARGETS,
+} from "@/utils/constants";
+
+interface PieceParams {
+  id: string;
+  color: PlayerColor;
+  position: PiecePositionType;
+  hasBall: boolean;
+  facingDirection?: FacingDirection;
+  isGoalie?: boolean;
+}
+
+export class Piece {
+  private readonly id: string;
+  private readonly color: PlayerColor;
+  private position: PiecePositionType;
+  private hasBall: boolean;
+  private facingDirection: FacingDirection;
+  private readonly isGoalie: boolean;
+
+  constructor(params: PieceParams) {
+    this.id = params.id;
+    this.color = params.color;
+    this.position = params.position;
+    this.hasBall = params.hasBall;
+    this.facingDirection =
+      params.facingDirection ?? (params.color === "white" ? "south" : "north");
+    this.isGoalie = params.isGoalie ?? false;
+  }
+
+  getPositionOrThrowIfUnactivated(): Position {
+    if (!(this.position instanceof Position)) {
+      throw new Error(
+        "getPositionOrThrowIfUnactivated was called and the piece was unactivated",
+      );
+    }
+
+    return this.position;
+  }
+
+  setPosition(position: PiecePositionType) {
+    this.position = position;
+  }
+
+  /**
+   * Get the goalie activation targets based on the color
+   */
+  getGoalieActivationTargets() {
+    if (this.color === "white") {
+      return WHITE_GOALIE_ACTIVATION_TARGETS;
+    } else {
+      return BLACK_GOALIE_ACTIVATION_TARGETS;
+    }
+  }
+
+  getColor() {
+    return this.color;
+  }
+
+  getPosition() {
+    return this.position;
+  }
+
+  /**
+   * Get the standard move targets for when a piece does not have the ball
+   * @private
+   */
+  private getStandardMovementTargets(): Position[] {
+    const validMoves: Position[] = [];
+
+    const [curRow, curCol] =
+      this.getPositionOrThrowIfUnactivated().getPositionCoordinates();
+
+    for (const [dRow, dCol] of DIRECTION_VECTORS) {
+      const isTowardOpponentGoal =
+        (this.color === "white" && dRow > 0) ||
+        (this.color === "black" && dRow < 0);
+
+      const isHorizontal = dCol === 0 && dRow !== 0; // horizontal moves (same row)
+      const isVertical = dRow === 0 && dCol !== 0; // vertical moves (same column)
+
+      let maxDistance = 0;
+      if (isTowardOpponentGoal) {
+        maxDistance = FORWARD_MOVE_DISTANCE;
+      } else if (isHorizontal || isVertical) {
+        maxDistance = OTHER_MOVE_DISTANCE;
+      }
+
+      for (let distance = 1; distance <= maxDistance; distance++) {
+        const newRow = curRow + dRow * distance;
+        const newCol = curCol + dCol * distance;
+
+        if (newRow < 0 || newCol < 0 || newRow > 13 || newCol > 9) break;
+
+        const newPosition = new Position(newRow, newCol);
+
+        // Only goalies can enter goal areas, normal pieces cannot
+        if (this.isGoalie || !newPosition.isPositionInGoal()) {
+          validMoves.push(newPosition);
+        } else {
+          break; // Path is blocked
+        }
+      }
+    }
+
+    return validMoves;
+  }
+
+  /**
+   * Get movement targets for when a piece has the ball
+   * @private
+   */
+  private getBallMovementTargets(): Position[] {
+    const validMoves: Position[] = [];
+
+    const [curRow, curCol] =
+      this.getPositionOrThrowIfUnactivated().getPositionCoordinates();
+
+    for (const [dRow, dCol] of DIRECTION_VECTORS) {
+      const newRow = curRow + dRow;
+      const newCol = curCol + dCol;
+
+      if (newRow < 0 || newCol < 0 || newRow > 13 || newCol > 9) break;
+
+      const newPosition = new Position(newRow, newCol);
+
+      // Only goalies can enter goal areas, normal pieces cannot
+      if (this.isGoalie || !newPosition.isPositionInGoal()) {
+        validMoves.push(newPosition);
+      }
+    }
+
+    return validMoves;
+  }
+
+  setHasBall(hasBall: boolean) {
+    this.hasBall = hasBall;
+  }
+
+  getId() {
+    return this.id;
+  }
+
+  getHasBall() {
+    return this.hasBall;
+  }
+
+  setFacingDirection(facingDirection: FacingDirection) {
+    this.facingDirection = facingDirection;
+  }
+
+  getFacingDirection() {
+    return this.facingDirection;
+  }
+
+  getIsGoalie() {
+    return this.isGoalie;
+  }
+}
