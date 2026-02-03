@@ -1,0 +1,19 @@
+{
+  "name": "takagame",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Taka - A turn-based football strategy game",
+  "scripts": {
+    "dev:backend": "cd backend && bun run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && bun install && cd ../frontend && npm install",
+    "lint:backend": "cd backend && bun run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:all": "npm run lint:backend && npm run lint:frontend",
+    "format:backend": "cd backend && bun run format",
+    "format:frontend": "cd frontend && npm run format",
+    "format:all": "npm run format:backend && npm run format:frontend",
+    "test:backend": "cd backend && bun run test",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}
