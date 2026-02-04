@@ -42,6 +42,8 @@ Each team has **11 pieces**:
 - 10 outfield players
 - 1 goalie (starts off the board, activated when needed)
 
+**Two balls:** Each team starts with one ball. Both teams have possession simultaneously — you're attacking with your ball while defending against the opponent's ball.
+
 ### Piece Properties
 
 Each piece has:
@@ -53,7 +55,33 @@ Each piece has:
 
 ### Starting Positions
 
-Teams begin in mirrored formations. White attacks toward row 13 (black's goal), black attacks toward row 0 (white's goal).
+Teams begin in mirrored formations:
+- White attacks toward row 13 (black's goal)
+- Black attacks toward row 0 (white's goal)
+- One white piece starts with the white ball (facing south, toward opponent)
+- One black piece starts with the black ball (facing north, toward opponent)
+
+---
+
+## Two-Ball Gameplay
+
+Unlike traditional sports games where teams take turns possessing a single ball, Taka features **simultaneous dual possession**.
+
+### How It Works
+
+- Each team has their own ball
+- On your turn, you can move any of your pieces (with or without ball)
+- You're always attacking with your ball AND defending against the opponent's ball
+- First team to score with their ball wins
+
+### Strategic Implications
+
+1. **Dual focus:** Every move must consider both attack and defense
+2. **Race dynamics:** Both teams are progressing toward goal simultaneously
+3. **Trade-off decisions:** Do you advance your attack or stop theirs?
+4. **No pure possession:** You can't "keep the ball away" — opponent always has their own
+
+This creates unique tactical situations not found in single-ball games.
 
 ---
 
@@ -333,7 +361,7 @@ The 3-forward vs 1-with-ball asymmetry creates tension:
 | Game board | 1 | 14×10 grid with pitch markings |
 | White pieces | 11 | White team (including goalie) |
 | Black pieces | 11 | Black team (including goalie) |
-| Ball token | 1 | Indicates ball position |
+| Ball tokens | 2 | One per team — both teams attack simultaneously |
 | Direction indicators | 22 | Show which way pieces face |
 | Rule book | 1 | Complete rules reference |
 | Quick-start guide | 1 | Learn in 5 minutes |
@@ -430,8 +458,8 @@ Every mechanic maps to real tactical decisions:
 
 ## Summary
 
-Taka is football distilled to its tactical essence. A 14×10 board. 22 pieces. Simple rules that create deep strategy.
+Taka is football distilled to its tactical essence. A 14×10 board. 22 pieces. Two balls. Simple rules that create deep strategy.
 
-Move without the ball (fast). Move with the ball (slow). Pass to progress. Face where you want to play. Tackle from the front. Score to win.
+Both teams attack and defend simultaneously. Move without the ball (fast). Move with the ball (slow). Pass to progress. Face where you want to play. Tackle from the front. Score first to win.
 
-**The best move isn't always obvious.** That's what makes it a strategy game.
+**Every move has dual purpose:** advance your attack while stopping theirs. That's what makes it a strategy game.
