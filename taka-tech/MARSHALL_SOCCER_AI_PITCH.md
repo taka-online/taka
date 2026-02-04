@@ -196,7 +196,72 @@ Start by "solving" at ball reception moments. As the system improves, solve more
 
 ---
 
-## Game Model Integration
+## What It Enables
+
+**Decision clarity:** For any moment in a match, see what the highest-value action was and compare it to what we actually did. Not "we should've done better" — specific alternatives with specific xG values attached.
+
+**Simulating alternatives:** After a chance is conceded, test what positioning would have prevented it. Before a match, simulate our structures against their shape.
+
+**Opponent scouting:** Build defensive and attacking profiles for any team. Identify their pressing triggers, recovery patterns, where they get stretched.
+
+**Trends over time:** Track whether we're executing our principles across the season. See if what we're training is actually showing up in matches.
+
+**Recruitment evaluation:** Run a prospect's film through the engine. Extract physical metrics from video — sprint patterns, recovery runs, work rate — without needing their GPS data. Analyze their decision-making objectively.
+
+---
+
+## Timeline
+
+| Phase | Timeframe | Outcome |
+|-------|-----------|---------|
+| Calibration training | Month 1 | Process video without manual setup |
+| Tracking refinement | Month 2 | Handle real match conditions |
+| Validation | Month 3 | Confirm accuracy against GPS |
+| Decision Engine v1 | Months 4-5 | First game model metrics automated |
+
+**Spring:** Tracking integrated with Hub — query across Wyscout events and our spatial data.
+
+**Fall:** Decision engine measuring tactical principles.
+
+---
+
+# How They Work Together
+
+```
+Part 1 (Hub) - Working in Weeks
+───────────────────────────────
+Weeks 1-2:  Data ingestion
+Weeks 3-4:  Core system working    ← Value starts here
+Weeks 5-6:  Refinement based on feedback
+Ongoing:    Expansion, adoption
+
+
+Part 2 (Tracking + Engine) - Developing in Parallel
+───────────────────────────────────────────────────
+Month 1-2:  Calibration + tracking
+Month 3:    Validation             ← Feeds into Hub
+Month 4-5:  Decision engine v1     ← Game model automation
+```
+
+Part 1 makes everything searchable and connected. Part 2 adds a new class of proprietary evidence inside that system — continuous tactical reality and objective measurements of our principles.
+
+---
+
+# Summary
+
+**Part 1:** Connect our scattered data into one queryable system. Staff alignment becomes structural. Pattern recognition across sources we can't mentally integrate. Institutional knowledge compounds instead of resetting. Working in 4-6 weeks.
+
+**Part 2:** Proprietary tracking + decision engine. The end goal: a football simulation engine that finds optimal paths to scoring positions by learning from real match data. 36,000+ lines already written. Tracking by spring, decision engine by fall.
+
+**The key insight:** Everyone has Wyscout. This system connects our scattered data, learns what actually works from our games, then builds a simulation grounded in reality. That's how we become more analytical than everyone else in the country.
+
+---
+
+# Appendix: Game Model Integration
+
+*The following details how the decision engine learns from and measures Marshall's specific game model. This is the deeper technical explanation of how the system becomes Marshall-specific.*
+
+---
 
 The engine learns what works. The game model tells it what to look for.
 
@@ -282,21 +347,9 @@ Every match we analyze adds to the database. The engine gets smarter over time:
 
 This is how it becomes Marshall-specific: it learns from our games, our players, our opponents. But the underlying engine works for any tactical philosophy.
 
----
+**Player profiles:**
 
-## What It Enables
-
-**Decision clarity:** For any moment in a match, see what the highest-value action was and compare it to what we actually did. Not "we should've done better" — specific alternatives with specific xG values attached.
-
-**Simulating alternatives:** After a chance is conceded, test what positioning would have prevented it. Before a match, simulate our structures against their shape. "If we overload the left against their 4-4-2, where do they become vulnerable?"
-
-**Opponent scouting:** Build defensive and attacking profiles for any team. Identify their pressing triggers, recovery patterns, where they get stretched. Know which of our approaches will be most effective against their specific tendencies.
-
-**Trends over time:** Track whether we're executing our principles across the season. See if what we're training is actually showing up in matches. Measure progress objectively.
-
-**Recruitment evaluation:** Run a prospect's film through the engine. Extract physical metrics from video — sprint patterns, recovery runs, work rate — without needing their GPS data. More importantly, analyze their decision-making: Did they choose the highest-xG option? Did their passes eliminate defenders or just move the ball sideways? How do their numbers compare to our current players at that position? This turns recruitment into objective evaluation, not just "he looks good."
-
-**Player profiles:** Over time, the engine builds comprehensive profiles for each player — our guys, recruits, and opponents. Not just tendencies, but measurable attributes:
+Over time, the engine builds comprehensive profiles for each player — our guys, recruits, and opponents. Not just tendencies, but measurable attributes:
 
 *Physical:* Top speed, acceleration, turning speed, recovery run intensity, distance covered, sprint frequency, work rate with and without the ball.
 
@@ -307,77 +360,6 @@ This is how it becomes Marshall-specific: it learns from our games, our players,
 As the system improves, these profiles get richer. We can compare a recruit's profile directly against our current starter: "He's faster but his pass accuracy under pressure is 12% lower. His xG-added per action is similar, but he creates it through dribbling not passing."
 
 Then we can match profiles to opponents: "Our #10 creates +0.15 xG when switching against compact defenses. Their left back has the slowest recovery speed in their back line and gets eliminated 3x more when the ball switches." This is how we find specific mismatches to exploit — not general game plans, but targeted advantages based on actual numbers.
-
----
-
-## Sequenced Scope
-
-| Stage | Focus | Outcome |
-|-------|-------|---------|
-| A | Tracking outputs | Shape, spacing, baseline structure metrics |
-| B | Decision Engine v1 | Elimination + compactness/block measurements |
-| C | Engine expansion | Richer scoring, scenario simulation |
-
-We do not pretend the full engine is useful before tracking is trustworthy.
-
----
-
-## Timeline
-
-| Phase | Timeframe | Outcome |
-|-------|-----------|---------|
-| Calibration training | Month 1 | Process video without manual setup |
-| Tracking refinement | Month 2 | Handle real match conditions |
-| Validation | Month 3 | Confirm accuracy against GPS |
-| Decision Engine v1 | Months 4-5 | First game model metrics automated |
-
-**Spring:** Tracking integrated with Hub — query across Wyscout events and our spatial data.
-
-**Fall:** Decision engine measuring tactical principles. This is where it gets powerful.
-
----
-
-## Definition of Done
-
-Part 2 is "real" when:
-- Calibration is consistent without heroic manual setup
-- Tracking accuracy is validated against GPS where possible
-- The engine flags the same moments coaches identify on film (face validity)
-- Outputs are stable enough to compare across matches (repeatability)
-
----
-
-# How They Work Together
-
-```
-Part 1 (Hub) - Working in Weeks
-───────────────────────────────
-Weeks 1-2:  Data ingestion
-Weeks 3-4:  Core system working    ← Value starts here
-Weeks 5-6:  Refinement based on feedback
-Ongoing:    Expansion, adoption
-
-
-Part 2 (Tracking + Engine) - Developing in Parallel
-───────────────────────────────────────────────────
-Month 1-2:  Calibration + tracking
-Month 3:    Validation             ← Feeds into Hub
-Month 4-5:  Decision engine v1     ← Game model automation
-```
-
-Part 1 makes everything searchable and connected. Part 2 adds a new class of proprietary evidence inside that system — continuous tactical reality and objective measurements of our principles.
-
-The Hub isn't just "organized information." It becomes a system that can learn and surface truths from our games in ways competitors can't reproduce.
-
----
-
-# Summary
-
-**Part 1:** Connect our scattered data into one queryable system. Staff alignment becomes structural. Pattern recognition across sources we can't mentally integrate. Institutional knowledge compounds instead of resetting. Working in 4-6 weeks.
-
-**Part 2:** Proprietary tracking + decision engine. The end goal: a football simulation engine that finds optimal paths to scoring positions by learning from real match data — not designed rules that might be wrong. We learn what actually works from tracking data, then use that knowledge to simulate and search for the best decisions. 36,000+ lines already written. Tracking by spring, decision engine learning by fall, simulation as it matures.
-
-**The key insight:** Everyone has Wyscout. This system connects our scattered data, learns what actually works from our games, then builds a simulation grounded in reality. That's how we become more analytical than everyone else in the country — we're not guessing what should work, we know what does work.
 
 ---
 
