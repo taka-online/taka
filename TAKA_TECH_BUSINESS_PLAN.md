@@ -1,627 +1,777 @@
 # Taka Tech — Business Plan
 
-*Tactical Intelligence Platform for Football*
+*The Stockfish of Football*
 
 ---
 
 ## Executive Summary
 
-Taka Tech is a tactical intelligence platform that moves football analytics from event-level reporting ("pass completed") to decision-level evaluation ("was that the right pass?"). The system extracts player and ball coordinates from match video using computer vision, then applies a decision engine that evaluates every available option, compares it to what actually happened, and learns what works from real outcomes.
+Taka Tech is building the Stockfish of football — a decision engine that thinks about tactics the way chess engines think about positions. Not "what's the best pass right now" but "here's a 5-move sequence that breaks their defensive structure and creates a 0.4 xG chance."
 
-The platform is structured as two layers that can be sold together or independently:
+The platform evaluates every decision in a football match: what options existed, what was the expected value of each, what was chosen, and what should have been chosen instead. It learns from real outcomes, adapts to any tactical philosophy, and generates opponent-specific exploitation plans grounded in data.
 
-1. **Intelligence Hub** — connects a program's scattered data (video analysis, GPS, game plans, meetings, recruitment, medical) into one searchable, queryable knowledge system. Delivers value in weeks.
+**The product has two layers:**
 
-2. **Tracking + Decision Engine** — proprietary computer vision generates spatial data from match video; a decision engine converts that data into objective measurements of game model execution, player decision quality, and opponent-specific tactical intelligence. Develops over months.
+1. **Decision Engine** — the core asset. A physics-based tactical analysis system that evaluates game states, generates all available options, learns what actually works from match data, and ultimately searches multi-step sequences to find optimal paths to goal. Eight working modules. 36,000+ lines of production code.
 
-The company sells B2B subscriptions to college programs and professional clubs. An active pilot with Marshall University Men's Soccer (Division I, Sun Belt Conference) is validating the platform.
+2. **Tracking Layer** — computer vision that extracts player and ball coordinates from any match video, feeding the decision engine continuous spatial data that event-based tools cannot provide.
+
+**Primary market:** Professional football clubs — where margins are thin, player salaries are high, and every tactical edge matters. The analytics staff exists, the budget exists, and the need for decision-level intelligence is acute.
+
+**Validation:** Active pilot with Marshall University Men's Soccer (NCAA Division I) proving the system against real coaching workflows before scaling to professional clubs.
 
 ---
 
 ## 1. The Problem
 
-Football analytics is stuck at the event level.
+Football analytics is stuck at the event level. The entire industry tells coaches *what happened*. Nobody tells them *what should have happened*.
 
-Current tools — Wyscout, StatsBomb, Hudl, Opta, InStat — tell coaches *what happened*: passes completed, shots taken, possession percentage, expected goals. They do not answer the coaching question that matters most: **"Was that the right decision?"**
+### The Three Layers of Football Data
 
-A midfielder completes a pass. Event data records it as successful. But was it the *best* pass? Was there a through ball that would have created a scoring chance? Was a teammate making a run the midfielder didn't see?
+**Layer 1: Event Data (commoditized)**
+Wyscout, Opta, StatsBomb, InStat — pass completed, shot taken, possession percentage, expected goals. Every club has this. Competitive advantage from events alone is gone.
 
-Coaches watch hours of film trying to answer these questions manually. They cannot quantify decision quality. They cannot compare it across games. They cannot give players objective, data-backed feedback on their choices.
+**Layer 2: Tracking Data (emerging, raw)**
+Second Spectrum, SkillCorner, Hawkeye — raw player and ball positions over time. Available to well-funded clubs. But tracking data is just coordinates. It requires expensive analyst teams to interpret. Most clubs that buy tracking data underutilize it.
 
-### What Exists Today
+**Layer 3: Decision Intelligence (the gap)**
+Nobody answers: **"Given all 22 players on the pitch at this moment, what was the best option, and how does what we did compare?"**
 
-| Tool | What It Does | What It Doesn't Do |
-|------|-------------|-------------------|
-| **Hudl** | Video platform, basic tagging | No spatial analysis, no decision evaluation |
-| **Wyscout** | Event database, scouting, opponent tendencies | Events only — no continuous tracking, no decision quality |
-| **StatsBomb** | Advanced event metrics (xG, xA, OBV) | Still event-level; requires analyst interpretation |
-| **Second Spectrum** | Tracking data from broadcast | Raw data provider — no insights, no coaching recommendations |
-| **SkillCorner** | Broadcast-based tracking | Data provider only — sells to analysts, not coaches |
-| **Opta / InStat** | Event data and match statistics | No spatial analysis, no decision-level evaluation |
+A midfielder completes a pass. Events say: successful. Tracking says: here were the positions. Neither says: there was a through ball to the forward that would have created a 0.31 xG chance, but the midfielder chose a sideways pass worth 0.04 xG. That gap — the decision gap — is what Taka Tech fills.
 
-The gap: nobody is answering **"given the full picture of the field, what was the best option, and did we take it?"**
+### Why This Matters to Professional Clubs
+
+| What Clubs Spend On | What They Get | What They Still Can't Do |
+|---------------------|---------------|--------------------------|
+| Wyscout ($50K+/yr) | Events, scouting database | Evaluate decision quality |
+| Tracking ($100K+/yr) | Raw positions | Turn positions into coaching insights |
+| Analyst staff ($200K+/yr) | Manual film review | Scale analysis across every moment of every match |
+| Coaching ($1M+/yr) | Subjective tactical judgment | Quantify whether game model is being executed |
+
+Clubs invest millions in analytics infrastructure and staff, then manually watch film to answer the questions that matter most. The tools they have are data — not intelligence.
 
 ---
 
-## 2. The Solution
+## 2. The Decision Engine
 
-### Layer 1: Intelligence Hub
+The decision engine is Taka Tech's core asset. Everything else — tracking, the Hub, the interface — exists to feed and deliver the engine's analysis.
 
-A program-specific knowledge system that connects existing data sources into one queryable platform.
+### What It Does Today
 
-**What it connects:**
+The engine takes player and ball coordinates and produces tactical intelligence through five core modules:
 
-| Source | Contents |
-|--------|----------|
-| Wyscout | Match events, opponent tendencies, player stats |
-| GPS | 240+ metrics per session — load, distances, sprints, fatigue patterns |
-| Game Plans | Tactical documents, scouting reports |
-| Meeting Recordings | Discussions, decisions, context (transcribed) |
-| Recruitment | Prospect notes, evaluations, portal tracking |
-| Financials | Budget, scholarships, travel costs |
-| Medical | Injury history, return-to-play timelines |
-| Schedule | Matches, travel, recovery windows |
+**Module 1: Elimination Calculator**
 
-**What it does:**
+A defender is *eliminated* when the ball is past them and they cannot reach an effective intervention point before the attack progresses. This is not "goal-side" — it's physics: sprint speed, reaction time, momentum, distance. A defender who looks goal-side but can't intervene in time is eliminated.
 
-- **Cross-source pattern recognition** — "When we play high-press teams, do players fatigue more?" (requires combining Wyscout events + GPS load + match results)
-- **Institutional memory** — decisions, rationale, and context are searchable across months and seasons
-- **Pre-match prep generation** — auto-generate opponent brief combining their tendencies + our physical state + historical tactical results
-- **Proactive alerts** — "Load pattern matches injury history," "Budget trending over"
-- **Recruitment intelligence** — "Find prospects matching [successful player profile]"
+Every action can be evaluated by how many defenders it eliminates. A pass that takes out three defenders is quantifiably more valuable than one that takes out one. This is the foundational metric for measuring attacking progress.
 
-**Technology:** RAG (retrieval-augmented generation) with vector database for semantic search and LLM synthesis with citations.
+**Module 2: Defensive Force Model**
 
-**Timeline to value:** 4–6 weeks from data ingestion to working system.
+Defensive positioning modeled as an equilibrium of attraction forces: ball attraction (pressing), goal protection, zone coverage, opponent marking, teammate spacing, line compactness, and xG path blocking.
 
-**Why it matters commercially:** The Hub delivers immediate, visible value while the tracking system matures. It justifies the subscription from Day 1 and creates switching costs (the system gets smarter with each season of accumulated data).
+The key insight: **force weights are tunable parameters.** Different teams defend differently:
 
-### Layer 2: Tracking + Decision Engine
+| Weight Configuration | Defensive Style |
+|---------------------|-----------------|
+| High ball weight | Aggressive pressing |
+| High goal weight | Deep-sitting, compact |
+| High opponent weight | Tight man-marking |
+| High line weight | Organized block |
 
-Proprietary computer vision extracts player and ball coordinates from match video. The decision engine converts those coordinates into tactical intelligence.
+Feed the engine an opponent's match data, adjust weights until the model matches their positioning, and you have a mathematical representation of how they defend — which can simulate where they'll be in situations they haven't faced yet.
 
-**Tracking capabilities (current):**
+**Module 3: Game State Evaluator**
 
-| Component | Status |
-|-----------|--------|
-| Player detection (YOLOv8) | Working |
-| Ball detection with temporal consistency | Working |
-| Team classification (jersey color clustering) | Working |
-| Multi-object tracking (ByteTrack) | Working |
-| Manual pitch calibration (homography) | Working |
-| Physical metrics (speed, distance, acceleration, sprints) | Working |
-| Auto-calibration (neural keypoint detection) | Built, needs validation |
-| Player re-identification (OSNet embeddings) | Built, needs testing |
-| Full-match identity maintenance | In progress |
+Every game state receives a composite score (0–1) across six dimensions:
 
-**Decision engine capabilities (current):**
+| Component | Weight | What It Measures |
+|-----------|--------|------------------|
+| Elimination | 25% | Defenders functionally out of play |
+| Proximity | 20% | Distance to goal |
+| Angle | 15% | Shooting angle available |
+| Density | 15% | Space around the ball |
+| Compactness | 10% | Defensive structure integrity |
+| Action options | 15% | Forward passing/dribbling options |
 
-| Module | What It Does | Status |
-|--------|-------------|--------|
-| Elimination calculation | Which defenders are functionally out of play | Working |
-| xG evaluation | Expected goals from any position | Working |
-| Pass option evaluation | Every teammate rated as pass target with interception probability | Working |
-| Through ball detection | Where can attackers run; will the ball arrive before defenders | Working |
-| Dribble evaluation | Time-to-dribble vs. defender close-down | Working |
-| Defensive force modeling | Models defensive positioning as equilibrium of forces | Working |
-| Game state scoring | Composite 0–1 score comparing any two moments objectively | Working |
-| Block identification | Low/mid/high block detection and gap analysis | Working |
+This creates an objective score for any position. Compare moments across a match, across a season, or across opponents. Identify precisely why certain attacks succeeded while others stalled.
 
-**What the engine does NOT yet do (and the development path):**
+**Module 4: Option Generation and Evaluation**
 
-| Capability | Status | Phase |
-|-----------|--------|-------|
-| Multi-step simulation (search ahead like chess) | Designed, not built | Phase 5 |
-| Defensive response prediction | Designed, not built | Phase 3–4 |
-| Outcome learning from real data | Architecture designed, not trained | Phase 2–3 |
-| Player-specific profiles (speed, decision tendencies) | Framework exists | Phase 3 |
-| Opponent-specific pattern library | Architecture ready, needs data | Phase 2 |
+For any frame, the engine generates all available actions:
 
-**The development sequence:**
+- **Every pass target** — with interception probability using physics (ball travel time vs. defender arrival time, accounting for reaction, acceleration, and reach)
+- **Through balls** — where can attackers run, will the ball arrive before defenders, is it offside
+- **Dribble options** — time-to-dribble vs. defender close-down speed
+- **Shot evaluation** — xG accounting for distance, angle, and shot blocking
+
+Each option is ranked: HIGH_VALUE, SAFE, MODERATE, LOW_VALUE, AVOID. The engine shows the best action and quantifies why.
+
+**Module 5: Block Identification**
+
+Three primary defensive configurations with different characteristics:
+
+| Block | Line Height | Characteristics |
+|-------|-------------|-----------------|
+| Low | ~12m from goal | Compact, protective, minimal pressing |
+| Mid | ~22m from goal | Balanced, controls midfield space |
+| High | Near halfway | Aggressive, traps opponents |
+
+For any moment: which block are they in, are they maintaining it, where are the gaps, what triggered a breakdown.
+
+### What the Engine Becomes: The Stockfish Vision
+
+The modules above are the **evaluation function and move generator** — Stockfish's equivalent of scoring positions and enumerating legal moves. What transforms this from an analysis tool into a tactical engine is search and learning.
+
+**Phase 1: Similarity-Based Learning**
+
+A retrieval system that encodes game situations as continuous feature vectors — not discrete zones or formation labels, but behavioral measurements (line height, compactness, press intensity, marking style, shift speed). Find the most similar historical situations. Analyze what actions succeeded.
+
+This is grounded in real data, not simulation. Similar to DeepMind's TacticAI retrieval methodology but applied to open-play decision-making.
 
 ```
-Phase 1: Tracking validation (position accuracy vs GPS)
-Phase 2: Similarity-based retrieval (find similar historical situations, analyze what worked)
-Phase 3: Outcome learning (adjust success probabilities from real data, not just physics)
-Phase 4: Production system (fast queries, video clip retrieval, pre/post-match reports)
-Phase 5: Simulation engine (search for optimal decision sequences through real patterns)
+Situation encoding:
+  Defensive: line_height, compactness_v, compactness_h, press_intensity,
+             pressure_on_ball, players_behind_ball, marking_style, shift_speed
+  Attacking: attackers_ahead, attacking_width, players_in_box, space_ahead
+  Ball:      continuous x/y, distance_to_goal, angle_to_goal
+  Context:   score_differential, match_time, possession_duration
 ```
 
+Query: "In situations similar to this, what worked?"
+Output: "Switches to the weak side succeeded 65% vs. 45% against average opponents. Central combinations only 28% — their #6 intercepts well."
+
+**Phase 2: Outcome Learning**
+
+Close the gap between physics and reality. The math says a through ball is available. Reality shows that pass gets read 80% of the time against this type of defensive setup. The engine learns actual success rates — not designed rules that might be wrong, but measured outcomes from thousands of real situations.
+
+Over time, the engine builds:
+
+| Learned Knowledge | Source |
+|-------------------|--------|
+| Pass success rates by situation type | Historical outcome analysis |
+| Actual pass speeds and trajectories | Measured from tracking data |
+| How defenders actually react after each action type | Tracked defensive movement |
+| Player-specific tendencies and capabilities | Aggregated individual data |
+| Opponent-specific vulnerabilities | Their match data filtered |
+
+**Phase 3: Multi-Step Search (The Goal)**
+
+The simulation engine. Not fixed-depth lookahead — variable-depth tree exploration:
+
+```
+Ball reception moment
+     │
+     ├── Pass to Player A
+     │      ├── A shoots → evaluate xG ← STOP
+     │      ├── A passes to B
+     │      │     ├── B shoots → evaluate xG ← STOP
+     │      │     └── B dribbles → keep exploring
+     │      └── A loses ball ← STOP
+     │
+     ├── Pass to Player B (promising)
+     │      └── ... ← go DEEP on this branch
+     │
+     ├── Dribble into pressure
+     │      └── ... ← PRUNE early (low value)
+     │
+     └── Shot → evaluate xG ← STOP
+```
+
+Smart allocation of compute: go deep on promising branches, prune bad ones early, stop when too far from known patterns. Return the path with highest expected value.
+
+**Why this is different from Google Research Football (which failed):**
+
+| Google Approach | Taka Approach |
+|----------------|---------------|
+| Designed physics engine | Learned physics from real data |
+| Agents learn from scratch | Agents use learned human patterns |
+| Sim-to-real gap (simulation ≠ reality) | No gap — simulation IS compressed reality |
+| Sparse reward (goals only) | Dense signal from learned state values |
+| No validation against real football | Validated against real outcomes |
+
+**What multi-step search enables:**
+
+| Capability | Example |
+|------------|---------|
+| Tactical plan generation | "Against their low block, here's a 4-move sequence that creates a 2v1 on the weak side with 0.28 xG" |
+| Opponent exploitation | "Their RCB is slow to recover. Target that channel with diagonal runs. Success rate: 40% progression" |
+| Counterfactual analysis | "What if you'd passed left instead? Here's what the search tree shows" |
+| Novel tactic discovery | Search finds high-value sequences humans haven't tried |
+| Squad optimization | "With Player X at #8, buildup success increases 12% because of his carrying ability" |
+| Decision quality scoring | Compare chosen action vs. best action from search — per player, per match, over time |
+
 ---
 
-## 3. What It Enables (Value Propositions)
+## 3. The Tracking Layer
 
-### For Coaching Staff
+The decision engine needs coordinates. The tracking layer creates them from any video source.
 
-**Objective game model accountability**
-- "Are we actually playing the way we say we're playing?"
-- Measure execution of specific tactical principles (buildup patterns, pressing triggers, defensive shape maintenance)
-- See exact moments where structure breaks down, with alternative options quantified
+### Current Capabilities
 
-**Decision quality evaluation**
-- For any chance created or conceded: "What was the optimal play?"
-- Player-specific feedback: "You chose option B (xG 0.08) vs. available option A (xG 0.31)"
-- Objective development metric tracked over time
+| Component | Technology | Status |
+|-----------|-----------|--------|
+| Player detection | YOLOv8 + DETR (transformer) | Working |
+| Ball detection | Specialized detector with temporal consistency | Working |
+| Team classification | K-means jersey color clustering | Working |
+| Multi-object tracking | ByteTrack via Supervision | Working |
+| Pitch calibration | OpenCV homography (manual + auto) | Manual working; auto needs validation |
+| Physical metrics | Speed, distance, acceleration, sprints | Working |
+| Player re-identification | OSNet embeddings | Built, needs testing |
+| 3D ball tracking | LSTM with Kalman filtering | Built, needs training |
+| Trajectory prediction | Baller2Vec transformer | Built, needs weights |
 
-**Opponent-specific tactical intelligence**
-- Auto-generate what patterns succeed against a specific opponent's defensive setup
-- Learn their weaknesses from analyzing their matches: "Their LB takes 2.8s to recover on switches vs. league average 2.1s — target that channel"
-- Pre-match plans grounded in actual data, not general tendencies
+### Why Build Tracking Instead of Buying
 
-**Training design**
-- Test scenarios computationally before implementing in practice
-- Identify specific structural weaknesses to address with targeted sessions
+SkillCorner and Second Spectrum sell tracking data. But:
 
-### For Recruitment
+1. **Cost** — tracking data subscriptions are $100K+/year per league. Owning the tracking layer eliminates this dependency.
+2. **Coverage** — commercial tracking covers top leagues only. Taka's tracking works on any video, including college, lower leagues, and tactical cameras.
+3. **Control** — when tracking feeds the decision engine directly, the pipeline is optimized end-to-end. No format conversion, no latency, no dependency on third-party release schedules.
+4. **Data ownership** — proprietary tracking data is a moat component, not a cost center.
 
-**Physical metrics from video**
-- Extract sprint patterns, recovery runs, work rate, acceleration — without needing the prospect's GPS data
-- Compare prospect profiles to current players and ideal position profiles
-
-**Decision-making quality**
-- "This prospect chooses the highest-value option 68% of the time in transition"
-- "His xG-added per action is similar to our starter, but he creates it through dribbling not passing"
-- Objective evaluation that supplements subjective scouting
-
-### For Program Operations (Hub)
-
-**Cross-source intelligence**
-- Queries that span video analysis, GPS, medical, financial, and tactical data
-- "Show me all instances where our pressing intensity dropped below X in games where we'd traveled more than 500 miles"
-
-**Institutional knowledge**
-- Decisions and rationale are captured and searchable
-- New staff members ramp faster
-- The program compounds knowledge instead of resetting each season
+For professional clubs that already have tracking data from other providers, Taka Tech can ingest their existing data directly — the decision engine is data-source agnostic.
 
 ---
 
-## 4. Market Opportunity
+## 4. Value Delivery for Professional Clubs
 
-### Target Markets
+### Pre-Match: Opponent Intelligence
 
-**Primary: NCAA Division I Programs**
+Feed the engine an opponent's last 8–10 matches. It learns their specific patterns:
 
-| Segment | Size | Budget Range | Taka Tech Fit |
-|---------|------|-------------|---------------|
-| Power 4 + top programs | ~80 programs | $50K–$200K analytics budgets | Full platform (Hub + Tracking + Engine) |
-| Competitive D1 programs | ~120 programs | $20K–$75K analytics budgets | Hub + selective tracking |
-| Remaining D1 | ~340 programs | $5K–$30K analytics budgets | Hub-only tier |
+| What the Engine Learns | Example Output |
+|------------------------|----------------|
+| Defensive weaknesses | "Against quick switches, their LB takes 2.8s to recover vs. league average 2.1s — target that channel" |
+| High-value actions | "Through balls into their left channel succeed 55% vs. 35% on the right — their LCB is slow to drop" |
+| Pressing triggers | "They press when ball goes back to GK but leave massive gaps when ball goes wide" |
+| Shape vulnerabilities | "Gap between CM and RB opens when ball is on opposite wing" |
+| Recovery patterns | "After losing possession, they take 4.2s to reform vs. average 3.1s — we have a transition window" |
 
-D1 women's programs: 333 additional programs, growing investment in analytics.
+Pre-match report auto-generated: specific, actionable, grounded in data. Not "they defend deep" — "in this exact situation type, this specific action works X% of the time against them."
 
-**Secondary: Professional Clubs**
+### In-Match: Real-Time Decision Support
+
+As the engine matures toward real-time capability:
+- "They've shifted to 5-3-2. Switch to wide overloads — expected value increases from 0.15 to 0.24"
+- "Their #4 is fatiguing. Target his channel — close-down speed dropped 15% since the 60th minute"
+
+Performance target: < 2 seconds for real-time suggestions.
+
+### Post-Match: Decision Analysis
+
+For any chance created or conceded:
+- What options existed at each decision point
+- Which option had the highest expected value
+- What was actually chosen, and what was the xG difference
+- Player-by-player decision quality scores
+
+"We created 2.3 xG. Engine analysis says optimal play would have produced 3.1 xG. Here are the 8 moments where higher-value options were available."
+
+### Player Development
+
+- Objective measurement of decision quality over time
+- "Player A chooses the highest-value option 72% of the time — up from 61% in August"
+- Compare player decisions against engine-optimal: where do they consistently leave value on the table?
+- Position-specific development: "Your through ball recognition is elite. Your switch-of-play timing costs 0.08 xG per match on average."
+
+### Recruitment and Scouting
+
+Run a prospect's film through the engine without needing their GPS data:
+- Extract physical metrics from video: sprint speed, acceleration, recovery run patterns, work rate
+- Evaluate decision-making: "This prospect chooses the highest-xG option 68% of the time in transition — top 5% in his league"
+- Compare profiles directly: "He's faster than our current starter but his pass accuracy under pressure is 12% lower"
+- Player profiling: physical, technical, and decision-making attributes from video alone
+
+### Game Model Accountability
+
+Define your tactical philosophy. The engine measures execution:
+- "Are we actually pressing the way we train?"
+- "In BGZ buildups with this defensive shape, we're supposed to switch — we do it 45% of the time"
+- "Breakdown at 34:22 — #6 had the switch available (0.15 xG higher) but played central"
+
+Objective, quantifiable, traceable across the season. The subjective question "are we playing our way?" becomes a measurable metric.
+
+---
+
+## 5. Market Opportunity
+
+### Primary Market: Professional Clubs
+
+| Segment | Size | Analytics Budget | Taka Tech Pricing |
+|---------|------|-----------------|-------------------|
+| Big 5 European leagues | ~100 clubs | $200K–$1M+ | $100K–$250K/year |
+| MLS, Liga MX, top Americas | ~80 clubs | $100K–$500K | $75K–$150K/year |
+| English Championship, 2nd-tier European | ~200 clubs | $50K–$200K | $50K–$100K/year |
+| 3rd-tier European, USL, other professional | ~500 clubs | $25K–$100K | $25K–$75K/year |
+| Lower professional leagues | ~2,500+ clubs | $10K–$50K | $15K–$50K/year |
+
+**Why professional clubs are the primary market:**
+- Analytics budgets already exist — this is not creating a new budget line, it's competing for allocation within established spend
+- Margins are razor-thin at the top — a tactical edge that produces one more win per season justifies six-figure spend
+- Analyst staff are already in place — they can evaluate and adopt sophisticated tools
+- Player salaries dwarf analytics costs — $75K/year for better decisions on $50M+ payroll is trivial
+- Coaching pressure is intense — clubs fire managers after 10 poor results; anything that improves decisions is valuable
+
+### Secondary Market: College Programs
 
 | Segment | Size | Budget Range |
 |---------|------|-------------|
-| Top European leagues (Big 5) | ~100 clubs | $100K–$500K+ analytics spend |
-| MLS, Liga MX, Americas | ~150 clubs | $50K–$200K |
-| Championship, 2nd/3rd tier European | ~500 clubs | $25K–$100K |
-| Lower professional leagues | ~2,500+ clubs | $10K–$50K |
+| Power 4 + top programs | ~80 | $50K–$200K |
+| Competitive D1 | ~120 | $20K–$75K |
+| Remaining D1 (men + women) | ~670 | $5K–$30K |
 
-**Tertiary: Academies and Youth Development**
+College programs serve as validation and entry market. Marshall University (D1, Sun Belt) is the current pilot. College provides faster iteration cycles, direct coaching access, and case studies that support professional sales.
+
+### Tertiary Market: Academies
 
 - 200+ professional club academies
 - 1,000+ elite youth clubs
-- Scaled-down product at $5K–$15K/year
+- Scaled product at $5K–$15K/year
+- Natural land-and-expand from parent club adoption
 
 ### Total Addressable Market
 
-Using conservative estimates:
-
-| Segment | Addressable Programs/Clubs | Avg. Price/Year | TAM |
-|---------|---------------------------|-----------------|-----|
+| Segment | Addressable Clubs | Avg. Price | TAM |
+|---------|-------------------|-----------|-----|
+| Professional (global) | ~3,400 | $75K | $255M |
 | NCAA D1 (men + women) | ~540 | $30K | $16M |
-| Professional (global) | ~3,000 | $75K | $225M |
-| D2/D3 + NAIA | ~700 | $10K | $7M |
 | Academies + elite youth | ~1,200 | $10K | $12M |
-| **Total** | | | **~$260M** |
+| **Total** | | | **~$283M** |
 
-The broader sports analytics market provides additional context — estimated in the low billions globally across all sports, with football/soccer commanding the largest share.
-
-### Serviceable Market (Years 1–3)
-
-Focus on English-speaking markets first:
-
-| Segment | Reachable | Avg. Price | SAM |
-|---------|-----------|-----------|-----|
-| NCAA D1 (top 100 programs) | 100 | $35K | $3.5M |
-| MLS + USL + English lower leagues | 100 | $75K | $7.5M |
-| **SAM** | | | **~$11M** |
+The broader sports analytics market is estimated in the low billions globally. Football commands the largest share.
 
 ---
 
-## 5. Competitive Landscape
+## 6. Competitive Landscape
 
-### Why Current Tools Don't Solve This
+### Current Tools
 
-The analytics market has three layers, and Taka Tech operates in a layer nobody occupies:
+| Company | What They Sell | Why It's Not Enough |
+|---------|---------------|-------------------|
+| **Hudl** | Video platform, tagging | No spatial analysis, no decision evaluation |
+| **Wyscout** | Event database, scouting | Events only — "pass completed" not "was it the right pass" |
+| **StatsBomb** | Advanced event metrics (xG, xA, OBV) | Still event-level; requires analyst interpretation |
+| **Second Spectrum** | Tracking data | Raw data — positions without intelligence |
+| **SkillCorner** | Broadcast tracking | Data provider, not insight provider |
+| **Opta / InStat** | Event data, match stats | No spatial analysis, no decision evaluation |
 
-**Layer 1: Event Data (commoditized)**
-Wyscout, Opta, StatsBomb, InStat — everyone has access. Competitive advantage from event data alone is gone.
+### Where Taka Tech Sits
 
-**Layer 2: Tracking Data (emerging, expensive)**
-Second Spectrum, SkillCorner, Hawkeye — available to well-funded clubs. But tracking data is raw positions — it requires interpretation. Clubs that buy tracking data still need analysts to make it useful.
+| Dimension | Event Tools | Tracking Providers | Taka Tech |
+|-----------|-----------|-------------------|-----------|
+| What it answers | "What happened?" | "Where were players?" | "What should have happened?" |
+| Granularity | Match/player aggregates | Position streams | Moment-specific, option-by-option |
+| Adaptation | Generic metrics | Generic coordinates | Adapts to team's tactical philosophy |
+| Learning | Static | Static | Learns from each team's real outcomes |
+| Output | Data for analysts | Data for analysts | Coaching recommendations with evidence |
 
-**Layer 3: Decision Intelligence (Taka Tech)**
-Nobody is selling decision-level evaluation as a product: "Given the full field state, what was the best option, and how does what we did compare?" This is the layer coaches actually need.
+### Potential Future Competitors
 
-### Competitive Differentiation
+**DeepMind / TacticAI** — published research on corner kick optimization using retrieval-based methods. Similar conceptual approach to our similarity engine. Risk: Google could productize. Mitigation: TacticAI covers set pieces only; Taka covers open play. Google has no distribution in football coaching. Research ≠ product.
 
-| Dimension | Competitors | Taka Tech |
-|-----------|------------|-----------|
-| Data type | Events (what happened) | Decisions (what should have happened) |
-| Granularity | Aggregate stats (completion %) | Moment-specific, player-specific |
-| Adaptation | Generic metrics | Adapts to team's tactical philosophy |
-| Learning | Static models | Learns from each team's real outcomes |
-| Output | Data requiring interpretation | Actionable coaching recommendations |
-| Integration | Siloed data source | Connects all program data (Hub) |
+**StatsBomb + tracking** — StatsBomb acquired tracking capabilities. Could move toward decision analysis. Mitigation: their DNA is event data and metrics, not simulation and search. Different technical architecture.
+
+**Club in-house teams** — top clubs (Liverpool, Man City, Brentford) build internal analytics. Risk: they build what we sell. Mitigation: in-house teams serve one club; Taka serves hundreds. Network effects and data flywheel advantages compound with scale.
 
 ### Defensibility
 
-The moat deepens with scale:
-
-- **Outcome learning flywheel** — more games analyzed = better predictions = more value = more adoption = more data
-- **Program-specific knowledge** — each team's Hub accumulates institutional intelligence that can't be replicated
-- **Opponent database** — more teams in the ecosystem = richer opponent modeling for everyone
-- **Switching costs** — accumulated seasons of data, learned patterns, and staff workflows
+| Moat Layer | How It Compounds |
+|------------|-----------------|
+| Outcome learning | More games → better predictions → more value → more adoption → more data |
+| Opponent database | More clubs in ecosystem → richer intelligence on every opponent |
+| Situation database | Every match adds to the similarity library — 10,000 matches >> 100 matches |
+| Team-specific learning | Each club's accumulated seasons of data create switching costs |
+| Pattern discovery | Engine finds sequences humans miss → becomes indispensable |
 
 ---
 
-## 6. Business Model
+## 7. Business Model
 
 ### Subscription Tiers
 
-| Tier | Price/Year | Includes |
-|------|-----------|----------|
-| **Hub** | $15,000–$25,000 | Intelligence Hub (all data sources connected), cross-source queries, institutional memory, pre-match briefs |
-| **Hub + Tracking** | $40,000–$75,000 | Everything in Hub + video tracking, physical metrics from video, spatial data overlay |
-| **Full Platform** | $75,000–$150,000 | Everything above + decision engine, game model evaluation, player decision quality, opponent intelligence, simulation |
+| Tier | Price/Year | Target Customer | Includes |
+|------|-----------|-----------------|----------|
+| **Starter** | $25,000 | Lower-league professional, D1 college | Post-match decision analysis, 30 games/season, team-level insights |
+| **Professional** | $75,000 | Mid-tier professional, top college | All matches, player-level reports, opponent modeling, pre-match intelligence |
+| **Elite** | $150,000 | Top-league professional | Real-time analysis, simulation engine, custom integrations, dedicated support, full opponent database access |
 
-### Why Tiered
+### Why This Pricing Works
 
-- Hub-only is the wedge: immediate value, low risk, fast deployment (4–6 weeks)
-- Tracking adds proprietary data creation
-- Full platform is the differentiated product that justifies premium pricing
-- Teams can start at Hub and upgrade as they see value
+- **Starter** replaces 20+ hours/week of manual film review and provides insights manual review cannot produce. At $25K, it's less than a junior analyst's salary.
+- **Professional** generates opponent-specific game plans that would take an analyst team days to produce manually. At $75K, it's a fraction of a single player's weekly salary at Championship level.
+- **Elite** provides tactical capabilities no human staff can match — multi-step search, real-time suggestions, continuous simulation. At $150K, it's less than 0.1% of a Premier League squad's wage bill.
 
 ### Unit Economics
 
 | Metric | Estimate |
 |--------|----------|
-| CAC | $15K–$25K (pilot program + sales cycle) |
-| LTV | $150K+ (3–5 year retention expected at avg. $40K/year) |
-| Gross margin | 80%+ (software, minimal marginal cost per customer) |
-| Payback period | < 12 months |
-
-The key cost driver is compute (GPU inference for tracking). This scales with usage but remains a small fraction of revenue at target pricing.
+| CAC | $15K–$30K (pilot program + 2–3 month sales cycle) |
+| ACV | $75K (blended across tiers) |
+| LTV | $300K+ (4+ year retention at professional level) |
+| Gross margin | 80%+ |
+| Payback period | < 6 months |
+| Net revenue retention | 120%+ (tier upgrades + expanded usage) |
 
 ### Revenue Projections
 
-| Year | Customers | Avg. Revenue/Customer | ARR | Notes |
-|------|-----------|----------------------|-----|-------|
-| Year 1 | 5 | $40K | $200K | Marshall + 2–4 pilot programs |
-| Year 2 | 25 | $48K | $1.2M | Expand in college + 1–2 MLS/USL |
-| Year 3 | 75 | $60K | $4.5M | Add professional clubs, European pilots |
-| Year 5 | 200 | $75K | $15M | Market leader in decision analytics |
+| Year | Pro Clubs | College | Total Customers | Avg. ACV | ARR |
+|------|-----------|---------|-----------------|----------|-----|
+| Year 1 | 2 | 5 | 7 | $35K | $250K |
+| Year 2 | 12 | 15 | 27 | $55K | $1.5M |
+| Year 3 | 40 | 25 | 65 | $70K | $4.5M |
+| Year 5 | 120 | 60 | 180 | $85K | $15M |
 
-These projections assume gradual upselling from Hub-only to full platform, and new customer acquisition from proven results.
+Year 1 is pilot-heavy (lower ACV). As the product matures and simulation capabilities come online, average ACV increases through tier upgrades and new customers entering at higher tiers.
 
 ---
 
-## 7. Go-to-Market Strategy
+## 8. Go-to-Market Strategy
 
-### Phase 1: Prove Value at Marshall (Months 1–3)
+### Phase 1: Validate at Marshall (Months 1–6)
 
-**Objective:** Validate that the platform delivers coaching value and generate a referenceable case study.
+**Objective:** Prove the decision engine delivers value coaches act on. Build a case study.
 
-**Actions:**
-- Deploy Intelligence Hub (connect Wyscout, GPS, game plans, meetings)
-- Validate tracking accuracy against GPS ground truth
-- Run decision engine on key match moments; get coaching staff validation
-- Document results: time saved, insights generated, decisions influenced
+**Why Marshall:**
+- Active pilot, direct coaching access, existing relationship
+- Division I credibility
+- Access to Wyscout + GPS for validation
+- Fast iteration cycles (weekly coaching touchpoints)
 
 **Success criteria:**
-- Coaching staff using the Hub weekly
-- Tracking position error < 2m (vs. GPS)
-- Engine flags same moments coaches identify on film (face validity)
-- Case study ready for external sharing
+- Engine flags the same moments coaches identify on film (face validity)
+- Tracking position error < 2m vs. GPS ground truth
+- Coaching staff uses engine outputs in game preparation at least weekly
+- Documented instances where engine insights influenced tactical decisions
+- Case study and testimonials ready for external use
 
-**Why Marshall first:** Active pilot, direct access, D1 credibility, existing relationship.
+### Phase 2: First Professional Pilots (Months 6–12)
 
-### Phase 2: Expand to 5–10 College Programs (Months 4–12)
+**Objective:** Prove the product works in professional environments. Establish pricing reality.
 
-**Objective:** Prove repeatable sales and product-market fit beyond one customer.
+**Target: 2–3 professional clubs (MLS, USL, English lower leagues)**
 
-**Target customers:**
-- Power 4 programs with analytics budgets and data infrastructure
-- Programs connected to Marshall's coaching network
-- Programs that already use Wyscout + GPS (data is already there)
+Why these levels:
+- Large enough budgets to pay real prices ($50K+)
+- Sophisticated enough to evaluate the product rigorously
+- Accessible enough to establish direct coaching relationships
+- Media visibility that validates the product for larger clubs
 
 **Sales approach:**
-- Coach testimonials and case study from Marshall
-- Conference presentations (United Soccer Coaches convention, NSCAA)
-- Demo day targeting analytics directors
-- Pilot pricing: reduced first-year rate in exchange for feedback and case study rights
+- Case study from Marshall + demo of opponent analysis on the prospect's actual upcoming fixture
+- Pilot pricing: reduced first year in exchange for feedback and testimonial rights
+- Target analytics directors and head coaches directly — not IT departments
 
-**Product strategy:**
-- Lead with Hub (fast deployment, immediate value, low risk)
-- Upsell tracking + decision engine once Hub is adopted
-- Build coach advisory board from early customers (feedback loop + credibility)
+**Parallel: 5–10 additional college programs**
+- Expand via coaching networks from Marshall
+- Conference presentations (United Soccer Coaches convention)
+- Hub-only tier for programs that need immediate value before engine matures
 
-### Phase 3: Professional and International (Year 2+)
+### Phase 3: Scale Professional (Year 2–3)
 
-**Objective:** Move upmarket to higher-budget customers.
+**Objective:** Become the standard decision intelligence platform for professional clubs.
 
-**Target:** MLS, USL, English Championship, and 2nd-tier European leagues.
+**Target: Championship, Bundesliga 2, Serie B, Ligue 2, MLS**
 
 **Approach:**
-- Professional clubs have larger budgets and more sophisticated analytics staff
-- They can evaluate the product more rigorously — this is a feature, not a bug (validates quality)
-- Conference packages (offer to entire conferences for network effects in opponent modeling)
-- International expansion requires localization and region-specific sales presence
+- League and conference packages (network effects: more clubs in ecosystem = better opponent intelligence for everyone)
+- Coach advisory board from Phase 1–2 customers driving credibility
+- Annual contract renewals with upsell to higher tiers as simulation engine launches
+- Analyst community building: let analytics staff become advocates
+
+### Phase 4: Top Leagues and International (Year 3+)
+
+**Target: Big 5 leagues, international expansion**
+
+By this point:
+- Simulation engine is operational (multi-step search)
+- Opponent database covers major leagues
+- Product is validated by 50+ professional clubs
+- Premium tier ($150K+) justified by simulation capabilities no competitor offers
 
 ---
 
-## 8. Technical Architecture
+## 9. Technical Architecture
 
 ### System Overview
 
 ```
-VIDEO INPUT (Wyscout, tactical cam, broadcast)
+VIDEO INPUT
+(Broadcast, Wyscout, tactical cam, or third-party tracking data)
      │
      ▼
-┌─────────────────────────────────┐
-│    TRACKING LAYER               │
-│  YOLOv8 detection               │
-│  ByteTrack multi-object track   │
-│  Homography (pixel → meters)    │
-│  Team classification            │
-│  Player re-identification       │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│              TRACKING LAYER                   │
+│  Detection:   YOLOv8 + DETR transformer      │
+│  Tracking:    ByteTrack multi-object          │
+│  Calibration: Homography (manual + auto)      │
+│  Identity:    OSNet re-identification         │
+│  Output:      22 players + ball, x/y meters   │
+└──────────────────────────────────────────────┘
      │
      ▼
-┌─────────────────────────────────┐
-│    FEATURE EXTRACTION           │
-│  Ball position (continuous)     │
-│  Defensive behavior features    │
-│  Attacking features             │
-│  Context (score, time)          │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│           FEATURE EXTRACTION                  │
+│  Defensive: line height, compactness,         │
+│    press intensity, marking style, shift      │
+│  Attacking: width, depth, box presence        │
+│  Ball: continuous position, distance, angle   │
+│  Context: score, time, possession duration    │
+└──────────────────────────────────────────────┘
      │
      ▼
-┌─────────────────────────────────┐
-│    DECISION ENGINE              │
-│  Situation similarity matching  │
-│  Pass/shot/dribble evaluation   │
-│  Defensive gap analysis         │
-│  Game state scoring             │
-│  Outcome learning               │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│            DECISION ENGINE                    │
+│                                               │
+│  ┌─ Elimination Calculator                    │
+│  ├─ Defensive Force Model                     │
+│  ├─ Game State Evaluator                      │
+│  ├─ Option Generator + Evaluator              │
+│  ├─ Block Identifier                          │
+│  ├─ Similarity Engine (Phase 2)               │
+│  ├─ Outcome Learning (Phase 3)                │
+│  └─ Simulation Search (Phase 4)               │
+│                                               │
+│  Inputs: coordinates                          │
+│  Outputs: scores, options, recommendations,   │
+│           sequences, opponent profiles         │
+└──────────────────────────────────────────────┘
      │
      ▼
-┌─────────────────────────────────┐
-│    INTELLIGENCE HUB             │
-│  RAG (vector DB + LLM)          │
-│  Cross-source queries           │
-│  Report generation              │
-│  Alerts and recommendations     │
-└─────────────────────────────────┘
-     │
-     ▼
-COACHING STAFF INTERFACE
-(queries, reports, video clips, dashboards)
+┌──────────────────────────────────────────────┐
+│              OUTPUT LAYER                     │
+│                                               │
+│  Pre-match:   Opponent intelligence reports   │
+│  Post-match:  Decision analysis, player scores│
+│  Real-time:   Tactical suggestions            │
+│  Development: Player decision quality trends  │
+│  Scouting:    Prospect evaluation from video  │
+└──────────────────────────────────────────────┘
 ```
 
 ### Technology Stack
 
 | Component | Technology |
 |-----------|-----------|
-| Detection | YOLOv8 + DETR (transformer) |
+| Detection | YOLOv8 + DETR transformer |
 | Tracking | ByteTrack via Supervision |
 | Calibration | OpenCV + RANSAC + HRNet keypoint detection |
 | Re-identification | OSNet embeddings |
-| Decision engine | PyTorch, custom physics models |
-| Hub | RAG with vector database + LLM (Claude/GPT) |
+| 3D Ball Tracking | LSTM with Kalman filtering |
+| Trajectory prediction | Baller2Vec transformer |
+| Decision engine | PyTorch, custom physics + similarity models |
+| Intelligence Hub | RAG with vector database + LLM |
+| Search (future) | Monte Carlo Tree Search (MCTS) |
 | Backend | Express.js (Bun runtime), PostgreSQL, Prisma |
-| Infrastructure | GPU compute (RTX 3080+ for inference) |
 
-### Current Codebase
+### Codebase
 
 - **36,000+ lines** of production Python
-- Modular architecture
-- Well-documented build plans and technical specifications
+- Modular architecture across detection, tracking, calibration, decision engine, and training infrastructure
+- ~5,000 lines of training code covering 6 model types
+- Comprehensive build plans and technical specifications
 
 ---
 
-## 9. Development Roadmap
+## 10. Development Roadmap
 
-### Completed
+### What's Built
 
-- Player and ball detection pipeline
-- Multi-object tracking
-- Manual pitch calibration
-- Physical metrics calculation
-- Decision engine core modules (8 working modules)
-- Interactive tactical analysis UI
-- Marshall pilot active
+| Component | Status |
+|-----------|--------|
+| Player/ball detection pipeline | Working |
+| Multi-object tracking (ByteTrack) | Working |
+| Manual pitch calibration | Working |
+| Physical metrics extraction | Working |
+| Decision engine: 5 core modules | Working |
+| Interactive tactical analysis UI | Working |
+| Auto-calibration architecture | Built, needs validation |
+| Player re-ID, 3D ball, trajectory prediction | Built, need training/testing |
+| Training infrastructure (6 model types) | Built |
+| Marshall pilot | Active |
 
-### Next 12 Months
+### Development Phases
 
-| Phase | Timeframe | Deliverable | Dependency |
-|-------|-----------|-------------|------------|
-| Tracking validation | Months 1–2 | Position accuracy confirmed vs. GPS | GPS data access |
-| Auto-calibration | Months 1–3 | Process video without manual setup | Training data |
-| Hub deployment | Months 1–2 | Marshall Hub live, staff using weekly | Data ingestion |
-| Hub refinement | Months 2–4 | Iterate based on staff feedback | Usage data |
-| Tracking reliability | Months 3–4 | Maintain player identity across full matches | Re-ID testing |
-| Game model labeling | Months 3–5 | Label Marshall moments in tracking data | Coaching input |
-| Decision engine v1 | Months 4–6 | First automated game model measurements | Labeled data |
-| Similarity database | Months 5–8 | Retrieve similar historical situations | 1,000+ possessions |
-| Outcome learning | Months 6–10 | Adjust success rates from real data | Sufficient match data |
-| Second customer | Months 4–8 | Deploy Hub + tracking at second program | Marshall proof |
-| Production system | Months 8–12 | Fast queries, reports, video clip retrieval | Engine validation |
+| Phase | Timeframe | What Ships | What It Enables |
+|-------|-----------|-----------|-----------------|
+| **Tracking validation** | Months 1–3 | Confirmed accuracy vs. GPS; auto-calibration on Wyscout footage | Reliable spatial data for decision engine |
+| **Similarity engine** | Months 3–6 | Situation database with 1,000+ possessions; retrieval + outcome analysis | "In similar situations, what worked?" |
+| **Outcome learning** | Months 4–8 | Learned success rates from real data; skill-adjusted patterns | Physics → reality; engine stops guessing |
+| **Production system** | Months 6–10 | Fast queries (<1s), video clip retrieval, pre/post-match reports | Saleable product for professional clubs |
+| **Pattern library** | Months 8–12 | Attacking combinations (overlap, third-man, switch) + defensive vulnerabilities | Engine guided search, not blind search |
+| **Player profiles** | Months 8–14 | Physical, technical, mental attributes per player from tracking data | Realistic simulation; recruitment evaluation |
+| **Opponent modeling** | Months 10–16 | Feed opponent matches → learn their patterns → generate exploitation plans | Pre-match tactical plans from engine, not just analysts |
+| **Simulation engine** | Months 12–20 | Multi-step MCTS search; variable-depth tree exploration | The Stockfish moment: engine finds sequences humans miss |
 
-### 12–24 Months
+### What Each Phase Builds Toward Simulation
 
-- Expand to 10–25 customers
-- Professional club pilots
-- Simulation engine (multi-step search)
-- Player profiling at scale
-- Conference-level opponent modeling
+| Phase | What We Learn | How It Powers Search |
+|-------|---------------|---------------------|
+| Similarity engine | Core features work; situations can be matched | Defines state representation |
+| Outcome learning | Actual success rates, not physics guesses | Accurate branch evaluation |
+| Pattern library | Known good sequences, known vulnerabilities | Opening book for guided search |
+| Player profiles | What each player can actually execute | Realistic simulation constraints |
+| Opponent modeling | How specific defenses react | Opponent-specific search trees |
+| Simulation engine | All of the above combined | Full tactical search and planning |
 
 ---
 
-## 10. Key Risks
+## 11. Key Risks
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| **Auto-calibration fails on varied footage** | Medium | High — can't scale without it | Fall back to semi-manual; invest in better keypoint detector; Wyscout API for camera metadata |
-| **Tracking loses player identity too often** | Medium | High — data not usable for decisions | Focus on key sequences first; aggressive re-ID; quality thresholds |
-| **Physics predictions don't match reality** | Medium | Medium — engine gives bad advice early | Expected — this is why outcome learning exists; iterative improvement |
-| **Coaches don't trust AI outputs** | Low–Medium | High — no adoption | Face validity testing first; show video evidence alongside numbers; position as augmentation, not replacement |
-| **Competitor builds similar system** | Low–Medium | Medium | First-mover advantage; data moat; program-specific knowledge; patent key innovations |
-| **Sales cycle too long for college programs** | Medium | Medium | Lead with Hub (fast value, low risk); reduce friction with pilot pricing |
-| **Training data insufficient** | Medium | Medium — poor generalizations | Start with Marshall data; expand carefully; validate on held-out matches |
-| **Key person risk** | High (early) | High | Document everything; modular codebase; hire early |
+| **Auto-calibration fails on varied footage** | Medium | High | Semi-manual fallback; invest in better keypoint model; accept tracking data from third parties |
+| **Tracking loses player identity** | Medium | High | Focus on key sequences (not full 90'); aggressive re-ID; for clubs with existing tracking data, bypass entirely |
+| **Physics predictions don't match reality** | Medium | Medium | Expected and planned for — entire Phase 2–3 exists to close this gap |
+| **Professional clubs won't buy from a startup** | Medium | High | Marshall case study; pilot pricing; coach advisory board; start with lower leagues and work up |
+| **Sales cycle too long** | Medium | Medium | Hub as fast-value wedge ($25K, 4–6 week deployment); reduce risk for buyer |
+| **Competitor builds similar system** | Low–Medium | Medium | First-mover; data flywheel; 36K lines head start; network effects in opponent database |
+| **Coaches don't trust AI** | Low–Medium | High | Position as augmentation not replacement; show video evidence alongside every recommendation; face validity testing |
+| **Search complexity too high for real-time** | Medium | Medium | Pre-compute common situations; shallow search for real-time, deep search for pre-match; cloud GPU for heavy analysis |
+| **Key person risk** | High (early) | High | Documented architecture; modular codebase; hire ML engineer early |
 
 ---
 
-## 11. Financial Plan
+## 12. Financial Plan
 
-### Startup Costs (Year 1)
+### Year 1 Costs
 
 | Category | Cost | Notes |
 |----------|------|-------|
-| Engineering (primary) | $120K | Salary + benefits, 1 full-time |
-| Cloud compute (GPU) | $20K | Development and inference |
-| Data and licensing (Wyscout API, tools) | $10K | Access for development |
-| Infrastructure (servers, databases) | $15K | Hosting and storage |
-| **Total Year 1 Investment** | **$165K** | Before revenue |
+| Engineering (primary developer) | $120K | Full-time |
+| Cloud compute (GPU training + inference) | $25K | Scales with usage |
+| Data access (Wyscout API, tracking data) | $15K | Development access |
+| Infrastructure (servers, DB, storage) | $15K | Baseline hosting |
+| Sales (conferences, travel, demos) | $20K | United Soccer Coaches, analyst conferences |
+| Legal and admin | $5K | Contracts, IP |
+| **Total Year 1** | **$200K** | Before revenue |
 
-### Ongoing Monthly Costs (Operational)
+### Monthly Run Rate (Operational)
 
 | Item | Monthly Cost |
 |------|-------------|
-| Cloud compute (inference) | $2K–$5K |
-| Data APIs (Wyscout, etc.) | $1K–$2K |
-| Infrastructure (servers, storage) | $1K–$2K |
+| Cloud compute (inference serving) | $3K–$8K |
+| Data APIs | $1K–$3K |
+| Infrastructure | $1K–$3K |
 | LLM API (Hub queries) | $500–$2K |
 | Tools and licenses | $500 |
-| **Total baseline** | **$5K–$11K/month** |
+| **Total baseline** | **$6K–$16K/month** |
 
-Costs scale with customer count (more inference, more API calls) but gross margin remains 80%+ at target pricing.
+Scales with customer count but gross margin remains 80%+ at target pricing.
 
 ### Path to Profitability
 
-| Year | Revenue | Costs | Net |
-|------|---------|-------|-----|
-| Year 1 | $200K | $230K | –$30K |
-| Year 2 | $1.2M | $500K (team growth) | +$700K |
-| Year 3 | $4.5M | $1.5M (team + infra) | +$3M |
+| Year | Revenue | Total Costs | Net | Headcount |
+|------|---------|-------------|-----|-----------|
+| Year 1 | $250K | $280K | –$30K | 1–2 |
+| Year 2 | $1.5M | $650K | +$850K | 3–5 |
+| Year 3 | $4.5M | $1.8M | +$2.7M | 8–12 |
+| Year 5 | $15M | $5M | +$10M | 20–30 |
 
-Breakeven expected in Year 1–2 depending on hiring pace.
+Cash-flow positive by end of Year 1 / early Year 2 depending on hiring pace.
 
 ---
 
-## 12. Funding
+## 13. Funding
 
 ### Current Stage
 
-Pre-seed / seed. Active pilot at Marshall University validating the platform. 36,000+ lines of production code. Working decision engine and tracking pipeline.
+Pre-seed. Active D1 pilot. 36,000+ lines of production code. Working decision engine with five core modules. Tracking pipeline operational.
 
-### Seed Round Target
+### Seed Round
 
-**Raising:** $500K
-
-**Use of funds:**
+**Target raise:** $500K
 
 | Allocation | Amount | Purpose |
 |-----------|--------|---------|
-| Engineering | $300K (60%) | Tracking reliability, outcome learning, simulation engine, Hub refinement |
-| Pilot expansion | $100K (20%) | 3–5 additional teams, onboarding, support |
-| Sales and marketing | $75K (15%) | Conference presence, demos, content |
-| Operations | $25K (5%) | Legal, infrastructure, admin |
+| Engineering (60%) | $300K | ML engineer hire; tracking reliability; outcome learning; similarity engine |
+| Pilot expansion (20%) | $100K | 2–3 professional club pilots + 5 college programs; onboarding and support |
+| Sales + marketing (15%) | $75K | Conference circuit; analyst community; demo infrastructure |
+| Operations (5%) | $25K | Legal, IP protection, infrastructure, admin |
 
-**Milestones for seed:**
+**Milestones this round funds:**
 
-- Tracking accuracy validated against GPS
-- 3+ pilot teams with positive feedback
-- First revenue (even small)
-- Clear path to Series A metrics (10+ customers, $500K+ ARR)
+1. Tracking accuracy validated against GPS ground truth
+2. Similarity engine operational with 1,000+ possession database
+3. 2+ professional club pilots with positive coaching feedback
+4. First $500K+ in contracted ARR
+5. Outcome learning producing measurably better recommendations than physics alone
+6. Series A ready: 10+ customers, proven product-market fit, clear scaling path
 
 ---
 
-## 13. Team and Hiring
+## 14. Team
 
 ### Current
 
-*[Founder details to be filled in]*
+Technical capabilities: ML/computer vision, full-stack engineering, football domain expertise.
 
-Technical capabilities: ML/computer vision, full-stack engineering, football domain knowledge.
-
-### Key Hires (with funding)
+### Key Hires
 
 | Role | Priority | Why |
 |------|----------|-----|
-| ML Engineer | High | Tracking reliability, outcome learning, model training |
-| Sales / Business Development | High | College program relationships, conference circuit |
-| Football Domain Expert | Medium | Coaching credibility, product direction, face validity |
-| Frontend / Product | Medium | Customer-facing interface, dashboard, reports |
+| ML Engineer | Critical | Tracking reliability, similarity engine, outcome learning, model training |
+| Sales / BD (football network) | Critical | Professional club relationships, conference circuit, pilot management |
+| Football Domain Expert | High | Coaching credibility with professional staff; product direction; face validity |
+| Frontend / Product Engineer | High | Customer-facing dashboards, report generation, query interface |
 
 ---
 
-## 14. Why Now
+## 15. Why Now
 
-1. **Tracking technology matured** — YOLOv8, ByteTrack, and transformer models make broadcast-quality tracking feasible for the first time outside elite clubs
-2. **Analytics adoption accelerating** — even mid-tier college programs now have data staff and analytics budgets
-3. **Event data is commoditized** — everyone has Wyscout; the next edge must come from a different data layer
-4. **Decision analysis is the frontier** — coaches know they need this; nobody is selling it as a product
-5. **AI/ML infrastructure is cheap** — GPU compute, model training, and deployment are accessible to startups
-6. **LLMs enable the Hub** — RAG + vector search makes cross-source intelligence practical without building custom NLP from scratch
-
----
-
-## 15. Long-Term Vision
-
-**Year 1:** Prove decision-level analysis delivers coaching value. Establish Marshall as a reference customer.
-
-**Year 3:** Standard tool for serious programs. "We use tactical intelligence the way we use GPS tracking."
-
-**Year 5:** Market leader in decision analytics. 200+ teams. The way football understands decisions changes — not "did the pass work" but "was it the right pass given all options."
-
-**Long-term:** Every player gets objective feedback on every decision. Development becomes quantified. Scouting evaluates decision quality, not just physical output. The simulation engine finds optimal tactical sequences no human would discover.
+1. **Tracking technology matured** — YOLOv8, ByteTrack, DETR make broadcast-quality tracking feasible outside elite clubs for the first time
+2. **Event data is fully commoditized** — Wyscout is universal; the next edge must come from a different data layer
+3. **Decision analysis is the acknowledged frontier** — coaches and analysts know this is what's needed; nobody is selling it
+4. **Professional club analytics spend is accelerating** — Championship clubs now employ 3–5 analysts; even League One has data staff
+5. **Player salaries make analytics trivial by comparison** — $75K/year for better decisions on a $20M+ wage bill is obvious ROI
+6. **AI/ML infrastructure is accessible** — GPU compute, model training, LLMs for Hub — all available to startups at manageable cost
+7. **TacticAI proved the concept** — DeepMind's research validated similarity-based tactical retrieval; Taka is building the product
 
 ---
 
-## 16. Relationship to Taka Game
+## 16. Long-Term Vision
 
-Taka Tech and the Taka board game are separate product lines under the same parent. They share a name and a founding insight — that football is fundamentally about decision-making — but they serve different customers, have different business models, and operate on different timelines.
+**Year 1:** Prove decision-level analysis delivers coaching value. Marshall reference customer. First professional pilots.
+
+**Year 3:** Standard tool for serious clubs. Outcome learning producing insights no human analysis can match. "We use decision intelligence the way we use GPS tracking."
+
+**Year 5:** 180+ clubs. Simulation engine operational. Engine generates pre-match tactical plans and finds exploitation sequences. Decision quality scoring transforms player development and scouting.
+
+**Long-term:** The engine changes how football understands tactics. Not "did the pass work" but "was it the right pass given all options." Every player gets objective feedback on every decision. Scouting evaluates decision quality, not just physical output. The simulation engine discovers novel tactical sequences — attacking combinations and defensive structures that human coaches haven't imagined.
+
+This is the Stockfish of football. The engine that thinks ahead, learns from reality, and gets smarter with every match it analyzes.
+
+---
+
+## 17. Relationship to Taka Game
+
+Taka Tech and the Taka board game are separate product lines under the same parent. They share a founding insight — football is fundamentally about decisions — but serve different customers with different models.
 
 | Dimension | Taka Game | Taka Tech |
 |-----------|-----------|-----------|
-| Customer | Consumers (players, fans) | Programs and clubs (B2B) |
-| Revenue model | DTC + digital subscriptions | B2B SaaS subscriptions |
-| Timeline | Near-term launch | Ongoing development |
+| Customer | Consumers (players, fans, coaches) | Professional clubs and programs (B2B) |
+| Revenue | DTC sales + digital subscriptions | B2B SaaS subscriptions |
+| Core value | Competitive tactical entertainment | Coaching intelligence and tactical edge |
 | Dependencies | Independent | Independent |
 
-**Potential synergies (future, not near-term):**
-
-- The game builds brand recognition in the football tactics community, which includes coaches who are Taka Tech's customers
-- Decision engine research may inform game design (balance, meta)
-- Football community credibility transfers between products
-
-These synergies are real but secondary. Each product must stand on its own merits.
+The game builds brand recognition in the football tactics community, which includes coaches and analysts who are Taka Tech's buyers. Decision engine research may inform game balance and meta-development. These synergies are real but secondary — each product stands on its own.
 
 ---
 
 ## Summary
 
-- **Problem:** Football analytics is stuck at events; coaches can't evaluate decision quality at scale
-- **Solution:** A platform that analyzes every option, evaluates decisions against optimal play, and learns from real outcomes
-- **Market:** $260M+ TAM across college and professional football
-- **Traction:** 36K+ lines of code, working engine, active D1 pilot
-- **Business model:** B2B SaaS, $15K–$150K/year per customer, 80%+ gross margins
-- **Moat:** Outcome learning flywheel, program-specific accumulated knowledge, opponent database network effects
-- **Ask:** $500K seed to validate tracking, expand pilots, reach first revenue
-- **Vision:** Decision analytics becomes the standard — Taka Tech defines the category
+**The problem:** Football analytics answers "what happened" but not "what should have happened." Decision quality — the thing that actually determines match outcomes — is unmeasured.
+
+**The product:** A decision engine that evaluates every option, learns what works from real data, and ultimately searches multi-step sequences to find optimal tactical paths. The Stockfish of football.
+
+**The market:** $283M+ TAM. Professional clubs are the primary customer — they have the budgets, the analyst staff, and the acute need for tactical edge.
+
+**The traction:** 36K+ lines of production code. Five working engine modules. Active D1 pilot. Tracking pipeline operational.
+
+**The moat:** Outcome learning flywheel. Opponent database network effects. Situation library that compounds with every match analyzed.
+
+**The model:** B2B SaaS, $25K–$150K/year, 80%+ gross margins, < 6 month payback.
+
+**The ask:** $500K seed to validate tracking, build similarity engine, land professional pilots, reach $500K+ ARR.
+
+**The vision:** Decision analytics becomes the standard. Taka Tech defines the category.
