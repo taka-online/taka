@@ -1,4 +1,4 @@
-# TAKA — Business Plan
+# TAKA Game — Business Plan
 
 ---
 
